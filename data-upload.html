@@ -235,11 +235,6 @@
             box-shadow: 0 5px 15px rgba(30, 58, 138, 0.3);
         }
         
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
         .data-info {
             background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
             padding: 20px;
@@ -279,28 +274,6 @@
             max-height: 200px;
             overflow-y: auto;
         }
-        
-        @media (max-width: 768px) {
-            .content {
-                padding: 30px 25px;
-            }
-            
-            .main-title {
-                font-size: 2.2em;
-            }
-            
-            .nav-menu ul {
-                flex-direction: column;
-            }
-            
-            .chart-wrapper {
-                height: 300px;
-            }
-            
-            .file-upload {
-                padding: 25px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -320,7 +293,7 @@
         </nav>
         
         <div class="content">
-            <h1 class="page-title">Upload Your Data & Create Charts</h1>
+            <h1 class="page-title">📊 Upload Your Data & Create Charts</h1>
             
             <div class="data-info">
                 <p><strong>Supported formats:</strong> CSV files with columns for Date, Small_Particles, Large_Particles, Temperature, Humidity, etc.</p>
@@ -329,7 +302,7 @@
             
             <!-- File Upload Section -->
             <div class="upload-section">
-                <h3 class="chart-title">📊 Upload Your CSV Data</h3>
+                <h3 class="chart-title">📁 Drag & Drop Your CSV File Here</h3>
                 <div class="file-upload" id="fileUpload">
                     <div class="upload-icon">📁</div>
                     <div class="upload-text">Drag & Drop your CSV file here</div>
