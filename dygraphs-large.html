@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROCIS - Data Visualization</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #3b82f6 100%);
+            min-height: 100vh;
+            color: #1f2937;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 60px rgba(30, 58, 138, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #3b82f6 100%);
+            padding: 50px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .main-title {
+            font-size: 3.2em;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+            text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+            letter-spacing: -0.5px;
+            position: relative;
+            z-index: 1;
+            line-height: 1.2;
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .nav-menu {
+            background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%);
+            padding: 0;
+        }
+        
+        .nav-menu ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .nav-menu a {
+            display: block;
+            padding: 24px 32px;
+            text-decoration: none;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            font-size: 0.9em;
+        }
+        
+        .nav-menu a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .nav-menu a.active {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .content {
+            padding: 50px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        }
+        
+        .page-title {
+            font-size: 2.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            margin: 25px 0;
+            box-shadow: 0 8px 30px rgba(30, 58, 138, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            position: relative;
+        }
+        
+        .chart-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #1e3a8a, #3b82f6);
+            border-radius: 16px 16px 0 0;
+        }
+        
+        .chart-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #1e3a8a;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(30, 58, 138, 0.3);
+        }
+        
+        .data-info {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 4px solid #1e3a8a;
+        }
+        
+        .cohort-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .cohort-btn {
+            padding: 8px 16px;
+            background: #f1f5f9;
+            color: #1e3a8a;
+            border: 2px solid #1e3a8a;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85em;
+        }
+        
+        .cohort-btn:hover, .cohort-btn.active {
+            background: #1e3a8a;
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                padding: 30px 25px;
+            }
+            
+            .main-title {
+                font-size: 2.2em;
+            }
+            
+            .nav-menu ul {
+                flex-direction: column;
+            }
+            
+            .chart-wrapper {
+                height: 300px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="main-title">ROCIS Low Cost Monitoring Project</h1>
+            <h2 class="subtitle">Data Visualization and Knowledge Base</h2>
+        </div>
+        
+        <nav class="nav-menu">
+            <ul>
+                <li><a href="index.html">HOME</a></li>
+                <li><a href="dygraphs-large.html" class="active">DYGRAPHS OUTDOORS (LARGE)</a></li>
+                <li><a href="dygraphs-small.html">DYGRAPHS OUTDOORS (SMALL)</a></li>
+            </ul>
+        </nav>
+        
+        <div class="content">
+            <h1 class="page-title">Outdoor Particle Count Data</h1>
+            
+            <div class="data-info">
+                <p><strong>Interactive Visualization:</strong> This chart shows 15-minute average small/large particle count over time. Use the controls below to explore different cohorts and data views.</p>
+            </div>
+            
+            <!-- Cohort Selection -->
+            <div class="cohort-buttons">
+                <button class="cohort-btn active" onclick="selectCohort('01')">Cohort 01</button>
+                <button class="cohort-btn" onclick="selectCohort('02')">Cohort 02</button>
+                <button class="cohort-btn" onclick="selectCohort('03')">Cohort 03</button>
+                <button class="cohort-btn" onclick="selectCohort('04')">Cohort 04</button>
+                <button class="cohort-btn" onclick="selectCohort('05')">Cohort 05</button>
+                <button class="cohort-btn" onclick="selectCohort('06')">Cohort 06</button>
+                <button class="cohort-btn" onclick="selectCohort('07')">Cohort 07</button>
+                <button class="cohort-btn" onclick="selectCohort('08')">Cohort 08</button>
+                <button class="cohort-btn" onclick="selectCohort('09')">Cohort 09</button>
+                <button class="cohort-btn" onclick="selectCohort('10')">Cohort 10</button>
+            </div>
+            
+            <!-- Main Chart -->
+            <div class="chart-container">
+                <h3 class="chart-title">Particle Count Over Time - Cohort 01</h3>
+                <div class="chart-wrapper">
+                    <canvas id="particleChart"></canvas>
+                </div>
+                <div class="controls">
+                    <button class="btn" onclick="toggleScale()">Toggle Linear/Log Scale</button>
+                    <button class="btn" onclick="addRandomData()">Add Sample Data</button>
+                    <button class="btn" onclick="resetChart()">Reset Chart</button>
+                </div>
+            </div>
+            
+            <!-- Secondary Chart -->
+            <div class="chart-container">
+                <h3 class="chart-title">Daily Averages Comparison</h3>
+                <div class="chart-wrapper">
+                    <canvas id="dailyChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="data-info">
+                <h4 style="color: #1e3a8a; margin-bottom: 10px;">Data Quality Scale:</h4>
+                <ul style="margin-left: 20px; color: #374151;">
+                    <li><strong>0-75:</strong> Excellent</li>
+                    <li><strong>76-150:</strong> Very Good</li>
+                    <li><strong>151-300:</strong> Good</li>
+                    <li><strong>300-1050:</strong> Fair</li>
+                    <li><strong>1051-2999:</strong> Poor</li>
+                    <li><strong>3000+:</strong> Very Poor</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let particleChart;
+        let dailyChart;
+        let currentCohort = '01';
+        let isLogScale = false;
+        
+        // Sample data generation
+        function generateSampleData(days = 30) {
+            const data = [];
+            const labels = [];
+            const now = new Date();
+            
+            for (let i = days; i >= 0; i--) {
+                const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+                labels.push(date.toLocaleDateString());
+                
+                // Generate realistic particle count data
+                const baseValue = Math.random() * 200 + 50;
+                const variation = Math.random() * 100 - 50;
+                data.push(Math.max(0, baseValue + variation));
+            }
+            
+            return { labels, data };
+        }
+        
+        // Initialize charts
+        function initCharts() {
+            const ctx1 = document.getElementById('particleChart').getContext('2d');
+            const ctx2 = document.getElementById('dailyChart').getContext('2d');
+            
+            const sampleData = generateSampleData();
+            
+            particleChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: sampleData.labels,
+                    datasets: [{
+                        label: 'Small Particles',
+                        data: sampleData.data,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Large Particles',
+                        data: sampleData.data.map(d => d * 0.7 + Math.random() * 20),
+                        borderColor: '#1e3a8a',
+                        backgroundColor: 'rgba(30, 58, 138, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(30, 58, 138, 0.9)',
+                            titleColor: 'white',
+                            bodyColor: 'white'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Particle Count'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Daily averages chart
+            dailyChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'Average Particle Count',
+                        data: [120, 98, 156, 142],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(30, 58, 138, 0.8)',
+                            'rgba(37, 99, 235, 0.8)',
+                            'rgba(29, 78, 216, 0.8)'
+                        ],
+                        borderColor: '#1e3a8a',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Average Count'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Chart control functions
+        function selectCohort(cohortNum) {
+            currentCohort = cohortNum;
+            
+            // Update active button
+            document.querySelectorAll('.cohort-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update chart title
+            document.querySelector('.chart-title').textContent = `Particle Count Over Time - Cohort ${cohortNum}`;
+            
+            // Generate new data for the selected cohort
+            const newData = generateSampleData();
+            particleChart.data.labels = newData.labels;
+            particleChart.data.datasets[0].data = newData.data;
+            particleChart.data.datasets[1].data = newData.data.map(d => d * 0.7 + Math.random() * 20);
+            particleChart.update();
+        }
+        
+        function toggleScale() {
+            isLogScale = !isLogScale;
+            particleChart.options.scales.y.type = isLogScale ? 'logarithmic' : 'linear';
+            particleChart.update();
+        }
+        
+        function addRandomData() {
+            const newData = generateSampleData(5);
+            particleChart.data.labels.push(...newData.labels);
+            particleChart.data.datasets[0].data.push(...newData.data);
+            particleChart.data.datasets[1].data.push(...newData.data.map(d => d * 0.7 + Math.random() * 20));
+            particleChart.update();
+        }
+        
+        function resetChart() {
+            const resetData = generateSampleData();
+            particleChart.data.labels = resetData.labels;
+            particleChart.data.datasets[0].data = resetData.data;
+            particleChart.data.datasets[1].data = resetData.data.map(d => d * 0.7 + Math.random() * 20);
+            particleChart.update();
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initCharts);
+    </script>
+</body>
+</html>
