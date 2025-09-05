@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ROCIS LCMP – Data Explorer</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+  <nav class="nav">
+    <div class="container nav__inner">
+      <a class="brand" href="./">ROCIS LCMP</a>
+      <div class="nav__links">
+        <a href="./cohorts.html">Cohorts</a> • 
+        <a href="./about.html">About</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="explorer-layout">
+    <aside class="sidebar">
+      <h3>📊 Dataset Controls</h3>
+      <div class="control-group">
+        <label for="csvSelect">Select Dataset:</label>
+        <select id="csvSelect">
+          <option value="">Loading datasets...</option>
+        </select>
+      </div>
+
+      <h3>📅 Time Range</h3>
+      <div class="control-group">
+        <label for="dateStart">Start Date:</label>
+        <input type="datetime-local" id="dateStart">
+      </div>
+      <div class="control-group">
+        <label for="dateEnd">End Date:</label>
+        <input type="datetime-local" id="dateEnd">
+      </div>
+      <div class="quick-buttons">
+        <button class="quick-btn" id="quickFull">Full Range</button>
+        <button class="quick-btn" id="quick7d">Last 7 Days</button>
+        <button class="quick-btn" id="quick3d">Last 3 Days</button>
+        <button class="quick-btn" id="quick1d">Last 24h</button>
+      </div>
+
+      <h3>⚙️ Display Settings</h3>
+      <div class="control-group">
+        <label for="scale">Y-axis Scale:</label>
+        <select id="scale">
+          <option value="linear">Linear</option>
+          <option value="log">Logarithmic</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label for="decimate">Data Decimation:</label>
+        <input type="range" id="decimate" min="1" max="20" value="1" step="1">
+        <small id="decimateValue">1 (all points)</small>
+      </div>
+      <div class="control-group">
+        <label for="smooth">Data Smoothing:</label>
+        <input type="range" id="smooth" min="1" max="20" value="1" step="1">
+        <small id="smoothValue">1 (no smoothing)</small>
+      </div>
+
+      <h3>📈 Series Selection</h3>
+      <div class="control-group">
+        <input type="text" id="seriesSearch" placeholder="Search series...">
+      </div>
+      <div id="seriesPanel" class="series-panel">
+        <p>Loading series...</p>
+      </div>
+    </aside>
+
+    <main class="chart-container">
+      <div class="chart-header">
+        <h2 class="chart-title" id="chartTitle">ROCIS LCMP Data</h2>
+        <div class="chart-controls">
+          <select id="chartType">
+            <option value="lines">Line Chart</option>
+            <option value="scatter">Scatter Plot</option>
+            <option value="bar">Bar Chart</option>
+          </select>
+          <a href="#" class="download-btn" id="downloadBtn">
+            📥 Download CSV
+          </a>
+        </div>
+      </div>
+      
+      <div class="stats-grid" id="statsGrid" style="display: none;">
+        <!-- Stats will be populated here -->
+      </div>
+      
+      <div id="chart"></div>
+      <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading data...</p>
+      </div>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+  <script>
+    // Initialize the enhanced data explorer
+    document.addEventListener('DOMContentLoaded', () => {
+      new ROCIS.DataExplorer();
+    });
+  </script>
+</body>
+</html>
