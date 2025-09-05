@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Cohorts – Large | ROCIS LCMP</title>
-  <link rel="stylesheet" href="assets/style.css" />
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
@@ -71,7 +71,7 @@
     </div>
   </div>
 
-  <script src="assets/charts.js"></script>
+  <script src="charts.js"></script>
   <script>
     const cardsEl = document.getElementById("cards");
     const searchEl = document.getElementById("search");
@@ -79,7 +79,7 @@
 
     function cardTemplate(d) {
       return `
-        <article class="card card--dataset" data-title="${d.title.toLowerCase()}">
+        <article class="card card--dataset">
           <div class="card__row">
             <div>
               <div class="badge badge--large">Large</div>
@@ -99,11 +99,13 @@
       const q = (searchEl.value || "").toLowerCase().trim();
       const filtered = DATASETS.filter(d => !q || d.title.toLowerCase().includes(q) || String(d.cohort).includes(q));
       cardsEl.innerHTML = filtered.length ? filtered.map(cardTemplate).join("") : '<div class="card">No datasets found.</div>';
-      cardsEl.querySelectorAll("[data-open]").forEach(btn => btn.addEventListener("click", () => openModal(btn.dataset.path, btn.dataset.title)));
+      cardsEl.querySelectorAll("[data-open]").forEach(btn => {
+        btn.addEventListener("click", () => openModal(btn.dataset.path, btn.dataset.title));
+      });
     }
 
     async function loadManifest() {
-      const resp = await fetch("Data/manifest_large.json");   // <-- relative path (no leading slash)
+      const resp = await fetch("Data/manifest_large.json");  // relative path
       const man = await resp.json();
       DATASETS = (man.datasets || []).slice().sort((a,b) => b.cohort - a.cohort);
       renderCards();
@@ -112,7 +114,7 @@
     searchEl.addEventListener("input", renderCards);
     loadManifest();
 
-    // Modal logic
+    // Modal handlers
     const modal = document.getElementById("modal");
     const modalBackdrop = document.getElementById("modalBackdrop");
     const modalClose = document.getElementById("modalClose");
@@ -153,9 +155,12 @@
     }
     modalBackdrop.addEventListener("click", closeModal);
     modalClose.addEventListener("click", closeModal);
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && modal.getAttribute("aria-hidden") === "false") closeModal(); });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modal.getAttribute("aria-hidden") === "false") closeModal();
+    });
   </script>
 </body>
 </html>
+
 
 
