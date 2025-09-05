@@ -12,7 +12,7 @@ function parseCsv(text) {
   });
 }
 
-// Build chart from CSV path (hosted in /data)
+// Build chart from CSV path (hosted in /Data)
 async function initCsvChart(opts) {
   const {
     csvPath, chartEl, title,
@@ -31,7 +31,7 @@ async function initCsvChart(opts) {
   });
 }
 
-// Build chart from a CSV text (used by both hosted and upload flows)
+// Build chart from CSV text
 async function buildFromText(text, controls) {
   const {
     chartEl, title, xLabel, yLabel,
@@ -48,14 +48,13 @@ async function buildFromText(text, controls) {
   const timeCol = columns[0];
   const seriesCols = columns.slice(1);
 
-  // parse x-axis
   const x = rows.map(r => {
     const t = r[timeCol];
     const dt = new Date(t);
     return isNaN(dt.getTime()) ? t : dt;
   });
 
-  // build series panel (checkbox list)
+  // series checkbox panel
   const panel = document.getElementById(seriesPanelEl);
   panel.innerHTML = "";
   seriesCols.forEach((col, idx) => {
@@ -77,8 +76,7 @@ async function buildFromText(text, controls) {
   const chartNode = document.getElementById(chartEl);
 
   function getActiveSeries() {
-    return [...panel.querySelectorAll("input[type=checkbox]")]
-      .filter(cb => cb.checked).map(cb => cb.value);
+    return [...panel.querySelectorAll("input[type=checkbox]")].filter(cb => cb.checked).map(cb => cb.value);
   }
 
   function filterByDate(xVals) {
@@ -96,7 +94,6 @@ async function buildFromText(text, controls) {
     return { x: xFiltered, mask };
   }
 
-  // derive y series
   function seriesData(activeCols, mask, step, smooth) {
     const traces = [];
     activeCols.forEach(col => {
@@ -109,11 +106,9 @@ async function buildFromText(text, controls) {
         xUse = x.filter((_, i) => mask[i]);
         yUse = y.filter((_, i) => mask[i]);
       }
-      // decimate
       xUse = decimate(xUse, step);
       yUse = decimate(yUse, step);
 
-      // smoothing (simple moving average)
       if (smooth && smooth > 1) {
         const smY = [];
         for (let i = 0; i < yUse.length; i++) {
@@ -140,7 +135,6 @@ async function buildFromText(text, controls) {
     return traces;
   }
 
-  // Render function
   function render() {
     const scale = document.getElementById(scaleEl)?.value || "linear";
     const step = Number(document.getElementById(decimateEl)?.value || "1");
@@ -152,17 +146,16 @@ async function buildFromText(text, controls) {
 
     const layout = {
       title: { text: title },
-      xaxis: { title: xLabel, showspikes: true, spikemode: "across", rangeselector: { visible: false } },
+      xaxis: { title: xLabel, showspikes: true, spikemode: "across" },
       yaxis: { title: yLabel, type: scale },
       margin: { l: 64, r: 16, t: 52, b: 84 },
-      legend: { orientation: "h", y: -0.25 }, // legend below chart
+      legend: { orientation: "h", y: -0.25 },
       height: 680
     };
     const config = { responsive: true, displaylogo: false, modeBarButtonsToAdd: ["toImage","select2d","lasso2d"] };
     Plotly.react(chartNode, traces, layout, config);
   }
 
-  // Search filter for series
   const search = document.getElementById(seriesSearchEl);
   if (search) {
     search.addEventListener("input", () => {
@@ -174,11 +167,10 @@ async function buildFromText(text, controls) {
     });
   }
 
-  // Quick range buttons
   function setRange(days) {
-    const minTime = x[0] instanceof Date ? x[0].getTime() : new Date(x[0]).getTime();
     const end = x[x.length - 1] instanceof Date ? x[x.length - 1].getTime() : new Date(x[x.length - 1]).getTime();
-    const start = days === "full" ? minTime : end - days*24*60*60*1000;
+    const start = days === "full" ? (x[0] instanceof Date ? x[0].getTime() : new Date(x[0]).getTime())
+                                  : end - days*24*60*60*1000;
     if (document.getElementById(dateStartEl)) document.getElementById(dateStartEl).value = new Date(start).toISOString().slice(0,16);
     if (document.getElementById(dateEndEl)) document.getElementById(dateEndEl).value = new Date(end).toISOString().slice(0,16);
     render();
@@ -188,7 +180,6 @@ async function buildFromText(text, controls) {
   if (quick3dEl) document.getElementById(quick3dEl).onclick = () => setRange(3);
   if (quick1dEl) document.getElementById(quick1dEl).onclick = () => setRange(1);
 
-  // Input listeners
   ["change","input"].forEach(evt => {
     [scaleEl, decimateEl, smoothEl, dateStartEl, dateEndEl].forEach(id => {
       const el = document.getElementById(id);
@@ -197,36 +188,5 @@ async function buildFromText(text, controls) {
   });
   panel.addEventListener("change", render);
 
-  // Initial render
   render();
-}
-
-// Upload flow for the board (local CSV)
-function initUploadToBoard(opts) {
-  const { fileEl } = opts;
-  const input = document.getElementById(fileEl);
-  input.addEventListener("change", async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const text = await file.text();
-    await buildFromText(text, opts);
-  });
-}
-
-// Visualization Board dataset loader (from /data/manifest.json)
-async function loadBoardDataset(manifestPath, selectEl, onChange) {
-  const resp = await fetch(manifestPath);
-  const man = await resp.json();
-  const sel = document.getElementById(selectEl);
-  man.datasets.forEach(d => {
-    const opt = document.createElement("option");
-    opt.value = d.path;
-    opt.textContent = d.title;
-    sel.appendChild(opt);
-  });
-  sel.onchange = () => onChange(sel.value, sel.selectedOptions[0]?.textContent);
-  if (man.datasets.length) {
-    sel.value = man.datasets[0].path;
-    onChange(sel.value, man.datasets[0].title);
-  }
 }
