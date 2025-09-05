@@ -1,46 +1,40 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ROCIS LCMP – Home</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <nav class="nav">
-    <div class="nav__inner container">
-      <a class="brand" href="./"><b>ROCIS</b> LCMP</a>
+    <div class="container nav__inner">
+      <a class="brand" href="./">ROCIS LCMP</a>
       <div class="nav__links">
         <a href="./large.html">Large</a> • <a href="./small.html">Small</a>
       </div>
     </div>
   </nav>
 
-  <section class="hero">
-    <div class="hero__inner container">
+  <main class="container">
+    <header class="hero">
       <h1>ROCIS Low Cost Monitoring Project</h1>
       <p>Browse cohorts and visualize Dylos time-series data. Download the CSVs or open the visualizer for interactive controls.</p>
-      <p class="badge" style="margin-top:12px;">Legend toggle • Search • Date filters • Linear/Log • Moving average • Decimate</p>
-    </div>
-  </section>
+    </header>
 
-  <main class="container">
-    <div class="grid">
-      <div class="card">
-        <div class="card__title"><strong>Large Dylos Data</strong><span class="badge">Cohorts</span></div>
+    <section class="grid">
+      <article class="card">
+        <h3 class="card__title">Large Dylos Data <span class="badge">Cohorts</span></h3>
         <p>All cohorts available for the Large device. View the grid and open the visualizer.</p>
-        <div class="card__actions">
-          <a class="button primary" href="./large.html">Open Large</a>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card__title"><strong>Small Dylos Data</strong><span class="badge">Cohorts</span></div>
+        <p><a class="button primary" href="./large.html">Open Large</a></p>
+      </article>
+
+      <article class="card">
+        <h3 class="card__title">Small Dylos Data <span class="badge">Cohorts</span></h3>
         <p>All cohorts available for the Small device. View the grid and open the visualizer.</p>
-        <div class="card__actions">
-          <a class="button primary" href="./small.html">Open Small</a>
-        </div>
-      </div>
-    </div>
+        <p><a class="button primary" href="./small.html">Open Small</a></p>
+      </article>
+    </section>
   </main>
 
   <footer class="footer">© ROCIS LCMP</footer>
