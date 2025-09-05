@@ -1,75 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ROCIS - Outdoor Particle Count (Large)</title>
+
+  <!-- Libs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      font-family:'Inter',sans-serif;
-      background:#ffffff;
-      color:#111827;
-      line-height:1.6;
-    }
-
+    body { font-family:'Inter',sans-serif; background:#fff; color:#111827; line-height:1.6; }
     .container { max-width:1100px; margin:20px auto; padding:20px; }
 
-    /* Header */
     .header { text-align:center; padding:30px 20px; border-bottom:1px solid #e5e7eb; margin-bottom:20px; }
-    .main-title { font-size:2.2em; font-weight:700; color:#111827; }
-    .subtitle { font-size:1em; color:#4b5563; }
+    .main-title { font-size:2.2em; font-weight:700; }
+    .subtitle   { font-size:1em; color:#4b5563; }
 
-    /* Navigation */
     .nav-menu { background:#f9fafb; border-bottom:1px solid #e5e7eb; margin-bottom:30px; }
     .nav-menu ul { list-style:none; display:flex; justify-content:center; flex-wrap:wrap; }
-    .nav-menu a {
-      padding:15px 20px; text-decoration:none; color:#374151; font-weight:600; font-size:0.9em;
-      transition:background .2s;
-    }
+    .nav-menu a { padding:15px 20px; text-decoration:none; color:#374151; font-weight:600; font-size:.9em; }
     .nav-menu a:hover { background:#f3f4f6; }
     .nav-menu a.active { border-bottom:3px solid #2563eb; color:#2563eb; }
 
-    /* Content */
-    .page-title { font-size:1.8em; font-weight:700; text-align:center; margin-bottom:20px; color:#111827; }
+    .page-title { font-size:1.8em; font-weight:700; text-align:center; margin-bottom:20px; }
+    .card { background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:20px; margin:20px 0;
+            box-shadow:0 2px 6px rgba(0,0,0,.05); }
+    .chart-title { font-size:1.2em; font-weight:600; margin-bottom:12px; text-align:center; }
+    .chart-wrapper { position:relative; height:420px; }
 
-    .card {
-      background:#fff; border:1px solid #e5e7eb; border-radius:8px;
-      padding:20px; margin:20px 0; box-shadow:0 2px 6px rgba(0,0,0,0.05);
-    }
-    .chart-title { font-size:1.2em; font-weight:600; margin-bottom:12px; color:#111827; text-align:center; }
-    .chart-wrapper { position:relative; height:400px; }
-
-    /* Cohort buttons */
     .cohort-buttons { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:20px 0; }
-    .cohort-btn {
-      padding:6px 14px; border:2px solid #2563eb; border-radius:20px;
-      background:#fff; color:#2563eb; font-weight:600; cursor:pointer; font-size:0.85em;
-      transition:all .2s;
-    }
-    .cohort-btn:hover { background:#2563eb; color:#fff; }
-    .cohort-btn.active { background:#2563eb; color:#fff; }
+    .cohort-btn { padding:6px 14px; border:2px solid #2563eb; border-radius:20px; background:#fff; color:#2563eb;
+                  font-weight:600; cursor:pointer; font-size:.85em; }
+    .cohort-btn:hover, .cohort-btn.active { background:#2563eb; color:#fff; }
 
-    /* Controls */
-    .controls { display:flex; justify-content:center; flex-wrap:wrap; gap:12px; margin:20px 0; }
-    .btn {
-      padding:8px 16px; border:none; border-radius:6px;
-      background:#2563eb; color:white; font-weight:600; cursor:pointer;
-      transition:background .2s;
-    }
-    .btn:hover { background:#1d4ed8; }
+    .controls { display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin:16px 0; }
+    .btn { padding:8px 16px; border:none; border-radius:6px; background:#2563eb; color:#fff; font-weight:600; cursor:pointer; }
+    .btn.secondary { background:#6b7280; }
 
-    /* Info */
     .data-info { background:#f9fafb; padding:15px; border-radius:6px; border-left:4px solid #2563eb; margin:20px 0; }
-    ul { margin-left:20px; }
 
-    @media (max-width:768px){
-      .chart-wrapper{ height:300px; }
-      .controls{ flex-direction:column; align-items:center; }
-    }
+    @media (max-width:768px){ .chart-wrapper{height:320px;} }
   </style>
 </head>
 <body>
@@ -80,7 +53,7 @@
       <p class="subtitle">Data Visualization and Knowledge Base</p>
     </div>
 
-    <!-- Navigation -->
+    <!-- Nav -->
     <nav class="nav-menu">
       <ul>
         <li><a href="index.html">HOME</a></li>
@@ -90,135 +63,189 @@
       </ul>
     </nav>
 
-    <!-- Content -->
-    <div class="content">
-      <h1 class="page-title">Outdoor Particle Count Data</h1>
+    <h1 class="page-title">Outdoor Particle Count Data (Large)</h1>
 
-      <div class="data-info">
-        <p><strong>Interactive Visualization:</strong> This chart shows 15-minute average small/large particle count over time. Use the controls below to explore different cohorts.</p>
-      </div>
+    <div class="data-info">
+      <p><strong>Tip:</strong> CSVs are loaded from <code>/data/large_XX.csv</code>. Click a cohort to load its CSV. Visitors can download the same file via the button.</p>
+    </div>
 
-      <!-- Cohort buttons -->
-      <div class="cohort-buttons">
-        <button class="cohort-btn active" onclick="selectCohort('01')">Cohort 01</button>
-        <button class="cohort-btn" onclick="selectCohort('02')">Cohort 02</button>
-        <button class="cohort-btn" onclick="selectCohort('03')">Cohort 03</button>
-        <button class="cohort-btn" onclick="selectCohort('04')">Cohort 04</button>
-        <button class="cohort-btn" onclick="selectCohort('05')">Cohort 05</button>
-        <button class="cohort-btn" onclick="selectCohort('06')">Cohort 06</button>
-        <button class="cohort-btn" onclick="selectCohort('07')">Cohort 07</button>
-        <button class="cohort-btn" onclick="selectCohort('08')">Cohort 08</button>
-        <button class="cohort-btn" onclick="selectCohort('09')">Cohort 09</button>
-        <button class="cohort-btn" onclick="selectCohort('10')">Cohort 10</button>
-      </div>
+    <!-- Cohort buttons -->
+    <div class="cohort-buttons" id="cohortButtons"></div>
 
-      <!-- Main Chart -->
-      <div class="card">
-        <h3 class="chart-title" id="chartTitle">Particle Count Over Time - Cohort 01</h3>
-        <div class="chart-wrapper"><canvas id="particleChart"></canvas></div>
-        <div class="controls">
-          <button class="btn" onclick="toggleScale()">Toggle Linear/Log</button>
-          <button class="btn" onclick="addRandomData()">Add Sample Data</button>
-          <button class="btn" onclick="resetChart()">Reset Chart</button>
-        </div>
+    <!-- Main chart card -->
+    <div class="card">
+      <h3 class="chart-title" id="chartTitle">Particle Count Over Time - Cohort 01</h3>
+      <div class="chart-wrapper"><canvas id="particleChart"></canvas></div>
+      <div class="controls">
+        <button class="btn" id="toggleScaleBtn">Toggle Linear/Log</button>
+        <a class="btn secondary" id="downloadBtn" href="#" download>Download CSV</a>
       </div>
+      <div id="status"></div>
+    </div>
 
-      <!-- Secondary Chart -->
-      <div class="card">
-        <h3 class="chart-title">Daily Averages Comparison</h3>
-        <div class="chart-wrapper"><canvas id="dailyChart"></canvas></div>
-      </div>
-
-      <div class="data-info">
-        <h4 style="margin-bottom:8px;">Data Quality Scale:</h4>
-        <ul>
-          <li><strong>0-75:</strong> Excellent</li>
-          <li><strong>76-150:</strong> Very Good</li>
-          <li><strong>151-300:</strong> Good</li>
-          <li><strong>300-1050:</strong> Fair</li>
-          <li><strong>1051-2999:</strong> Poor</li>
-          <li><strong>3000+:</strong> Very Poor</li>
-        </ul>
-      </div>
+    <!-- Secondary chart (daily averages for the loaded file) -->
+    <div class="card">
+      <h3 class="chart-title">Daily Averages (per series)</h3>
+      <div class="chart-wrapper"><canvas id="dailyChart"></canvas></div>
     </div>
   </div>
 
-  <!-- Script -->
   <script>
-    let particleChart, dailyChart, currentCohort='01', isLogScale=false;
+    // ====== CONFIG ======
+    const COHORTS = ["01","02","03","04","05","06","07","08","09","10"]; // extend as needed
+    const FILE_PATTERN = n => `data/large_${n}.csv`;
 
-    function generateSampleData(days=30){
-      const data=[], labels=[], now=new Date();
-      for(let i=days;i>=0;i--){
-        const date=new Date(now.getTime()-i*24*60*60*1000);
-        labels.push(date.toLocaleDateString());
-        const base=Math.random()*200+50;
-        const variation=Math.random()*100-50;
-        data.push(Math.max(0,base+variation));
+    // ====== STATE ======
+    let particleChart, dailyChart;
+    let currentCohort = "01";
+    let isLogScale = false;
+
+    // ====== UI BUILD ======
+    buildCohortButtons();
+    document.getElementById('toggleScaleBtn').addEventListener('click', toggleScale);
+
+    // Init charts empty
+    const ctx1 = document.getElementById('particleChart').getContext('2d');
+    particleChart = new Chart(ctx1, {
+      type: 'line',
+      data: { labels: [], datasets: [
+        { label:'Small Particles', data:[], borderColor:'#2563eb', backgroundColor:'#2563eb33', tension:0.35, fill:true },
+        { label:'Large Particles', data:[], borderColor:'#1d4ed8', backgroundColor:'#1d4ed833', tension:0.35, fill:true }
+      ]},
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        interaction:{intersect:false,mode:'index'},
+        scales:{ y:{ beginAtZero:true, type:'linear', title:{display:true,text:'Particle Count'} },
+                x:{ title:{display:true,text:'Time'} } }
       }
-      return {labels,data};
+    });
+
+    const ctx2 = document.getElementById('dailyChart').getContext('2d');
+    dailyChart = new Chart(ctx2, {
+      type:'bar',
+      data:{ labels:[], datasets:[{ label:'Average', data:[], backgroundColor:'#2563eb' }]},
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } } }
+    });
+
+    // Load first cohort on start
+    loadCohort(currentCohort);
+
+    // ====== BUTTONS ======
+    function buildCohortButtons(){
+      const wrap = document.getElementById('cohortButtons');
+      COHORTS.forEach(n => {
+        const b = document.createElement('button');
+        b.className = 'cohort-btn' + (n===currentCohort ? ' active' : '');
+        b.textContent = `Cohort ${n}`;
+        b.addEventListener('click', () => {
+          document.querySelectorAll('.cohort-btn').forEach(x=>x.classList.remove('active'));
+          b.classList.add('active');
+          loadCohort(n);
+        });
+        wrap.appendChild(b);
+      });
     }
 
-    function initCharts(){
-      const ctx1=document.getElementById('particleChart').getContext('2d');
-      const ctx2=document.getElementById('dailyChart').getContext('2d');
-      const sample=generateSampleData();
+    // ====== LOADING CSV ======
+    function loadCohort(num){
+      currentCohort = num;
+      const path = FILE_PATTERN(num);
+      document.getElementById('chartTitle').textContent = `Particle Count Over Time - Cohort ${num}`;
+      document.getElementById('downloadBtn').href = path;
+      showStatus(`Loading ${path} …`, 'info');
 
-      particleChart=new Chart(ctx1,{
-        type:'line',
-        data:{
-          labels:sample.labels,
-          datasets:[
-            {label:'Small Particles',data:sample.data,borderColor:'#2563eb',backgroundColor:'#2563eb33',tension:0.4,fill:true},
-            {label:'Large Particles',data:sample.data.map(d=>d*0.7+Math.random()*20),borderColor:'#1d4ed8',backgroundColor:'#1d4ed833',tension:0.4,fill:true}
-          ]
+      Papa.parse(path, {
+        download: true,
+        header: true,
+        dynamicTyping: true,
+        skipEmptyLines: true,
+        complete: (res) => {
+          if (res.errors?.length) {
+            showStatus(`Error parsing CSV: ${res.errors[0].message}`, 'error');
+            return;
+          }
+          const rows = res.data;
+          if (!rows.length) { showStatus('CSV is empty.', 'error'); return; }
+
+          const { timeCol, smallCol, largeCol } = guessColumns(res.meta.fields);
+          if (!timeCol || !smallCol || !largeCol) {
+            showStatus('Could not auto-detect columns. Expected Date/Time + Small + Large.', 'error');
+            console.log('Detected fields:', res.meta.fields);
+            return;
+          }
+
+          // Build labels + series
+          const labels = rows.map(r => {
+            const d = new Date(r[timeCol]);
+            return isNaN(d) ? String(r[timeCol]) : d.toLocaleString();
+          });
+          const small = rows.map(r => numOrNull(r[smallCol]));
+          const large = rows.map(r => numOrNull(r[largeCol]));
+
+          // Update line chart
+          particleChart.data.labels = labels;
+          particleChart.data.datasets[0].data = small;
+          particleChart.data.datasets[1].data = large;
+          particleChart.update();
+
+          // Daily averages (simple mean over entire file per series)
+          const avgSmall = mean(small);
+          const avgLarge = mean(large);
+          dailyChart.data.labels = ['Small', 'Large'];
+          dailyChart.data.datasets[0].data = [avgSmall, avgLarge];
+          dailyChart.update();
+
+          showStatus(`Loaded ${rows.length} rows from ${path}`, 'success');
         },
-        options:{responsive:true,maintainAspectRatio:false,
-          interaction:{intersect:false,mode:'index'},
-          scales:{y:{beginAtZero:true,title:{display:true,text:'Particle Count'}}}
+        error: (err) => showStatus(`Load error: ${err?.message || err}`, 'error')
+      });
+    }
+
+    function guessColumns(fields){
+      // Case-insensitive matching
+      const lower = fields.map(f => f.toLowerCase());
+      const find = (...cands) => {
+        for (const c of cands) {
+          const i = lower.indexOf(c.toLowerCase());
+          if (i !== -1) return fields[i];
         }
-      });
-
-      dailyChart=new Chart(ctx2,{
-        type:'bar',
-        data:{labels:['Week 1','Week 2','Week 3','Week 4'],datasets:[{label:'Avg Count',data:[120,98,156,142],backgroundColor:'#2563eb'}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}
-      });
+        return null;
+      };
+      // time/date candidates
+      const timeCol  = find('date', 'time', 'timestamp', 'datetime', 'raw start time', 'raw_end_time');
+      // small/large candidates
+      const smallCol = find('small_particles','small','sp','smallcount','small_count');
+      const largeCol = find('large_particles','large','lp','largecount','large_count');
+      return { timeCol, smallCol, largeCol };
     }
 
-    function selectCohort(num){
-      currentCohort=num;
-      document.querySelectorAll('.cohort-btn').forEach(btn=>btn.classList.remove('active'));
-      event.target.classList.add('active');
-      document.getElementById('chartTitle').textContent=`Particle Count Over Time - Cohort ${num}`;
-      const newData=generateSampleData();
-      particleChart.data.labels=newData.labels;
-      particleChart.data.datasets[0].data=newData.data;
-      particleChart.data.datasets[1].data=newData.data.map(d=>d*0.7+Math.random()*20);
-      particleChart.update();
+    function numOrNull(v){
+      const n = typeof v === 'number' ? v : Number(String(v).replace(/,/g,'').trim());
+      return isFinite(n) ? n : null;
+    }
+    function mean(arr){
+      const nums = arr.filter(v => typeof v === 'number' && isFinite(v));
+      return nums.length ? (nums.reduce((a,b)=>a+b,0) / nums.length) : 0;
     }
 
+    // ====== CONTROLS ======
     function toggleScale(){
-      isLogScale=!isLogScale;
-      particleChart.options.scales.y.type=isLogScale?'logarithmic':'linear';
-      particleChart.update();
-    }
-    function addRandomData(){
-      const extra=generateSampleData(5);
-      particleChart.data.labels.push(...extra.labels);
-      particleChart.data.datasets[0].data.push(...extra.data);
-      particleChart.data.datasets[1].data.push(...extra.data.map(d=>d*0.7+Math.random()*20));
-      particleChart.update();
-    }
-    function resetChart(){
-      const reset=generateSampleData();
-      particleChart.data.labels=reset.labels;
-      particleChart.data.datasets[0].data=reset.data;
-      particleChart.data.datasets[1].data=reset.data.map(d=>d*0.7+Math.random()*20);
+      isLogScale = !isLogScale;
+      particleChart.options.scales.y.type = isLogScale ? 'logarithmic' : 'linear';
       particleChart.update();
     }
 
-    document.addEventListener('DOMContentLoaded',initCharts);
+    // ====== STATUS UI ======
+    function showStatus(msg, type='info'){
+      const el = document.getElementById('status');
+      const styles = {
+        info:    'background:#f3f4f6;color:#374151',
+        success: 'background:#dcfce7;color:#166534',
+        error:   'background:#fee2e2;color:#991b1b'
+      };
+      el.style.cssText = `margin-top:10px;padding:10px;border-radius:6px;${styles[type]||styles.info}`;
+      el.textContent = msg;
+    }
   </script>
 </body>
 </html>
