@@ -4,7 +4,6 @@
     { "cohort": 60, "size": "Large", "title": "Cohort 60 – Large", "path": "Data/large_60.csv" },
     { "cohort": 61, "size": "Large", "title": "Cohort 61 – Large", "path": "Data/large_61.csv" },
     { "cohort": 62, "size": "Large", "title": "Cohort 62 – Large", "path": "Data/large_62.csv" },
-    { "cohort": 63, "size": "Large", "title": "Cohort 63 – Large", "path": "Data/large_63.csv" },
-    { "cohort": 64, "size": "Large", "title": "Cohort 64 – Large", "path": "Data/large_64.csv" }
+    { "cohort": 63, "size": "Large", "title": "Cohort 63 – Large", "path": "Data/large_63.csv" }
   ]
 }
