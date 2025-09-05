@@ -1,40 +1,560 @@
-:root{
-  --bg:#ffffff;
-  --panel:#f9f9f9;
-  --card:#ffffff;
-  --muted:#555;
-  --text:#111;
-  --accent:#0074d9;
-  --accent2:#2ecc40;
-  --border:#ddd;
-  --shadow:0 4px 16px rgba(0,0,0,.08);
+// ========== ROCIS LCMP Enhanced Application ==========
+// Enhanced version of the original ROCIS data visualization tools
+
+// Color palette for charts
+const COLORWAY = [
+  "#1f77b4","#ff7f0e","#2ca02c","#d62728","#9467bd",
+  "#8c564b","#e377c2","#7f7f7f","#bcbd22","#17becf"
+];
+
+// Utility functions
+const $ = (q) => document.querySelector(q);
+
+async function loadJSON(path) {
+  const r = await fetch(path);
+  if (!r.ok) throw new Error(`Failed to load ${path}`);
+  return r.json();
 }
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Helvetica,Arial,sans-serif;line-height:1.45}
 
-.container{max-width:1100px;margin:0 auto;padding:20px}
-.nav{border-bottom:1px solid var(--border);background:#fff;position:sticky;top:0;z-index:10}
-.nav__inner{display:flex;align-items:center;justify-content:space-between}
-.brand{font-weight:800;color:#0a0a0a;text-decoration:none}
-.nav__links a{color:#333;text-decoration:none;padding-left:10px}
+function loadCSV(path) {
+  return new Promise((resolve, reject) => {
+    Papa.parse(path, {
+      header: true, 
+      download: true, 
+      dynamicTyping: false, 
+      skipEmptyLines: true,
+      complete: res => resolve(res.data),
+      error: err => reject(err)
+    });
+  });
+}
 
-.hero{padding:28px 0;border-bottom:1px solid var(--border)}
-.hero h1{margin:0 0 8px 0}
-.hero p{margin:0;color:var(--muted)}
+function normalizeTime(v) {
+  if (v == null) return null;
+  let t = String(v).trim();
+  if (!t) return null;
+  if (t.includes(" ") && !t.includes("T")) t = t.replace(" ", "T");
+  const d = new Date(t);
+  return isNaN(d.getTime()) ? t : d;
+}
 
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:20px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;box-shadow:var(--shadow)}
-.card__title{display:flex;align-items:center;gap:8px;margin:0 0 8px 0}
-.badge{display:inline-block;font-size:12px;color:#555;background:#eef;border:1px solid #dde;padding:2px 8px;border-radius:999px}
+function toNum(v) {
+  if (v == null) return null;
+  const n = Number(String(v).replace(/,/g, "").trim());
+  return isNaN(n) ? null : n;
+}
 
-.button{display:inline-block;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:8px 12px;text-decoration:none;font-weight:700}
-.button.primary{background:var(--accent)}
-.button:hover{opacity:.9}
+function decimate(array, step) {
+  if (!step || step <= 1) return array;
+  const out = [];
+  for (let i = 0; i < array.length; i += step) out.push(array[i]);
+  return out;
+}
 
-.footer{border-top:1px solid var(--border);color:#666;text-align:center;padding:18px;margin-top:30px}
+// ========== Enhanced Data Explorer ==========
+class DataExplorer {
+  constructor() {
+    this.currentData = [];
+    this.rawData = [];
+    this.series = [];
+    this.datasets = [];
+    this.currentDatasetPath = '';
+    this.initializeControls();
+    this.loadManifests();
+  }
 
-.viz .center{text-align:center}
-.chart{width:100%;height:600px;border:1px solid var(--border);border-radius:10px;background:#fff}
+  async loadManifests() {
+    try {
+      // Load both manifest files
+      const [largeManifest, smallManifest] = await Promise.all([
+        loadJSON('Data/manifest_large.json'),
+        loadJSON('Data/manifest_small.json')
+      ]);
 
-.controls-bar{display:flex;gap:12px;align-items:center;justify-content:center;margin:16px 0 4px 0;flex-wrap:wrap}
-.controls-bar select{padding:6px 8px;border:1px solid var(--border);border-radius:8px;background:#fff}
+      // Combine datasets from both manifests
+      this.datasets = [
+        ...(largeManifest.datasets || []).map(d => ({...d, category: 'Large'})),
+        ...(smallManifest.datasets || []).map(d => ({...d, category: 'Small'}))
+      ];
+
+      this.populateDatasetSelect();
+      
+      // Load first dataset if available
+      if (this.datasets.length > 0) {
+        this.currentDatasetPath = this.datasets[0].path;
+        document.getElementById('csvSelect').value = this.currentDatasetPath;
+        await this.loadDataset(this.currentDatasetPath);
+      }
+    } catch (error) {
+      console.error('Error loading manifests:', error);
+      document.getElementById('loading').innerHTML = 
+        '<div style="color: #dc2626;">Error loading data manifests. Please check file paths.</div>';
+    }
+  }
+
+  populateDatasetSelect() {
+    const csvSelect = document.getElementById('csvSelect');
+    csvSelect.innerHTML = '';
+    
+    this.datasets.forEach(dataset => {
+      const option = document.createElement('option');
+      option.value = dataset.path;
+      option.textContent = `${dataset.title} (${dataset.category})`;
+      csvSelect.appendChild(option);
+    });
+
+    // Add change listener
+    csvSelect.addEventListener('change', async (e) => {
+      this.currentDatasetPath = e.target.value;
+      const selectedDataset = this.datasets.find(d => d.path === this.currentDatasetPath);
+      if (selectedDataset) {
+        document.getElementById('chartTitle').textContent = selectedDataset.title;
+        document.getElementById('downloadBtn').href = selectedDataset.path;
+        await this.loadDataset(this.currentDatasetPath);
+      }
+    });
+  }
+
+  async loadDataset(csvPath) {
+    if (!csvPath) return;
+    
+    document.getElementById('loading').style.display = 'flex';
+    document.getElementById('chart').style.display = 'none';
+    
+    try {
+      const rawCsvData = await loadCSV(csvPath);
+      
+      if (!rawCsvData || rawCsvData.length === 0) {
+        throw new Error('No data found in CSV file');
+      }
+
+      // Convert to the format expected by the visualization
+      const columns = Object.keys(rawCsvData[0]);
+      const timeColumn = columns[0]; // First column is usually time
+      const seriesColumns = columns.slice(1);
+
+      this.rawData = rawCsvData.map(row => {
+        const processedRow = {
+          timestamp: normalizeTime(row[timeColumn])
+        };
+        
+        seriesColumns.forEach(col => {
+          processedRow[col] = toNum(row[col]);
+        });
+        
+        return processedRow;
+      }).filter(row => row.timestamp); // Filter out rows with invalid timestamps
+
+      this.series = seriesColumns;
+      this.setupSeriesPanel();
+      this.setDateRange('full');
+      this.calculateStats();
+      
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('chart').style.display = 'block';
+      this.render();
+      
+    } catch (error) {
+      console.error('Error loading dataset:', error);
+      document.getElementById('loading').innerHTML = 
+        `<div style="color: #dc2626;">Error loading dataset: ${error.message}</div>`;
+    }
+  }
+
+  initializeControls() {
+    // Range sliders
+    const decimateSlider = document.getElementById('decimate');
+    const smoothSlider = document.getElementById('smooth');
+    
+    if (decimateSlider) {
+      decimateSlider.addEventListener('input', () => {
+        const val = decimateSlider.value;
+        document.getElementById('decimateValue').textContent = 
+          val === '1' ? '1 (all points)' : `${val} (every ${val}th point)`;
+        this.render();
+      });
+    }
+
+    if (smoothSlider) {
+      smoothSlider.addEventListener('input', () => {
+        const val = smoothSlider.value;
+        document.getElementById('smoothValue').textContent = 
+          val === '1' ? '1 (no smoothing)' : `${val} (${val}-point average)`;
+        this.render();
+      });
+    }
+
+    // Quick date buttons
+    const quickBtns = {
+      'quickFull': () => this.setDateRange('full'),
+      'quick7d': () => this.setDateRange(7),
+      'quick3d': () => this.setDateRange(3),
+      'quick1d': () => this.setDateRange(1)
+    };
+
+    Object.entries(quickBtns).forEach(([id, handler]) => {
+      const btn = document.getElementById(id);
+      if (btn) btn.onclick = handler;
+    });
+
+    // Other controls
+    ['scale', 'chartType', 'dateStart', 'dateEnd'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('change', () => this.render());
+    });
+
+    // Series search
+    const searchEl = document.getElementById('seriesSearch');
+    if (searchEl) {
+      searchEl.addEventListener('input', (e) => {
+        this.filterSeries(e.target.value);
+      });
+    }
+  }
+
+  setupSeriesPanel() {
+    const panel = document.getElementById('seriesPanel');
+    if (!panel) return;
+    
+    panel.innerHTML = '';
+    
+    this.series.forEach(series => {
+      const label = document.createElement('label');
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = true;
+      checkbox.value = series;
+      checkbox.addEventListener('change', () => this.render());
+      
+      const span = document.createElement('span');
+      span.textContent = series;
+      
+      label.appendChild(checkbox);
+      label.appendChild(span);
+      panel.appendChild(label);
+    });
+  }
+
+  filterSeries(query) {
+    const panel = document.getElementById('seriesPanel');
+    if (!panel) return;
+    
+    const labels = panel.querySelectorAll('label');
+    labels.forEach(label => {
+      const text = label.textContent.toLowerCase();
+      label.style.display = text.includes(query.toLowerCase()) ? '' : 'none';
+    });
+  }
+
+  setDateRange(days) {
+    if (!this.rawData.length) return;
+    
+    const endTime = new Date(this.rawData[this.rawData.length - 1].timestamp);
+    const startTime = days === 'full' 
+      ? new Date(this.rawData[0].timestamp)
+      : new Date(endTime.getTime() - days * 24 * 60 * 60 * 1000);
+    
+    const startEl = document.getElementById('dateStart');
+    const endEl = document.getElementById('dateEnd');
+    
+    if (startEl) startEl.value = startTime.toISOString().slice(0, 16);
+    if (endEl) endEl.value = endTime.toISOString().slice(0, 16);
+    
+    this.render();
+  }
+
+  getActiveSeries() {
+    const panel = document.getElementById('seriesPanel');
+    if (!panel) return [];
+    
+    const checkboxes = panel.querySelectorAll('input[type="checkbox"]:checked');
+    return Array.from(checkboxes).map(cb => cb.value);
+  }
+
+  filterDataByDateRange() {
+    const startEl = document.getElementById('dateStart');
+    const endEl = document.getElementById('dateEnd');
+    
+    const startVal = startEl ? startEl.value : '';
+    const endVal = endEl ? endEl.value : '';
+    
+    if (!startVal && !endVal) return this.rawData;
+    
+    const startTime = startVal ? new Date(startVal).getTime() : -Infinity;
+    const endTime = endVal ? new Date(endVal).getTime() : Infinity;
+    
+    return this.rawData.filter(row => {
+      const timestamp = row.timestamp;
+      let rowTime;
+      
+      if (timestamp instanceof Date) {
+        rowTime = timestamp.getTime();
+      } else {
+        rowTime = new Date(timestamp).getTime();
+      }
+      
+      return !isNaN(rowTime) && rowTime >= startTime && rowTime <= endTime;
+    });
+  }
+
+  processData() {
+    let data = this.filterDataByDateRange();
+    
+    const decimateEl = document.getElementById('decimate');
+    const smoothEl = document.getElementById('smooth');
+    
+    const decimation = decimateEl ? parseInt(decimateEl.value) : 1;
+    const smoothing = smoothEl ? parseInt(smoothEl.value) : 1;
+    
+    // Apply decimation
+    if (decimation > 1) {
+      data = data.filter((_, index) => index % decimation === 0);
+    }
+    
+    // Apply smoothing
+    if (smoothing > 1) {
+      const activeSeries = this.getActiveSeries();
+      data = data.map((row, index) => {
+        const smoothedRow = { ...row };
+        activeSeries.forEach(series => {
+          let sum = 0;
+          let count = 0;
+          const start = Math.max(0, index - smoothing + 1);
+          
+          for (let i = start; i <= index && i < data.length; i++) {
+            if (data[i] && data[i][series] != null) {
+              sum += data[i][series];
+              count++;
+            }
+          }
+          
+          smoothedRow[series] = count > 0 ? sum / count : row[series];
+        });
+        return smoothedRow;
+      });
+    }
+    
+    return data;
+  }
+
+  calculateStats() {
+    if (!this.rawData.length) return;
+    
+    const data = this.processData();
+    const activeSeries = this.getActiveSeries();
+    const statsGrid = document.getElementById('statsGrid');
+    
+    if (!statsGrid || activeSeries.length === 0) {
+      if (statsGrid) statsGrid.style.display = 'none';
+      return;
+    }
+    
+    statsGrid.innerHTML = '';
+    statsGrid.style.display = 'grid';
+    
+    activeSeries.forEach(series => {
+      const values = data.map(row => row[series]).filter(v => v != null && !isNaN(v));
+      if (values.length === 0) return;
+      
+      const mean = values.reduce((a, b) => a + b, 0) / values.length;
+      const max = Math.max(...values);
+      const min = Math.min(...values);
+      
+      const statCard = document.createElement('div');
+      statCard.className = 'stat-card';
+      statCard.innerHTML = `
+        <h4>${series}</h4>
+        <p>${mean.toFixed(1)}</p>
+        <small>avg | max: ${max.toFixed(1)} | min: ${min.toFixed(1)}</small>
+      `;
+      statsGrid.appendChild(statCard);
+    });
+  }
+
+  render() {
+    const data = this.processData();
+    const activeSeries = this.getActiveSeries();
+    
+    const scaleEl = document.getElementById('scale');
+    const chartTypeEl = document.getElementById('chartType');
+    
+    const scale = scaleEl ? scaleEl.value : 'linear';
+    const chartType = chartTypeEl ? chartTypeEl.value : 'lines';
+    
+    if (!data.length || activeSeries.length === 0) {
+      document.getElementById('chart').innerHTML = '<div class="loading">No data to display</div>';
+      return;
+    }
+    
+    const traces = activeSeries.map(series => {
+      const mode = chartType === 'lines' ? 'lines' : 
+                  chartType === 'scatter' ? 'markers' : 'lines';
+      
+      return {
+        type: chartType === 'bar' ? 'bar' : 'scatter',
+        mode: chartType === 'bar' ? undefined : mode,
+        name: series,
+        x: data.map(row => {
+          const ts = row.timestamp;
+          return ts instanceof Date ? ts : new Date(ts);
+        }),
+        y: data.map(row => row[series]),
+        hovertemplate: `<b>${series}</b><br>%{x}<br>%{y:.1f}<extra></extra>`,
+        line: { width: 2 },
+        marker: { size: chartType === 'scatter' ? 4 : undefined },
+        connectgaps: false
+      };
+    });
+    
+    // Get the current dataset title
+    const selectedDataset = this.datasets.find(d => d.path === this.currentDatasetPath);
+    const title = selectedDataset ? selectedDataset.title : 'ROCIS LCMP Data';
+    
+    const layout = {
+      title: { 
+        text: title,
+        font: { size: 16 }
+      },
+      xaxis: { 
+        title: 'Time',
+        showspikes: true,
+        spikemode: 'across'
+      },
+      yaxis: { 
+        title: 'Particle Count (per 0.01 ft³)',
+        type: scale
+      },
+      margin: { l: 60, r: 20, t: 40, b: 60 },
+      legend: { 
+        orientation: 'h',
+        y: -0.2,
+        x: 0.5,
+        xanchor: 'center'
+      },
+      hovermode: 'x unified',
+      showlegend: true,
+      colorway: COLORWAY
+    };
+    
+    const config = { 
+      responsive: true, 
+      displaylogo: false,
+      modeBarButtonsToAdd: ['toImage', 'select2d', 'lasso2d']
+    };
+    
+    Plotly.react('chart', traces, layout, config);
+    this.calculateStats();
+  }
+}
+
+// ========== Cohort Browser ==========
+class CohortBrowser {
+  constructor() {
+    this.datasets = [];
+    this.filteredDatasets = [];
+    this.currentCategory = 'all';
+    this.loadManifests();
+    this.initializeControls();
+  }
+
+  async loadManifests() {
+    try {
+      const [largeManifest, smallManifest] = await Promise.all([
+        loadJSON('Data/manifest_large.json'),
+        loadJSON('Data/manifest_small.json')
+      ]);
+
+      this.datasets = [
+        ...(largeManifest.datasets || []).map(d => ({...d, category: 'Large'})),
+        ...(smallManifest.datasets || []).map(d => ({...d, category: 'Small'}))
+      ];
+
+      this.filteredDatasets = [...this.datasets];
+      this.renderGrid();
+      
+    } catch (error) {
+      console.error('Error loading manifests:', error);
+      this.showError('Error loading cohort data. Please check file paths.');
+    }
+  }
+
+  initializeControls() {
+    // Search input
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        this.filterDatasets(e.target.value, this.currentCategory);
+      });
+    }
+
+    // Category filter
+    const categoryFilter = document.getElementById('categoryFilter');
+    if (categoryFilter) {
+      categoryFilter.addEventListener('change', (e) => {
+        this.currentCategory = e.target.value;
+        const searchTerm = searchInput ? searchInput.value : '';
+        this.filterDatasets(searchTerm, this.currentCategory);
+        this.updateTabButtons();
+      });
+    }
+
+    // Tab buttons
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const category = e.target.dataset.category;
+        this.currentCategory = category;
+        const searchTerm = searchInput ? searchInput.value : '';
+        this.filterDatasets(searchTerm, category);
+        this.updateTabButtons();
+        
+        // Update category filter to match
+        if (categoryFilter) {
+          categoryFilter.value = category;
+        }
+      });
+    });
+  }
+
+  updateTabButtons() {
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => {
+      if (btn.dataset.category === this.currentCategory) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+  }
+
+  filterDatasets(searchTerm, category) {
+    this.filteredDatasets = this.datasets.filter(dataset => {
+      const matchesSearch = !searchTerm || 
+        dataset.title.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = category === 'all' || dataset.category === category;
+      return matchesSearch && matchesCategory;
+    });
+    
+    this.renderGrid();
+  }
+
+  renderGrid() {
+    const grid = document.getElementById('cohortGrid');
+    if (!grid) return;
+
+    if (this.filteredDatasets.length === 0) {
+      grid.innerHTML = '<div class="loading-placeholder"><p>No datasets found matching your criteria.</p></div>';
+      return;
+    }
+
+    grid.innerHTML = '';
+    this.filteredDatasets.forEach(dataset => {
+      const card = document.createElement('article');
+      card.className = 'card';
+      
+      const badge = dataset.category === 'Large' ? 
+        '<span class="badge large">Large</span>' : 
+        '<span class="badge small">Small</span>';
+      
+      card.innerHTML = `
+        <h3 class="card__title">${dataset.title} ${badge}</h3>
