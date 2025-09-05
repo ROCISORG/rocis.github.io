@@ -1,560 +1,1037 @@
-// ========== ROCIS LCMP Enhanced Application ==========
-// Enhanced version of the original ROCIS data visualization tools
-
-// Color palette for charts
-const COLORWAY = [
-  "#1f77b4","#ff7f0e","#2ca02c","#d62728","#9467bd",
-  "#8c564b","#e377c2","#7f7f7f","#bcbd22","#17becf"
-];
-
-// Utility functions
-const $ = (q) => document.querySelector(q);
-
-async function loadJSON(path) {
-  const r = await fetch(path);
-  if (!r.ok) throw new Error(`Failed to load ${path}`);
-  return r.json();
+:root {
+  --primary: #2563eb;
+  --primary-light: #dbeafe;
+  --primary-dark: #1e40af;
+  --secondary: #10b981;
+  --secondary-light: #d1fae5;
+  --accent: #f59e0b;
+  --accent-light: #fef3c7;
+  --background: #f8fafc;
+  --surface: #ffffff;
+  --text: #1e293b;
+  --text-light: #64748b;
+  --text-muted: #94a3b8;
+  --border: #e2e8f0;
+  --border-light: #f1f5f9;
+  --danger: #dc2626;
+  --warning: #f59e0b;
+  --success: #059669;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+  --radius: 8px;
+  --radius-lg: 12px;
 }
 
-function loadCSV(path) {
-  return new Promise((resolve, reject) => {
-    Papa.parse(path, {
-      header: true, 
-      download: true, 
-      dynamicTyping: false, 
-      skipEmptyLines: true,
-      complete: res => resolve(res.data),
-      error: err => reject(err)
-    });
-  });
+* { 
+  box-sizing: border-box; 
 }
 
-function normalizeTime(v) {
-  if (v == null) return null;
-  let t = String(v).trim();
-  if (!t) return null;
-  if (t.includes(" ") && !t.includes("T")) t = t.replace(" ", "T");
-  const d = new Date(t);
-  return isNaN(d.getTime()) ? t : d;
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--background);
+  color: var(--text);
+  line-height: 1.6;
 }
 
-function toNum(v) {
-  if (v == null) return null;
-  const n = Number(String(v).replace(/,/g, "").trim());
-  return isNaN(n) ? null : n;
+/* Navigation */
+.nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow);
 }
 
-function decimate(array, step) {
-  if (!step || step <= 1) return array;
-  const out = [];
-  for (let i = 0; i < array.length; i += step) out.push(array[i]);
-  return out;
+.nav__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-// ========== Enhanced Data Explorer ==========
-class DataExplorer {
-  constructor() {
-    this.currentData = [];
-    this.rawData = [];
-    this.series = [];
-    this.datasets = [];
-    this.currentDatasetPath = '';
-    this.initializeControls();
-    this.loadManifests();
+.brand {
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.brand:hover {
+  color: var(--primary-dark);
+}
+
+.nav__links {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.nav__links a {
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  transition: all 0.2s;
+}
+
+.nav__links a:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+/* Layout */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  padding: 3rem 0;
+  background: linear-gradient(135deg, var(--primary-light), var(--surface));
+  border-radius: var(--radius-lg);
+  margin-bottom: 3rem;
+}
+
+.hero h1 {
+  margin: 0 0 1rem;
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1.2;
+}
+
+.hero p {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--text-light);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Grid Layouts */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow);
+  transition: all 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.card.featured {
+  border: 2px solid var(--primary);
+  background: linear-gradient(135deg, var(--surface), var(--primary-light));
+}
+
+.card__title {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card p {
+  margin: 0 0 1.5rem;
+  color: var(--text-light);
+}
+
+.card p:last-child {
+  margin-bottom: 0;
+}
+
+/* Features */
+.features {
+  margin: 4rem 0;
+  text-align: center;
+}
+
+.features h2 {
+  font-size: 2.5rem;
+  margin-bottom: 3rem;
+  color: var(--primary);
+}
+
+.feature {
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.feature-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.feature h4 {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+  color: var(--text);
+}
+
+.feature p {
+  margin: 0;
+  color: var(--text-light);
+}
+
+.tool-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.tool-card h4 {
+  margin: 0 0 0.5rem;
+  color: var(--primary);
+}
+
+.tool-card p {
+  margin: 0;
+  color: var(--text-light);
+}
+
+/* Buttons */
+.button {
+  display: inline-block;
+  background: var(--border);
+  color: var(--text);
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.75rem 1.5rem;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.button.primary {
+  background: var(--primary);
+  color: white;
+}
+
+.button.primary:hover {
+  background: var(--primary-dark);
+}
+
+.button.large {
+  padding: 1rem 2rem;
+  font-size: 1rem;
+}
+
+.button.secondary {
+  background: var(--secondary);
+  color: white;
+}
+
+.button.secondary:hover {
+  background: #059669;
+}
+
+/* Explorer Layout */
+.explorer-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: calc(100vh - 80px);
+}
+
+.sidebar {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow);
+  height: fit-content;
+  position: sticky;
+  top: 6rem;
+  border: 1px solid var(--border);
+}
+
+.sidebar h3 {
+  margin: 0 0 1.5rem;
+  color: var(--primary);
+  font-size: 1.125rem;
+  border-bottom: 2px solid var(--primary-light);
+  padding-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.control-group {
+  margin-bottom: 2rem;
+}
+
+.control-group label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.control-group input,
+.control-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  background: var(--surface);
+  transition: border-color 0.2s;
+}
+
+.control-group input:focus,
+.control-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.control-group small {
+  display: block;
+  margin-top: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* Quick Buttons */
+.quick-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.quick-btn {
+  padding: 0.5rem 0.75rem;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.quick-btn:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* Series Panel */
+.series-panel {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  background: var(--border-light);
+}
+
+.series-panel label {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  margin: 0.25rem 0;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: background 0.15s;
+  font-size: 0.9rem;
+}
+
+.series-panel label:hover {
+  background: var(--primary-light);
+}
+
+.series-panel input[type="checkbox"] {
+  width: auto;
+  margin-right: 0.75rem;
+  transform: scale(1.1);
+}
+
+/* Chart Container */
+.chart-container {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.chart-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.chart-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.chart-controls select {
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  background: var(--surface);
+}
+
+.download-btn {
+  background: var(--secondary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.download-btn:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+/* Chart */
+#chart {
+  width: 100%;
+  height: 500px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+/* Loading States */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--text-light);
+  min-height: 300px;
+}
+
+.loading-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  color: var(--text-light);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border);
+  border-top: 4px solid var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, var(--primary-light), #f1f5f9);
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  text-align: center;
+  border: 1px solid var(--border);
+}
+
+.stat-card h4 {
+  margin: 0 0 0.5rem;
+  color: var(--primary);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.stat-card p {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.stat-card small {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--text-light);
+  font-size: 0.8rem;
+}
+
+/* Cohorts Page */
+.page-header {
+  text-align: center;
+  padding: 3rem 2rem 4rem;
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.page-header h1 {
+  margin: 0 0 1.5rem;
+  font-size: 3rem;
+  color: var(--primary);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.page-header p {
+  margin: 0 0 3rem;
+  font-size: 1.25rem;
+  color: var(--text-light);
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+.filter-controls {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+
+.search-input,
+.category-filter {
+  padding: 1rem 1.25rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 1rem;
+  background: var(--surface);
+  min-width: 220px;
+  font-weight: 500;
+}
+
+.search-input:focus,
+.category-filter:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+/* Tabs */
+.cohort-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 3rem auto 2rem;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 1rem;
+  max-width: var(--max-width);
+}
+
+.tab-btn {
+  padding: 1rem 2rem;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius) var(--radius) 0 0;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-light);
+  transition: all 0.3s;
+  font-size: 1rem;
+}
+
+.tab-btn.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.tab-btn:hover:not(.active) {
+  background: var(--primary-light);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+/* Content Pages */
+.content-page {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.content-section {
+  margin: 4rem auto;
+  text-align: left;
+  background: var(--card-bg);
+  padding: 3rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.content-section h2 {
+  color: var(--primary);
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.content-section p {
+  margin-bottom: 1.5rem;
+  color: var(--text-light);
+  font-size: 1.125rem;
+  line-height: 1.7;
+}
+
+.content-section ul {
+  color: var(--text-light);
+  font-size: 1.125rem;
+  line-height: 1.7;
+  padding-left: 1.5rem;
+}
+
+.content-section ul li {
+  margin-bottom: 0.75rem;
+}
+
+.lead {
+  font-size: 1.375rem;
+  color: var(--text-light);
+  font-weight: 400;
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+/* Footer */
+.footer {
+  background: var(--card-bg);
+  border-top: 1px solid var(--border);
+  margin-top: 5rem;
+  padding: 3rem 0;
+  text-align: center;
+}
+
+.footer p {
+  margin: 0;
+  color: var(--text-light);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, var(--primary-light), #f0f8ff);
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  text-align: center;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.stat-card h4 {
+  margin: 0 0 0.75rem;
+  color: var(--primary);
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.stat-card p {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.stat-card small {
+  display: block;
+  margin-top: 0.5rem;
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+/* Loading States */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  color: var(--text-light);
+  min-height: 400px;
+}
+
+.loading-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem;
+  color: var(--text-light);
+  text-align: center;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--border);
+  border-top: 4px solid var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1.5rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Chart */
+#chart {
+  width: 100%;
+  height: 600px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+/* Quick Buttons */
+.quick-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.quick-btn {
+  padding: 0.75rem 1rem;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.quick-btn:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* Series Panel */
+.series-panel {
+  max-height: 350px;
+  overflow-y: auto;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  background: var(--surface);
+}
+
+.series-panel label {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: background 0.15s;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.series-panel label:hover {
+  background: var(--primary-light);
+}
+
+.series-panel input[type="checkbox"] {
+  width: auto;
+  margin-right: 1rem;
+  transform: scale(1.2);
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  font-size: 0.8rem;
+  color: var(--text-light);
+  background: var(--border-light);
+  border: 1px solid var(--border);
+  padding: 0.375rem 1rem;
+  border-radius: 999px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 0.5rem;
+}
+
+.badge.large {
+  background: var(--accent-light);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.badge.small {
+  background: var(--secondary-light);
+  color: var(--secondary);
+  border-color: var(--secondary);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .explorer-layout {
+    grid-template-columns: 320px 1fr;
+    gap: 2rem;
+    padding: 2rem;
   }
-
-  async loadManifests() {
-    try {
-      // Load both manifest files
-      const [largeManifest, smallManifest] = await Promise.all([
-        loadJSON('Data/manifest_large.json'),
-        loadJSON('Data/manifest_small.json')
-      ]);
-
-      // Combine datasets from both manifests
-      this.datasets = [
-        ...(largeManifest.datasets || []).map(d => ({...d, category: 'Large'})),
-        ...(smallManifest.datasets || []).map(d => ({...d, category: 'Small'}))
-      ];
-
-      this.populateDatasetSelect();
-      
-      // Load first dataset if available
-      if (this.datasets.length > 0) {
-        this.currentDatasetPath = this.datasets[0].path;
-        document.getElementById('csvSelect').value = this.currentDatasetPath;
-        await this.loadDataset(this.currentDatasetPath);
-      }
-    } catch (error) {
-      console.error('Error loading manifests:', error);
-      document.getElementById('loading').innerHTML = 
-        '<div style="color: #dc2626;">Error loading data manifests. Please check file paths.</div>';
-    }
+  
+  .sidebar {
+    padding: 2rem;
   }
-
-  populateDatasetSelect() {
-    const csvSelect = document.getElementById('csvSelect');
-    csvSelect.innerHTML = '';
-    
-    this.datasets.forEach(dataset => {
-      const option = document.createElement('option');
-      option.value = dataset.path;
-      option.textContent = `${dataset.title} (${dataset.category})`;
-      csvSelect.appendChild(option);
-    });
-
-    // Add change listener
-    csvSelect.addEventListener('change', async (e) => {
-      this.currentDatasetPath = e.target.value;
-      const selectedDataset = this.datasets.find(d => d.path === this.currentDatasetPath);
-      if (selectedDataset) {
-        document.getElementById('chartTitle').textContent = selectedDataset.title;
-        document.getElementById('downloadBtn').href = selectedDataset.path;
-        await this.loadDataset(this.currentDatasetPath);
-      }
-    });
-  }
-
-  async loadDataset(csvPath) {
-    if (!csvPath) return;
-    
-    document.getElementById('loading').style.display = 'flex';
-    document.getElementById('chart').style.display = 'none';
-    
-    try {
-      const rawCsvData = await loadCSV(csvPath);
-      
-      if (!rawCsvData || rawCsvData.length === 0) {
-        throw new Error('No data found in CSV file');
-      }
-
-      // Convert to the format expected by the visualization
-      const columns = Object.keys(rawCsvData[0]);
-      const timeColumn = columns[0]; // First column is usually time
-      const seriesColumns = columns.slice(1);
-
-      this.rawData = rawCsvData.map(row => {
-        const processedRow = {
-          timestamp: normalizeTime(row[timeColumn])
-        };
-        
-        seriesColumns.forEach(col => {
-          processedRow[col] = toNum(row[col]);
-        });
-        
-        return processedRow;
-      }).filter(row => row.timestamp); // Filter out rows with invalid timestamps
-
-      this.series = seriesColumns;
-      this.setupSeriesPanel();
-      this.setDateRange('full');
-      this.calculateStats();
-      
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('chart').style.display = 'block';
-      this.render();
-      
-    } catch (error) {
-      console.error('Error loading dataset:', error);
-      document.getElementById('loading').innerHTML = 
-        `<div style="color: #dc2626;">Error loading dataset: ${error.message}</div>`;
-    }
-  }
-
-  initializeControls() {
-    // Range sliders
-    const decimateSlider = document.getElementById('decimate');
-    const smoothSlider = document.getElementById('smooth');
-    
-    if (decimateSlider) {
-      decimateSlider.addEventListener('input', () => {
-        const val = decimateSlider.value;
-        document.getElementById('decimateValue').textContent = 
-          val === '1' ? '1 (all points)' : `${val} (every ${val}th point)`;
-        this.render();
-      });
-    }
-
-    if (smoothSlider) {
-      smoothSlider.addEventListener('input', () => {
-        const val = smoothSlider.value;
-        document.getElementById('smoothValue').textContent = 
-          val === '1' ? '1 (no smoothing)' : `${val} (${val}-point average)`;
-        this.render();
-      });
-    }
-
-    // Quick date buttons
-    const quickBtns = {
-      'quickFull': () => this.setDateRange('full'),
-      'quick7d': () => this.setDateRange(7),
-      'quick3d': () => this.setDateRange(3),
-      'quick1d': () => this.setDateRange(1)
-    };
-
-    Object.entries(quickBtns).forEach(([id, handler]) => {
-      const btn = document.getElementById(id);
-      if (btn) btn.onclick = handler;
-    });
-
-    // Other controls
-    ['scale', 'chartType', 'dateStart', 'dateEnd'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener('change', () => this.render());
-    });
-
-    // Series search
-    const searchEl = document.getElementById('seriesSearch');
-    if (searchEl) {
-      searchEl.addEventListener('input', (e) => {
-        this.filterSeries(e.target.value);
-      });
-    }
-  }
-
-  setupSeriesPanel() {
-    const panel = document.getElementById('seriesPanel');
-    if (!panel) return;
-    
-    panel.innerHTML = '';
-    
-    this.series.forEach(series => {
-      const label = document.createElement('label');
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = true;
-      checkbox.value = series;
-      checkbox.addEventListener('change', () => this.render());
-      
-      const span = document.createElement('span');
-      span.textContent = series;
-      
-      label.appendChild(checkbox);
-      label.appendChild(span);
-      panel.appendChild(label);
-    });
-  }
-
-  filterSeries(query) {
-    const panel = document.getElementById('seriesPanel');
-    if (!panel) return;
-    
-    const labels = panel.querySelectorAll('label');
-    labels.forEach(label => {
-      const text = label.textContent.toLowerCase();
-      label.style.display = text.includes(query.toLowerCase()) ? '' : 'none';
-    });
-  }
-
-  setDateRange(days) {
-    if (!this.rawData.length) return;
-    
-    const endTime = new Date(this.rawData[this.rawData.length - 1].timestamp);
-    const startTime = days === 'full' 
-      ? new Date(this.rawData[0].timestamp)
-      : new Date(endTime.getTime() - days * 24 * 60 * 60 * 1000);
-    
-    const startEl = document.getElementById('dateStart');
-    const endEl = document.getElementById('dateEnd');
-    
-    if (startEl) startEl.value = startTime.toISOString().slice(0, 16);
-    if (endEl) endEl.value = endTime.toISOString().slice(0, 16);
-    
-    this.render();
-  }
-
-  getActiveSeries() {
-    const panel = document.getElementById('seriesPanel');
-    if (!panel) return [];
-    
-    const checkboxes = panel.querySelectorAll('input[type="checkbox"]:checked');
-    return Array.from(checkboxes).map(cb => cb.value);
-  }
-
-  filterDataByDateRange() {
-    const startEl = document.getElementById('dateStart');
-    const endEl = document.getElementById('dateEnd');
-    
-    const startVal = startEl ? startEl.value : '';
-    const endVal = endEl ? endEl.value : '';
-    
-    if (!startVal && !endVal) return this.rawData;
-    
-    const startTime = startVal ? new Date(startVal).getTime() : -Infinity;
-    const endTime = endVal ? new Date(endVal).getTime() : Infinity;
-    
-    return this.rawData.filter(row => {
-      const timestamp = row.timestamp;
-      let rowTime;
-      
-      if (timestamp instanceof Date) {
-        rowTime = timestamp.getTime();
-      } else {
-        rowTime = new Date(timestamp).getTime();
-      }
-      
-      return !isNaN(rowTime) && rowTime >= startTime && rowTime <= endTime;
-    });
-  }
-
-  processData() {
-    let data = this.filterDataByDateRange();
-    
-    const decimateEl = document.getElementById('decimate');
-    const smoothEl = document.getElementById('smooth');
-    
-    const decimation = decimateEl ? parseInt(decimateEl.value) : 1;
-    const smoothing = smoothEl ? parseInt(smoothEl.value) : 1;
-    
-    // Apply decimation
-    if (decimation > 1) {
-      data = data.filter((_, index) => index % decimation === 0);
-    }
-    
-    // Apply smoothing
-    if (smoothing > 1) {
-      const activeSeries = this.getActiveSeries();
-      data = data.map((row, index) => {
-        const smoothedRow = { ...row };
-        activeSeries.forEach(series => {
-          let sum = 0;
-          let count = 0;
-          const start = Math.max(0, index - smoothing + 1);
-          
-          for (let i = start; i <= index && i < data.length; i++) {
-            if (data[i] && data[i][series] != null) {
-              sum += data[i][series];
-              count++;
-            }
-          }
-          
-          smoothedRow[series] = count > 0 ? sum / count : row[series];
-        });
-        return smoothedRow;
-      });
-    }
-    
-    return data;
-  }
-
-  calculateStats() {
-    if (!this.rawData.length) return;
-    
-    const data = this.processData();
-    const activeSeries = this.getActiveSeries();
-    const statsGrid = document.getElementById('statsGrid');
-    
-    if (!statsGrid || activeSeries.length === 0) {
-      if (statsGrid) statsGrid.style.display = 'none';
-      return;
-    }
-    
-    statsGrid.innerHTML = '';
-    statsGrid.style.display = 'grid';
-    
-    activeSeries.forEach(series => {
-      const values = data.map(row => row[series]).filter(v => v != null && !isNaN(v));
-      if (values.length === 0) return;
-      
-      const mean = values.reduce((a, b) => a + b, 0) / values.length;
-      const max = Math.max(...values);
-      const min = Math.min(...values);
-      
-      const statCard = document.createElement('div');
-      statCard.className = 'stat-card';
-      statCard.innerHTML = `
-        <h4>${series}</h4>
-        <p>${mean.toFixed(1)}</p>
-        <small>avg | max: ${max.toFixed(1)} | min: ${min.toFixed(1)}</small>
-      `;
-      statsGrid.appendChild(statCard);
-    });
-  }
-
-  render() {
-    const data = this.processData();
-    const activeSeries = this.getActiveSeries();
-    
-    const scaleEl = document.getElementById('scale');
-    const chartTypeEl = document.getElementById('chartType');
-    
-    const scale = scaleEl ? scaleEl.value : 'linear';
-    const chartType = chartTypeEl ? chartTypeEl.value : 'lines';
-    
-    if (!data.length || activeSeries.length === 0) {
-      document.getElementById('chart').innerHTML = '<div class="loading">No data to display</div>';
-      return;
-    }
-    
-    const traces = activeSeries.map(series => {
-      const mode = chartType === 'lines' ? 'lines' : 
-                  chartType === 'scatter' ? 'markers' : 'lines';
-      
-      return {
-        type: chartType === 'bar' ? 'bar' : 'scatter',
-        mode: chartType === 'bar' ? undefined : mode,
-        name: series,
-        x: data.map(row => {
-          const ts = row.timestamp;
-          return ts instanceof Date ? ts : new Date(ts);
-        }),
-        y: data.map(row => row[series]),
-        hovertemplate: `<b>${series}</b><br>%{x}<br>%{y:.1f}<extra></extra>`,
-        line: { width: 2 },
-        marker: { size: chartType === 'scatter' ? 4 : undefined },
-        connectgaps: false
-      };
-    });
-    
-    // Get the current dataset title
-    const selectedDataset = this.datasets.find(d => d.path === this.currentDatasetPath);
-    const title = selectedDataset ? selectedDataset.title : 'ROCIS LCMP Data';
-    
-    const layout = {
-      title: { 
-        text: title,
-        font: { size: 16 }
-      },
-      xaxis: { 
-        title: 'Time',
-        showspikes: true,
-        spikemode: 'across'
-      },
-      yaxis: { 
-        title: 'Particle Count (per 0.01 ft³)',
-        type: scale
-      },
-      margin: { l: 60, r: 20, t: 40, b: 60 },
-      legend: { 
-        orientation: 'h',
-        y: -0.2,
-        x: 0.5,
-        xanchor: 'center'
-      },
-      hovermode: 'x unified',
-      showlegend: true,
-      colorway: COLORWAY
-    };
-    
-    const config = { 
-      responsive: true, 
-      displaylogo: false,
-      modeBarButtonsToAdd: ['toImage', 'select2d', 'lasso2d']
-    };
-    
-    Plotly.react('chart', traces, layout, config);
-    this.calculateStats();
+  
+  .hero h1 {
+    font-size: 3rem;
   }
 }
 
-// ========== Cohort Browser ==========
-class CohortBrowser {
-  constructor() {
-    this.datasets = [];
-    this.filteredDatasets = [];
-    this.currentCategory = 'all';
-    this.loadManifests();
-    this.initializeControls();
+@media (max-width: 1024px) {
+  .explorer-layout {
+    grid-template-columns: 300px 1fr;
+    gap: 1.5rem;
+    padding: 1.5rem;
   }
-
-  async loadManifests() {
-    try {
-      const [largeManifest, smallManifest] = await Promise.all([
-        loadJSON('Data/manifest_large.json'),
-        loadJSON('Data/manifest_small.json')
-      ]);
-
-      this.datasets = [
-        ...(largeManifest.datasets || []).map(d => ({...d, category: 'Large'})),
-        ...(smallManifest.datasets || []).map(d => ({...d, category: 'Small'}))
-      ];
-
-      this.filteredDatasets = [...this.datasets];
-      this.renderGrid();
-      
-    } catch (error) {
-      console.error('Error loading manifests:', error);
-      this.showError('Error loading cohort data. Please check file paths.');
-    }
+  
+  .sidebar {
+    padding: 1.75rem;
   }
-
-  initializeControls() {
-    // Search input
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
-        this.filterDatasets(e.target.value, this.currentCategory);
-      });
-    }
-
-    // Category filter
-    const categoryFilter = document.getElementById('categoryFilter');
-    if (categoryFilter) {
-      categoryFilter.addEventListener('change', (e) => {
-        this.currentCategory = e.target.value;
-        const searchTerm = searchInput ? searchInput.value : '';
-        this.filterDatasets(searchTerm, this.currentCategory);
-        this.updateTabButtons();
-      });
-    }
-
-    // Tab buttons
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    tabButtons.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const category = e.target.dataset.category;
-        this.currentCategory = category;
-        const searchTerm = searchInput ? searchInput.value : '';
-        this.filterDatasets(searchTerm, category);
-        this.updateTabButtons();
-        
-        // Update category filter to match
-        if (categoryFilter) {
-          categoryFilter.value = category;
-        }
-      });
-    });
+  
+  .hero h1 {
+    font-size: 2.75rem;
   }
-
-  updateTabButtons() {
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    tabButtons.forEach(btn => {
-      if (btn.dataset.category === this.currentCategory) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    });
+  
+  .nav__inner {
+    gap: 2rem;
   }
+}
 
-  filterDatasets(searchTerm, category) {
-    this.filteredDatasets = this.datasets.filter(dataset => {
-      const matchesSearch = !searchTerm || 
-        dataset.title.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = category === 'all' || dataset.category === category;
-      return matchesSearch && matchesCategory;
-    });
-    
-    this.renderGrid();
+@media (max-width: 768px) {
+  .container {
+    padding: 2rem 1rem;
   }
+  
+  .hero {
+    padding: 3rem 2rem;
+  }
+  
+  .hero h1 {
+    font-size: 2.25rem;
+  }
+  
+  .hero p {
+    font-size: 1.125rem;
+  }
+  
+  .explorer-layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 1rem;
+  }
+  
+  .sidebar {
+    position: static;
+    order: 2;
+    margin-top: 1rem;
+  }
+  
+  .chart-container {
+    order: 1;
+    padding: 2rem;
+  }
+  
+  .chart-header {
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: stretch;
+  }
+  
+  .chart-controls {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .quick-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .nav__inner {
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+  
+  .nav__links {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .filter-controls {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .search-input,
+  .category-filter {
+    width: 100%;
+    max-width: 350px;
+  }
+  
+  .cohort-tabs {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .tab-btn {
+    width: 100%;
+    max-width: 250px;
+    border-radius: var(--radius);
+  }
+  
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .card {
+    max-width: none;
+  }
+}
 
-  renderGrid() {
-    const grid = document.getElementById('cohortGrid');
-    if (!grid) return;
-
-    if (this.filteredDatasets.length === 0) {
-      grid.innerHTML = '<div class="loading-placeholder"><p>No datasets found matching your criteria.</p></div>';
-      return;
-    }
-
-    grid.innerHTML = '';
-    this.filteredDatasets.forEach(dataset => {
-      const card = document.createElement('article');
-      card.className = 'card';
-      
-      const badge = dataset.category === 'Large' ? 
-        '<span class="badge large">Large</span>' : 
-        '<span class="badge small">Small</span>';
-      
-      card.innerHTML = `
-        <h3 class="card__title">${dataset.title} ${badge}</h3>
+@media (max-width: 480px) {
+  .hero {
+    padding: 2rem 1rem;
+  }
+  
+  .hero h1 {
+    font-size: 2rem;
+  }
+  
+  .hero p {
+    font-size: 1rem;
+  }
+  
+  .card {
+    padding: 2rem;
+  }
+  
+  .features h2 {
+    font-size: 2.25rem;
+  }
+  
+  .page-header h1 {
+    font-size: 2.25rem;
+  }
+  
+  .chart-title {
+    font-size: 1.5rem;
+  }
+  
+  .content-section {
+    padding: 2rem;
+  }
+  
+  .button {
+    padding: 0.875rem 1.75rem;
+    margin: 0.25rem;
+  }
+}
