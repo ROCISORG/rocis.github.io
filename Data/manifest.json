@@ -1,0 +1,13 @@
+{
+  "datasets": [
+    { "cohort": 63, "size": "Large", "title": "Cohort 63 – Large", "path": "/data/large_63.csv" },
+    { "cohort": 63, "size": "Small", "title": "Cohort 63 – Small", "path": "/data/small_63.csv" },
+    { "cohort": 64, "size": "Large", "title": "Cohort 64 – Large", "path": "/data/large_64.csv" },
+    { "cohort": 64, "size": "Small", "title": "Cohort 64 – Small", "path": "/data/small_64.csv" }
+
+    /* Add more like:
+    { "cohort": 65, "size": "Large", "title": "Cohort 65 – Large", "path": "/data/large_65.csv" },
+    { "cohort": 65, "size": "Small", "title": "Cohort 65 – Small", "path": "/data/small_65.csv" }
+    */
+  ]
+}
