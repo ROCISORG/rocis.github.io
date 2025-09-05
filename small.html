@@ -1,31 +1,25 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ROCIS LCMP – Small Cohorts</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="./styles.css" />
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script defer src="app.js"></script>
+  <script defer src="./app.js"></script>
 </head>
 <body onload="ROGIS.renderCards('small')">
   <nav class="nav">
-    <div class="nav__inner container">
-      <a class="brand" href="./"><b>ROCIS</b> LCMP</a>
+    <div class="container nav__inner">
+      <a class="brand" href="./">ROCIS LCMP</a>
       <div class="nav__links"><a href="./large.html">Large</a></div>
     </div>
   </nav>
 
-  <section class="hero">
-    <div class="hero__inner container">
-      <h1>Small Dylos Data</h1>
-      <p>Click a cohort to download the CSV or open a full visualizer.</p>
-    </div>
-  </section>
-
-  <main class="container section">
-    <div id="cohortGrid" class="grid"></div>
+  <main class="container">
+    <h1>Small Dylos Data</h1>
+    <section id="cohortGrid" class="grid"></section>
   </main>
 
   <footer class="footer">© ROCIS LCMP</footer>
