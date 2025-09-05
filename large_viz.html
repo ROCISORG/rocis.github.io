@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ROCIS LCMP – Large Visualizer</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script defer src="assets/js/app.js"></script>
+</head>
+<body onload="ROGIS.initVisualizer('large')">
+  <nav class="nav">
+    <div class="nav__inner container">
+      <a class="brand" href="./"><b>ROCIS</b> LCMP</a>
+      <div class="nav__links"><a href="./large.html">← Back to cohorts</a></div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero__inner container">
+      <h1 id="vizTitle">Large Dylos Data</h1>
+      <p class="badge">Visualizer</p>
+    </div>
+  </section>
+
+  <main class="container section">
+    <div class="kv">
+      <div class="panel">
+        <div class="controls">
+          <div><label>Dataset (CSV)</label><select id="csvSelect"></select></div>
+          <div><label>Columns (multi-select)</label><select id="colSelect" size="6" multiple></select></div>
+          <div><label>Scale</label><select id="scale"><option value="linear">Linear</option><option value="log">Log</option></select></div>
+          <div><label>Moving average (N points)</label><input id="ma" type="number" min="1" step="1" value="1" /></div>
+          <div><label>Decimate (every N points)</label><input id="decimate" type="number" min="1" step="1" value="1" /></div>
+          <div><label>Start</label><input id="start" type="datetime-local" /></div>
+          <div><label>End</label><input id="end" type="datetime-local" /></div>
+          <div>
+            <label>&nbsp;</label>
+            <div class="card__actions">
+              <button class="button" id="qfull" type="button">Full</button>
+              <button class="button" id="q7d" type="button">7d</button>
+              <button class="button" id="q3d" type="button">3d</button>
+              <button class="button" id="q1d" type="button">1d</button>
+            </div>
+          </div>
+          <div><label>Download</label><a id="downloadBtn" class="button" href="#" download>Download CSV</a></div>
+        </div>
+      </div>
+      <div class="panel"><div id="chart"></div></div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h3>Preview (first 8 rows)</h3>
+      <div class="table">
+        <table id="previewTable"><thead></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">© ROCIS LCMP</footer>
+</body>
+</html>
