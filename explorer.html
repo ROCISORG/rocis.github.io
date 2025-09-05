@@ -1,111 +1,555 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ROCIS LCMP – Data Explorer</title>
-  <link rel="stylesheet" href="./styles.css" />
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      background: white;
+      color: #2d3748;
+    }
+    
+    .nav {
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 1.5rem 0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    }
+    
+    .nav-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 3rem;
+      padding: 0 2rem;
+    }
+    
+    .brand {
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: #0066cc;
+      text-decoration: none;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+    
+    .nav-links a {
+      color: #2d3748;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    
+    .nav-links a:hover {
+      background: #e6f3ff;
+      color: #0066cc;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      text-align: center;
+    }
+    
+    .hero {
+      background: linear-gradient(135deg, #e6f3ff, #e6fffe);
+      padding: 3rem;
+      border-radius: 16px;
+      margin-bottom: 3rem;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .hero h1 {
+      margin: 0 0 1rem;
+      font-size: 3rem;
+      color: #0066cc;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+    }
+    
+    .hero p {
+      margin: 0;
+      font-size: 1.25rem;
+      color: #4a5568;
+    }
+    
+    .controls {
+      background: #fafbfc;
+      padding: 2rem;
+      border-radius: 12px;
+      margin: 2rem 0;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    }
+    
+    .control-group {
+      margin: 1rem 0;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #2d3748;
+    }
+    
+    select, input {
+      padding: 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 1rem;
+      background: white;
+      min-width: 300px;
+    }
+    
+    select:focus, input:focus {
+      outline: none;
+      border-color: #0066cc;
+      box-shadow: 0 0 0 3px #e6f3ff;
+    }
+    
+    .button {
+      background: linear-gradient(135deg, #0066cc, #004499);
+      color: white;
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 0.5rem;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 102, 204, 0.3);
+    }
+    
+    .button.secondary {
+      background: linear-gradient(135deg, #00b4a6, #009688);
+    }
+    
+    .button.secondary:hover {
+      box-shadow: 0 8px 25px rgba(0, 180, 166, 0.3);
+    }
+    
+    #chart {
+      width: 100%;
+      height: 650px;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      margin: 2rem 0;
+      background: white;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    }
+    
+    .status {
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      background: #f7fafc;
+      font-weight: 500;
+    }
+    
+    .loading {
+      color: #d69e2e;
+      background: #fff4e6;
+      border-color: #fbd38d;
+    }
+    
+    .success {
+      color: #38a169;
+      background: #f0fff4;
+      border-color: #9ae6b4;
+    }
+    
+    .error {
+      color: #e53e3e;
+      background: #fed7d7;
+      border-color: #feb2b2;
+    }
+    
+    .csv-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 2rem;
+      margin: 2rem 0;
+      justify-items: center;
+    }
+    
+    .csv-card {
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 2rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    
+    .csv-card:hover {
+      border-color: #0066cc;
+      transform: translateY(-4px);
+      box-shadow: 0 8px 25px rgba(0, 102, 204, 0.15);
+    }
+    
+    .csv-card.selected {
+      border-color: #0066cc;
+      background: #e6f3ff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 102, 204, 0.2);
+    }
+    
+    .csv-card h3 {
+      margin: 0 0 0.5rem;
+      color: #0066cc;
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+    
+    .csv-card p {
+      margin: 0.5rem 0;
+      color: #4a5568;
+    }
+    
+    .badge {
+      display: inline-block;
+      background: #e6f3ff;
+      color: #0066cc;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+    }
+    
+    .badge.small {
+      background: #e6fffe;
+      color: #00b4a6;
+    }
+    
+    @media (max-width: 768px) {
+      .nav-content {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .nav-links {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+      }
+      
+      .container {
+        padding: 1rem;
+      }
+      
+      .hero {
+        padding: 2rem;
+      }
+      
+      .hero h1 {
+        font-size: 2rem;
+      }
+      
+      .csv-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .csv-card {
+        max-width: none;
+      }
+      
+      select, input {
+        min-width: 250px;
+      }
+    }
+  </style>
 </head>
 <body>
   <nav class="nav">
-    <div class="container nav__inner">
+    <div class="nav-content">
       <a class="brand" href="./">ROCIS LCMP</a>
-      <div class="nav__links">
-        <a href="./cohorts.html">Cohorts</a> • 
+      <div class="nav-links">
+        <a href="./cohorts.html">Cohorts</a>
         <a href="./about.html">About</a>
       </div>
     </div>
   </nav>
 
-  <div class="explorer-layout">
-    <aside class="sidebar">
-      <h3>📊 Dataset Controls</h3>
-      <div class="control-group">
-        <label for="csvSelect">Select Dataset:</label>
-        <select id="csvSelect">
-          <option value="">Loading datasets...</option>
-        </select>
-      </div>
+  <div class="container">
+    <div class="hero">
+      <h1>ROCIS Data Explorer</h1>
+      <p>Professional visualization and analysis of Low Cost Monitoring Project data</p>
+    </div>
 
-      <h3>📅 Time Range</h3>
-      <div class="control-group">
-        <label for="dateStart">Start Date:</label>
-        <input type="datetime-local" id="dateStart">
-      </div>
-      <div class="control-group">
-        <label for="dateEnd">End Date:</label>
-        <input type="datetime-local" id="dateEnd">
-      </div>
-      <div class="quick-buttons">
-        <button class="quick-btn" id="quickFull">Full Range</button>
-        <button class="quick-btn" id="quick7d">Last 7 Days</button>
-        <button class="quick-btn" id="quick3d">Last 3 Days</button>
-        <button class="quick-btn" id="quick1d">Last 24h</button>
-      </div>
+    <div id="status" class="status loading">
+      🔍 Loading available datasets...
+    </div>
 
-      <h3>⚙️ Display Settings</h3>
-      <div class="control-group">
-        <label for="scale">Y-axis Scale:</label>
-        <select id="scale">
-          <option value="linear">Linear</option>
-          <option value="log">Logarithmic</option>
-        </select>
-      </div>
-      <div class="control-group">
-        <label for="decimate">Data Decimation:</label>
-        <input type="range" id="decimate" min="1" max="20" value="1" step="1">
-        <small id="decimateValue">1 (all points)</small>
-      </div>
-      <div class="control-group">
-        <label for="smooth">Data Smoothing:</label>
-        <input type="range" id="smooth" min="1" max="20" value="1" step="1">
-        <small id="smoothValue">1 (no smoothing)</small>
-      </div>
+    <div id="csvGrid" class="csv-grid" style="display: none;">
+      <!-- CSV files will be populated here -->
+    </div>
 
-      <h3>📈 Series Selection</h3>
+    <div class="controls" style="display: none;" id="controls">
       <div class="control-group">
-        <input type="text" id="seriesSearch" placeholder="Search series...">
-      </div>
-      <div id="seriesPanel" class="series-panel">
-        <p>Loading series...</p>
-      </div>
-    </aside>
-
-    <main class="chart-container">
-      <div class="chart-header">
-        <h2 class="chart-title" id="chartTitle">ROCIS LCMP Data</h2>
-        <div class="chart-controls">
-          <select id="chartType">
-            <option value="lines">Line Chart</option>
-            <option value="scatter">Scatter Plot</option>
-            <option value="bar">Bar Chart</option>
-          </select>
-          <a href="#" class="download-btn" id="downloadBtn">
-            📥 Download CSV
-          </a>
-        </div>
+        <label>📊 Selected Dataset:</label>
+        <div id="selectedDataset" style="font-size: 1.1rem; color: #0066cc; font-weight: 600; margin: 0.5rem 0;">None selected</div>
       </div>
       
-      <div class="stats-grid" id="statsGrid" style="display: none;">
-        <!-- Stats will be populated here -->
+      <div class="control-group">
+        <label for="maxSeries">📈 Maximum series to display:</label>
+        <select id="maxSeries">
+          <option value="3">3 series (recommended)</option>
+          <option value="5" selected>5 series</option>
+          <option value="10">10 series</option>
+          <option value="all">All series</option>
+        </select>
       </div>
       
-      <div id="chart"></div>
-      <div id="loading" class="loading">
-        <div class="spinner"></div>
-        <p>Loading data...</p>
+      <div style="margin-top: 1.5rem;">
+        <button class="button" onclick="visualizeSelected()">📊 Visualize Data</button>
+        <button class="button secondary" onclick="downloadSelected()">📥 Download CSV</button>
       </div>
-    </main>
+    </div>
+
+    <div id="chart"></div>
   </div>
 
-  <script src="./app.js"></script>
   <script>
-    // Initialize the enhanced data explorer
-    document.addEventListener('DOMContentLoaded', () => {
-      new ROCIS.DataExplorer();
-    });
+    // Your CSV files - automatically detects all cohort data
+    const csvFiles = [
+      { name: "Cohort 59 - Large Particles", path: "Data/large_59.csv", category: "Large" },
+      { name: "Cohort 60 - Large Particles", path: "Data/large_60.csv", category: "Large" },
+      { name: "Cohort 61 - Large Particles", path: "Data/large_61.csv", category: "Large" },
+      { name: "Cohort 62 - Large Particles", path: "Data/large_62.csv", category: "Large" },
+      { name: "Cohort 63 - Large Particles", path: "Data/large_63.csv", category: "Large" },
+      { name: "Cohort 59 - Small Particles", path: "Data/small_59.csv", category: "Small" },
+      { name: "Cohort 60 - Small Particles", path: "Data/small_60.csv", category: "Small" },
+      { name: "Cohort 61 - Small Particles", path: "Data/small_61.csv", category: "Small" },
+      { name: "Cohort 62 - Small Particles", path: "Data/small_62.csv", category: "Small" },
+      { name: "Cohort 63 - Small Particles", path: "Data/small_63.csv", category: "Small" }
+    ];
+
+    let selectedFile = null;
+    
+    // Professional color palette for better visualization
+    const colors = [
+      "#2E86AB", "#A23B72", "#F18F01", "#C73E1D", "#6A994E",
+      "#8E44AD", "#E67E22", "#16A085", "#E74C3C", "#3498DB",
+      "#9B59B6", "#F39C12", "#1ABC9C", "#E91E63", "#FF5722"
+    ];
+
+    function updateStatus(message, type = 'loading') {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = `status ${type}`;
+    }
+
+    function createCsvGrid() {
+      const grid = document.getElementById('csvGrid');
+      grid.innerHTML = '';
+
+      csvFiles.forEach(file => {
+        const card = document.createElement('div');
+        card.className = 'csv-card';
+        card.onclick = () => selectFile(file, card);
+        
+        const badgeClass = file.category === 'Small' ? 'badge small' : 'badge';
+        
+        card.innerHTML = `
+          <h3>${file.name} <span class="${badgeClass}">${file.category}</span></h3>
+          <p>📊 Particle monitoring data</p>
+          <p>📁 ${file.path}</p>
+        `;
+        
+        grid.appendChild(card);
+      });
+
+      grid.style.display = 'grid';
+      updateStatus('✅ Found all datasets! Click on any card to select and visualize.', 'success');
+    }
+
+    function selectFile(file, cardElement) {
+      // Remove previous selection
+      document.querySelectorAll('.csv-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      
+      // Add selection to clicked card
+      cardElement.classList.add('selected');
+      selectedFile = file;
+      
+      document.getElementById('selectedDataset').textContent = file.name;
+      document.getElementById('controls').style.display = 'block';
+      
+      updateStatus(`📊 Selected: ${file.name}. Click "Visualize Data" to create chart.`, 'success');
+    }
+
+    async function visualizeSelected() {
+      if (!selectedFile) {
+        updateStatus('❌ Please select a dataset first!', 'error');
+        return;
+      }
+
+      updateStatus(`📊 Loading ${selectedFile.name}...`, 'loading');
+
+      try {
+        const response = await fetch(selectedFile.path);
+        if (!response.ok) {
+          throw new Error(`File not found: ${selectedFile.path} (Status: ${response.status})`);
+        }
+
+        const csvText = await response.text();
+        
+        Papa.parse(csvText, {
+          header: true,
+          skipEmptyLines: true,
+          complete: function(results) {
+            const data = results.data.filter(row => 
+              Object.values(row).some(val => val !== null && val !== '')
+            );
+            
+            if (data.length === 0) {
+              updateStatus('❌ No valid data found in file', 'error');
+              return;
+            }
+
+            updateStatus(`✅ Loaded ${data.length} data points. Creating visualization...`, 'success');
+            createVisualization(data);
+          },
+          error: function(error) {
+            updateStatus(`❌ Error parsing CSV: ${error.message}`, 'error');
+          }
+        });
+
+      } catch (error) {
+        updateStatus(`❌ Error loading file: ${error.message}`, 'error');
+        console.error('Loading error:', error);
+      }
+    }
+
+    function createVisualization(data) {
+      const columns = Object.keys(data[0]);
+      const timeColumn = columns[0];
+      const dataColumns = columns.slice(1);
+      
+      const maxSeries = document.getElementById('maxSeries').value;
+      const seriesToShow = maxSeries === 'all' ? dataColumns : dataColumns.slice(0, parseInt(maxSeries));
+
+      const traces = seriesToShow.map((col, index) => ({
+        type: 'scatter',
+        mode: 'lines',
+        name: col,
+        x: data.map(row => row[timeColumn]),
+        y: data.map(row => {
+          const val = parseFloat(row[col]);
+          return isNaN(val) ? null : val;
+        }),
+        line: { 
+          width: 3, 
+          color: colors[index % colors.length] 
+        },
+        hovertemplate: `<b>${col}</b><br>%{x}<br>%{y:.1f} particles<extra></extra>`,
+        connectgaps: false
+      }));
+
+      const layout = {
+        title: {
+          text: selectedFile.name,
+          font: { size: 18, family: "Arial, sans-serif" },
+          x: 0.5,
+          xanchor: 'center'
+        },
+        xaxis: { 
+          title: {
+            text: 'Time',
+            font: { size: 14 }
+          },
+          showgrid: true,
+          gridcolor: '#f0f0f0'
+        },
+        yaxis: { 
+          title: {
+            text: 'Particle Count (per 0.01 ft³)',
+            font: { size: 14 }
+          },
+          showgrid: true,
+          gridcolor: '#f0f0f0'
+        },
+        margin: { l: 80, r: 40, t: 80, b: 80 },
+        legend: {
+          orientation: 'v',
+          x: 1.02,
+          y: 1,
+          xanchor: 'left',
+          yanchor: 'top',
+          bgcolor: 'rgba(255,255,255,0.9)',
+          bordercolor: '#ddd',
+          borderwidth: 1,
+          font: { size: 12 }
+        },
+        hovermode: 'x unified',
+        plot_bgcolor: 'white',
+        paper_bgcolor: 'white',
+        font: { family: "Arial, sans-serif" }
+      };
+
+      const config = {
+        responsive: true,
+        displaylogo: false,
+        modeBarButtonsToAdd: ['toImage'],
+        toImageButtonOptions: {
+          format: 'png',
+          filename: `${selectedFile.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_chart`,
+          height: 650,
+          width: 1000,
+          scale: 2
+        }
+      };
+
+      Plotly.react('chart', traces, layout, config);
+      updateStatus(`✅ Visualization complete! Showing ${seriesToShow.length} data series from ${selectedFile.name}.`, 'success');
+    }
+
+    function downloadSelected() {
+      if (!selectedFile) {
+        updateStatus('❌ Please select a dataset first!', 'error');
+        return;
+      }
+      
+      const link = document.createElement('a');
+      link.href = selectedFile.path;
+      link.download = selectedFile.path.split('/').pop();
+      link.click();
+      
+      updateStatus(`📥 Downloading ${selectedFile.name}...`, 'success');
+    }
+
+    // Initialize the page
+    setTimeout(() => {
+      createCsvGrid();
+    }, 500);
   </script>
 </body>
 </html>
