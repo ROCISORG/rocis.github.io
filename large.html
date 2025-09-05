@@ -4,17 +4,17 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Cohorts – Large | ROCIS LCMP</title>
-  <link rel="stylesheet" href="/assets/style.css" />
+  <link rel="stylesheet" href="assets/style.css" />
   <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
   <div class="layout">
     <aside class="sidebar">
-      <a class="brand" href="/index.html">ROCIS LCMP</a>
+      <a class="brand" href="index.html">ROCIS LCMP</a>
       <h2>Pages</h2>
-      <a href="/large.html" aria-current="page">Cohorts – Large</a>
-      <a href="/small.html">Cohorts – Small</a>
+      <a href="large.html" aria-current="page">Cohorts – Large</a>
+      <a href="small.html">Cohorts – Small</a>
     </aside>
 
     <main class="content">
@@ -71,7 +71,7 @@
     </div>
   </div>
 
-  <script src="/assets/charts.js"></script>
+  <script src="assets/charts.js"></script>
   <script>
     const cardsEl = document.getElementById("cards");
     const searchEl = document.getElementById("search");
@@ -103,7 +103,7 @@
     }
 
     async function loadManifest() {
-      const resp = await fetch("/Data/manifest_large.json");
+      const resp = await fetch("Data/manifest_large.json");   // <-- relative path (no leading slash)
       const man = await resp.json();
       DATASETS = (man.datasets || []).slice().sort((a,b) => b.cohort - a.cohort);
       renderCards();
@@ -157,4 +157,5 @@
   </script>
 </body>
 </html>
+
 
