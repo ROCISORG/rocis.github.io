@@ -1,166 +1,33 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Cohorts – Large | ROCIS LCMP</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ROCIS LCMP – Large Cohorts</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script defer src="assets/js/app.js"></script>
 </head>
-<body>
-  <div class="layout">
-    <aside class="sidebar">
-      <a class="brand" href="index.html">ROCIS LCMP</a>
-      <h2>Pages</h2>
-      <a href="large.html" aria-current="page">Cohorts – Large</a>
-      <a href="small.html">Cohorts – Small</a>
-    </aside>
-
-    <main class="content">
-      <div class="header"><h1>Cohorts – Large</h1></div>
-
-      <section class="controls grid-2">
-        <div class="card">
-          <label for="search">Search (title or cohort #)</label>
-          <input id="search" type="search" placeholder="e.g., 63, 64…" />
-        </div>
-      </section>
-
-      <section id="cards" class="cards-grid"></section>
-
-      <footer><small>© ROCIS LCMP</small></footer>
-    </main>
-  </div>
-
-  <!-- Visualizer Modal -->
-  <div id="modal" class="modal" aria-hidden="true">
-    <div class="modal__backdrop" id="modalBackdrop"></div>
-    <div class="modal__body" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <div class="modal__header">
-        <h2 id="modalTitle">Visualizer</h2>
-        <button class="button button--ghost" id="modalClose">Close</button>
-      </div>
-
-      <section class="controls">
-        <div class="card"><label for="scale">Scale</label><select id="scale"><option value="linear">Linear</option><option value="log">Log</option></select></div>
-        <div class="card"><label for="decimate">Decimate (every Nth point)</label><input id="decimate" type="number" min="1" step="1" value="1" /></div>
-        <div class="card"><label for="smooth">Smoothing (moving average)</label><input id="smooth" type="number" min="1" step="1" value="1" /></div>
-        <div class="card">
-          <label>Quick Ranges</label>
-          <div class="flex">
-            <button class="button" id="qfull">Full</button>
-            <button class="button" id="q7d">7d</button>
-            <button class="button" id="q3d">3d</button>
-            <button class="button" id="q1d">1d</button>
-          </div>
-        </div>
-        <div class="card"><label for="start">Start</label><input id="start" type="datetime-local" /></div>
-        <div class="card"><label for="end">End</label><input id="end" type="datetime-local" /></div>
-      </section>
-
-      <section class="controls">
-        <div class="card">
-          <label for="seriesSearch">Search keys</label>
-          <input id="seriesSearch" type="search" placeholder="Filter keys… (e.g., WASH, CRFT)" />
-          <div id="seriesPanel" class="series-panel"></div>
-        </div>
-      </section>
-
-      <section class="card"><div id="chart" class="chart"></div></section>
+<body onload="ROGIS.renderCards('large')">
+  <nav class="nav">
+    <div class="nav__inner container">
+      <a class="brand" href="./"><b>ROCIS</b> LCMP</a>
+      <div class="nav__links"><a href="./small.html">Small</a></div>
     </div>
-  </div>
+  </nav>
 
-  <script src="charts.js"></script>
-  <script>
-    const cardsEl = document.getElementById("cards");
-    const searchEl = document.getElementById("search");
-    let DATASETS = [];
+  <section class="hero">
+    <div class="hero__inner container">
+      <h1>Large Dylos Data</h1>
+      <p>Click a cohort to download the CSV or open a full visualizer.</p>
+    </div>
+  </section>
 
-    function cardTemplate(d) {
-      return `
-        <article class="card card--dataset">
-          <div class="card__row">
-            <div>
-              <div class="badge badge--large">Large</div>
-              <h3 class="card__title">${d.title}</h3>
-              <div class="card__meta">Cohort ${d.cohort}</div>
-            </div>
-          </div>
-          <div class="card__actions">
-            <a class="button" href="${d.path}" download>Download CSV</a>
-            <button class="button" data-open data-path="${d.path}" data-title="${d.title}">Visualize</button>
-          </div>
-        </article>
-      `;
-    }
+  <main class="container section">
+    <div id="cohortGrid" class="grid"></div>
+  </main>
 
-    function renderCards() {
-      const q = (searchEl.value || "").toLowerCase().trim();
-      const filtered = DATASETS.filter(d => !q || d.title.toLowerCase().includes(q) || String(d.cohort).includes(q));
-      cardsEl.innerHTML = filtered.length ? filtered.map(cardTemplate).join("") : '<div class="card">No datasets found.</div>';
-      cardsEl.querySelectorAll("[data-open]").forEach(btn => {
-        btn.addEventListener("click", () => openModal(btn.dataset.path, btn.dataset.title));
-      });
-    }
-
-    async function loadManifest() {
-      const resp = await fetch("Data/manifest_large.json");  // relative path
-      const man = await resp.json();
-      DATASETS = (man.datasets || []).slice().sort((a,b) => b.cohort - a.cohort);
-      renderCards();
-    }
-
-    searchEl.addEventListener("input", renderCards);
-    loadManifest();
-
-    // Modal handlers
-    const modal = document.getElementById("modal");
-    const modalBackdrop = document.getElementById("modalBackdrop");
-    const modalClose = document.getElementById("modalClose");
-    const modalTitle = document.getElementById("modalTitle");
-
-    function openModal(csvPath, title) {
-      modalTitle.textContent = title;
-      modal.setAttribute("aria-hidden", "false");
-      document.body.classList.add("modal-open");
-      initCsvChart({
-        csvPath,
-        chartEl: "chart",
-        title,
-        scaleEl: "scale",
-        decimateEl: "decimate",
-        smoothEl: "smooth",
-        seriesSearchEl: "seriesSearch",
-        seriesPanelEl: "seriesPanel",
-        dateStartEl: "start",
-        dateEndEl: "end",
-        quickFullEl: "qfull",
-        quick7dEl: "q7d",
-        quick3dEl: "q3d",
-        quick1dEl: "q1d"
-      });
-    }
-    function closeModal() {
-      modal.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("modal-open");
-      document.getElementById("chart").innerHTML = "";
-      document.getElementById("seriesPanel").innerHTML = "";
-      document.getElementById("seriesSearch").value = "";
-      document.getElementById("start").value = "";
-      document.getElementById("end").value = "";
-      document.getElementById("scale").value = "linear";
-      document.getElementById("decimate").value = "1";
-      document.getElementById("smooth").value = "1";
-    }
-    modalBackdrop.addEventListener("click", closeModal);
-    modalClose.addEventListener("click", closeModal);
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && modal.getAttribute("aria-hidden") === "false") closeModal();
-    });
-  </script>
+  <footer class="footer">© ROCIS LCMP</footer>
 </body>
 </html>
-
-
-
