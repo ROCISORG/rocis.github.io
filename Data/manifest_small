@@ -1,0 +1,10 @@
+{
+  "datasets": [
+    { "cohort": 59, "size": "Small", "title": "Cohort 59 – Small", "path": "/Data/small_59.csv" },
+    { "cohort": 60, "size": "Small", "title": "Cohort 60 – Small", "path": "/Data/small_60.csv" },
+    { "cohort": 61, "size": "Small", "title": "Cohort 61 – Small", "path": "/Data/small_61.csv" },
+    { "cohort": 62, "size": "Small", "title": "Cohort 62 – Small", "path": "/Data/small_62.csv" },
+    { "cohort": 63, "size": "Small", "title": "Cohort 63 – Small", "path": "/Data/small_63.csv" },
+    { "cohort": 64, "size": "Small", "title": "Cohort 64 – Small", "path": "/Data/small_64.csv" }
+  ]
+}
