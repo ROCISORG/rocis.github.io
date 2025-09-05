@@ -1,35 +1,32 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ROCIS LCMP – Home</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
-  <div class="layout">
-    <aside class="sidebar">
-      <a class="brand" href="index.html">ROCIS LCMP</a>
-      <h2>Pages</h2>
-      <a href="large.html">Cohorts – Large</a>
-      <a href="small.html">Cohorts – Small</a>
-    </aside>
-
-    <main class="content">
-      <div class="header"><h1>ROCIS Low Cost Monitoring Project</h1></div>
-
-      <div class="card">
-        <p>Welcome. Browse <strong>Large</strong> or <strong>Small</strong> cohorts to view and download datasets, and open the visualizer with advanced controls:</p>
-        <ul>
-          <li>Legend below chart (no overlap)</li>
-          <li>Search-by-key + checkboxes to show/hide series</li>
-          <li>Date range filters + quick ranges (Full / 7d / 3d / 1d)</li>
-          <li>Linear/Log scale, Decimate, and Smoothing</li>
-        </ul>
+  <nav class="nav">
+    <div class="nav__inner container">
+      <a class="brand" href="./"><b>ROCIS</b> LCMP</a>
+      <div class="nav__links">
+        <a href="./large.html">Large</a> • <a href="./small.html">Small</a>
       </div>
+    </div>
+  </nav>
 
-      <footer><small>© ROCIS LCMP</small></footer>
-    </main>
-  </div>
-</body>
-</html>
+  <section class="hero">
+    <div class="hero__inner container">
+      <h1>ROCIS Low Cost Monitoring Project</h1>
+      <p>Browse cohorts and visualize Dylos time-series data. Download the CSVs or open the visualizer for interactive controls.</p>
+      <p class="badge" style="margin-top:12px;">Legend toggle • Search • Date filters • Linear/Log • Moving average • Decimate</p>
+    </div>
+  </section>
+
+  <main class="container">
+    <div class="grid">
+      <div class="card">
+        <div class="card__title"><strong>Large Dylos Data</strong><span class="badge">Cohorts</span></div>
+        <p>All cohorts a
+
