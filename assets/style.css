@@ -26,12 +26,12 @@ select,input[type="file"],input[type="number"],input[type="datetime-local"],inpu
 }
 .button{display:inline-block;text-align:center}
 .flex{display:flex;gap:10px;flex-wrap:wrap}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .series-panel{max-height:260px;overflow:auto}
 .series-panel label{display:flex;align-items:center;gap:8px;margin:4px 0}
 .chart{height:680px}
 footer{color:var(--muted);margin-top:24px}
 @media (max-width: 900px){.layout{grid-template-columns:1fr}.sidebar{position:relative;height:auto}}
+
 /* Cards grid */
 .cards-grid {
   display: grid;
@@ -49,14 +49,9 @@ footer{color:var(--muted);margin-top:24px}
 /* Modal */
 .modal { position: fixed; inset: 0; display: none; }
 .modal[aria-hidden="false"] { display: block; }
-.modal__backdrop {
-  position: absolute; inset: 0; background: rgba(0,0,0,.55); backdrop-filter: blur(1px);
-}
-.modal__body {
-  position: relative; z-index: 1; max-width: 1200px; margin: 32px auto; background: var(--bg);
-  border: 1px solid var(--border); border-radius: 14px; padding: 16px;
-}
+.modal__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.55); backdrop-filter: blur(1px); }
+.modal__body { position: relative; z-index: 1; max-width: 1200px; margin: 32px auto; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
 .modal__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px }
 .button--ghost { background: transparent; border: 1px solid var(--border) }
 body.modal-open { overflow: hidden; }
-
