@@ -527,8 +527,8 @@
     </div>
 
     <div class="view-toggle">
-      <button class="view-btn active" onclick="switchView('single')">📊 Single View</button>
-      <button class="view-btn" onclick="switchView('compare')">🔄 Compare Large vs Total</button>
+      <button class="view-btn active" onclick="switchView('single')">📊 Single Dataset</button>
+      <button class="view-btn" onclick="switchView('compare')">🔄 Compare Large vs Total (Same Cohort)</button>
     </div>
 
     <!-- Single View -->
@@ -555,37 +555,20 @@
 
     <!-- Compare View -->
     <div id="compare-view" class="view-content" style="display: none;">
-      <div class="cohort-grid">
-        <div class="cohort-panel large">
-          <h3>🔵 Large Particles</h3>
-          <select class="cohort-dropdown" id="largeCohortSelect" onchange="selectCompareCohort('large', this.value)">
+      <div class="cohort-grid single">
+        <div class="cohort-panel">
+          <h3>Select Cohort for Large vs Total Comparison</h3>
+          <select class="cohort-dropdown" id="compareCohortSelect" onchange="selectCompareCohort()">
             <option value="">Choose a cohort...</option>
-            <option value="large_59">Cohort 59</option>
-            <option value="large_60">Cohort 60</option>
-            <option value="large_61">Cohort 61</option>
-            <option value="large_62">Cohort 62</option>
-            <option value="large_63">Cohort 63</option>
+            <option value="59">Cohort 59</option>
+            <option value="60">Cohort 60</option>
+            <option value="61">Cohort 61</option>
+            <option value="62">Cohort 62</option>
+            <option value="63">Cohort 63</option>
           </select>
-          <div class="region-filter">
+          <div class="sw-pennsylvania-filter">
             <label>
-              <input type="checkbox" id="largeSwPaFilter"> Southwest PA only
-            </label>
-          </div>
-        </div>
-        
-        <div class="cohort-panel total">
-          <h3>🟢 Total Particles</h3>
-          <select class="cohort-dropdown" id="totalCohortSelect" onchange="selectCompareCohort('total', this.value)">
-            <option value="">Choose a cohort...</option>
-            <option value="small_59">Cohort 59</option>
-            <option value="small_60">Cohort 60</option>
-            <option value="small_61">Cohort 61</option>
-            <option value="small_62">Cohort 62</option>
-            <option value="small_63">Cohort 63</option>
-          </select>
-          <div class="region-filter">
-            <label>
-              <input type="checkbox" id="totalSwPaFilter"> Southwest PA only
+              <input type="checkbox" id="compareSwPaFilter"> Show only Southwest Pennsylvania participants
             </label>
           </div>
         </div>
@@ -652,6 +635,18 @@
     </div>
 
     <div id="chart"></div>
+    <div id="compareCharts" style="display: none;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
+        <div>
+          <h3 style="text-align: center; color: #2b6cb0; margin-bottom: 1rem;">🔵 Large Particles</h3>
+          <div id="chartLarge" style="width: 100%; height: 600px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);"></div>
+        </div>
+        <div>
+          <h3 style="text-align: center; color: #059669; margin-bottom: 1rem;">🟢 Total Particles</h3>
+          <div id="chartTotal" style="width: 100%; height: 600px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -725,24 +720,21 @@
       }
     }
 
-    function selectCompareCohort(type, cohortId) {
-      selectedCohorts[type] = cohortId;
+    function selectCompareCohort() {
+      const cohortSelect = document.getElementById('compareCohortSelect');
+      const cohortNum = cohortSelect.value;
       
-      const hasSelections = selectedCohorts.large || selectedCohorts.total;
-      if (hasSelections) {
+      if (cohortNum) {
+        selectedCohorts.large = `large_${cohortNum}`;
+        selectedCohorts.total = `small_${cohortNum}`;
+        
         document.getElementById('mainControls').classList.add('show');
-        
-        let title = 'Compare View: ';
-        if (selectedCohorts.large && selectedCohorts.total) {
-          title += `${selectedCohorts.large.toUpperCase()} vs ${selectedCohorts.total.toUpperCase()}`;
-        } else if (selectedCohorts.large) {
-          title += `${selectedCohorts.large.toUpperCase()} (Large)`;
-        } else {
-          title += `${selectedCohorts.total.toUpperCase()} (Total)`;
-        }
-        
-        document.getElementById('selectedCohortTitle').textContent = title;
-        document.getElementById('selectedCohortDesc').textContent = 'Click "Load Dataset" to visualize selected cohorts';
+        document.getElementById('selectedCohortTitle').textContent = `Compare View: Cohort ${cohortNum} - Large vs Total`;
+        document.getElementById('selectedCohortDesc').textContent = 'Click "Load Dataset" to visualize both Large and Total particles for this cohort';
+      } else {
+        selectedCohorts.large = null;
+        selectedCohorts.total = null;
+        document.getElementById('mainControls').classList.remove('show');
       }
     }
 
@@ -789,9 +781,10 @@
           if (!selectedCohorts.single) throw new Error('No cohort selected');
           await loadCohortData('single', selectedCohorts.single);
         } else {
-          // Compare view - load both if selected
-          if (selectedCohorts.large) await loadCohortData('large', selectedCohorts.large);
-          if (selectedCohorts.total) await loadCohortData('total', selectedCohorts.total);
+          // Compare view - automatically load both Large and Total for same cohort
+          if (!selectedCohorts.large || !selectedCohorts.total) throw new Error('No cohort selected for comparison');
+          await loadCohortData('large', selectedCohorts.large);
+          await loadCohortData('total', selectedCohorts.total);
         }
         
         setupSeriesSelection();
@@ -962,27 +955,59 @@
         return;
       }
 
-      const samplingRate = getSamplingRate();
-      let traces = [];
+      if (currentView === 'single') {
+        // Show single chart
+        document.getElementById('chart').style.display = 'block';
+        document.getElementById('compareCharts').style.display = 'none';
+        
+        const samplingRate = getSamplingRate();
+        let traces = [];
 
-      // Generate traces based on current view
-      if (currentView === 'single' && currentData.single) {
-        traces = generateTraces(currentData.single, selectedSeries, samplingRate, '');
-      } else if (currentView === 'compare') {
-        if (currentData.large) {
-          traces = traces.concat(generateTraces(currentData.large, selectedSeries, samplingRate, 'Large: '));
+        if (currentData.single) {
+          traces = generateTraces(currentData.single, selectedSeries, samplingRate, '');
         }
+
+        if (traces.length === 0) return;
+
+        const layout = createChartLayout(getChartTitle(selectedSeries.length));
+        const config = createChartConfig('single');
+
+        Plotly.react('chart', traces, layout, config);
+        
+      } else if (currentView === 'compare') {
+        // Show separate side-by-side charts
+        document.getElementById('chart').style.display = 'none';
+        document.getElementById('compareCharts').style.display = 'block';
+        
+        const samplingRate = getSamplingRate();
+        
+        // Create Large Particles chart
+        if (currentData.large) {
+          const largeTraces = generateTraces(currentData.large, selectedSeries, samplingRate, '');
+          const largeLayout = createChartLayout(`Large Particles - Cohort ${selectedCohorts.large?.split('_')[1] || ''} (${selectedSeries.length} series)`);
+          largeLayout.showlegend = true;
+          const largeConfig = createChartConfig('large');
+          
+          Plotly.react('chartLarge', largeTraces, largeLayout, largeConfig);
+        }
+        
+        // Create Total Particles chart
         if (currentData.total) {
-          traces = traces.concat(generateTraces(currentData.total, selectedSeries, samplingRate, 'Total: '));
+          const totalTraces = generateTraces(currentData.total, selectedSeries, samplingRate, '');
+          const totalLayout = createChartLayout(`Total Particles - Cohort ${selectedCohorts.total?.split('_')[1] || ''} (${selectedSeries.length} series)`);
+          totalLayout.showlegend = true;
+          const totalConfig = createChartConfig('total');
+          
+          Plotly.react('chartTotal', totalTraces, totalLayout, totalConfig);
         }
       }
+    }
 
-      if (traces.length === 0) return;
-
-      const layout = {
+    function createChartLayout(title) {
+      return {
         title: {
-          text: getChartTitle(selectedSeries.length),
-          font: { size: 20, family: "system-ui, sans-serif", color: "#1a202c" },
+          text: title,
+          font: { size: 18, family: "system-ui, sans-serif", color: "#1a202c" },
           x: 0.5,
           xanchor: 'center'
         },
@@ -996,7 +1021,7 @@
           gridwidth: 1,
           linecolor: '#d0d0d0',
           linewidth: 1,
-          tickfont: { size: 12, color: "#4a5568" },
+          tickfont: { size: 11, color: "#4a5568" },
           showspikes: true,
           spikemode: 'across',
           spikesnap: 'cursor',
@@ -1015,42 +1040,44 @@
           gridwidth: 1,
           linecolor: '#d0d0d0',
           linewidth: 1,
-          tickfont: { size: 12, color: "#4a5568" }
+          tickfont: { size: 11, color: "#4a5568" }
         },
-        margin: { l: 80, r: 160, t: 70, b: 60 },
+        margin: { l: 70, r: 10, t: 60, b: 50 },
         legend: {
-          orientation: 'v',
-          x: 1.02,
-          y: 1,
-          xanchor: 'left',
+          orientation: 'h',
+          x: 0.5,
+          y: -0.15,
+          xanchor: 'center',
           yanchor: 'top',
           bgcolor: 'rgba(255,255,255,0.9)',
           bordercolor: '#e2e8f0',
           borderwidth: 1,
-          font: { size: 11, color: "#2d3748" }
+          font: { size: 10, color: "#2d3748" },
+          itemclick: 'toggle',
+          itemdoubleclick: 'toggleothers'
         },
         hovermode: 'x unified',
         plot_bgcolor: 'white',
         paper_bgcolor: 'white',
         font: { family: "system-ui, sans-serif", color: "#2d3748" }
       };
+    }
 
-      const config = {
+    function createChartConfig(chartType) {
+      return {
         responsive: true,
         displaylogo: false,
-        scrollZoom: true, // Enable zoom with mouse wheel
-        doubleClick: 'reset', // Double click to reset zoom
+        scrollZoom: true,
+        doubleClick: 'reset',
         modeBarButtonsToAdd: ['select2d', 'lasso2d'],
         toImageButtonOptions: {
           format: 'png',
-          filename: `rocis_outdoor_data_explorer_${Date.now()}`,
-          height: 700,
-          width: 1200,
+          filename: `rocis_${chartType}_${Date.now()}`,
+          height: 600,
+          width: 700,
           scale: 2
         }
       };
-
-      Plotly.react('chart', traces, layout, config);
     }
 
     function generateTraces(data, selectedSeries, samplingRate, prefix) {
