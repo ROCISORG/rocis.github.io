@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ROCIS LCMP – Outdoor Data Explorer</title>
-  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="https://unpkg.com/papaparse@5/papaparse.min.js"></script>
   <style>
     * {
       margin: 0;
@@ -14,24 +14,23 @@
     }
 
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      color: #1a202c;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f8f9fa;
+      color: #2d3748;
+      line-height: 1.6;
     }
     
     .nav {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      background: white;
+      border-bottom: 2px solid #e2e8f0;
       position: sticky;
       top: 0;
       z-index: 1000;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     
     .nav-content {
-      max-width: 1400px;
+      max-width: 1600px;
       margin: 0 auto;
       display: flex;
       justify-content: space-between;
@@ -42,10 +41,7 @@
     .brand {
       font-weight: 800;
       font-size: 1.8rem;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: #2b6cb0;
       text-decoration: none;
     }
     
@@ -59,424 +55,433 @@
       text-decoration: none;
       font-weight: 600;
       padding: 0.75rem 1.5rem;
-      border-radius: 50px;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 8px;
+      transition: all 0.2s ease;
     }
     
     .nav-links a:hover {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+      background: #e6f3ff;
+      color: #2b6cb0;
     }
     
     .container {
-      max-width: 1400px;
+      max-width: 1600px;
       margin: 0 auto;
       padding: 2rem;
     }
     
     .hero {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(20px);
-      padding: 4rem 3rem;
-      border-radius: 24px;
-      margin-bottom: 3rem;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
       text-align: center;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
     
     .hero h1 {
-      margin: 0 0 1rem;
-      font-size: 4rem;
-      font-weight: 900;
-      background: linear-gradient(135deg, #ffffff, #f7fafc);
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      letter-spacing: -0.02em;
-      text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin: 0 0 0.5rem;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #2d3748;
     }
     
     .hero p {
       margin: 0;
-      font-size: 1.4rem;
-      color: rgba(255, 255, 255, 0.9);
-      font-weight: 500;
+      font-size: 1.1rem;
+      color: #718096;
     }
     
-    .category-tabs {
+    .view-toggle {
       display: flex;
       justify-content: center;
       gap: 1rem;
-      margin-bottom: 3rem;
-    }
-    
-    .category-tab {
-      padding: 1.2rem 2.5rem;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 16px;
-      cursor: pointer;
-      font-weight: 700;
-      font-size: 1.2rem;
-      color: rgba(255, 255, 255, 0.8);
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      min-width: 220px;
-      text-align: center;
-    }
-    
-    .category-tab.active {
-      background: rgba(255, 255, 255, 0.95);
-      color: #667eea;
-      transform: translateY(-4px);
-      box-shadow: 0 20px 40px rgba(255, 255, 255, 0.2);
-    }
-    
-    .category-tab:hover:not(.active) {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      transform: translateY(-2px);
-      box-shadow: 0 12px 24px rgba(255, 255, 255, 0.1);
-    }
-    
-    .cohort-section {
-      display: none;
-      margin-bottom: 3rem;
-    }
-    
-    .cohort-section.active {
-      display: block;
-      animation: fadeIn 0.5s ease-out;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .cohort-selection {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 20px;
-      padding: 4rem;
-      text-align: center;
       margin-bottom: 2rem;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
     }
     
-    .cohort-selection h3 {
-      margin: 0 0 2rem;
-      font-size: 2.2rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    .view-btn {
+      padding: 0.8rem 1.5rem;
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      color: #4a5568;
+      transition: all 0.2s ease;
+    }
+    
+    .view-btn.active {
+      background: #2b6cb0;
+      color: white;
+      border-color: #2b6cb0;
+    }
+    
+    .view-btn:hover:not(.active) {
+      background: #e6f3ff;
+      color: #2b6cb0;
+      border-color: #2b6cb0;
+    }
+    
+    .cohort-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .cohort-grid.single {
+      grid-template-columns: 1fr;
+      max-width: 800px;
+      margin: 0 auto 2rem auto;
+    }
+    
+    .cohort-panel {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .cohort-panel h3 {
+      margin: 0 0 1.5rem;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #2d3748;
+      text-align: center;
+    }
+    
+    .cohort-panel.large h3 {
+      color: #2b6cb0;
+    }
+    
+    .cohort-panel.total h3 {
+      color: #059669;
     }
     
     .cohort-dropdown {
       width: 100%;
-      max-width: 600px;
-      padding: 1.5rem 2rem;
-      border: 3px solid transparent;
-      background: linear-gradient(white, white) padding-box, 
-                  linear-gradient(135deg, #667eea, #764ba2) border-box;
-      border-radius: 16px;
-      font-size: 1.3rem;
-      font-weight: 600;
+      padding: 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      background: white;
       cursor: pointer;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.2s ease;
       color: #2d3748;
       outline: none;
+      margin-bottom: 1rem;
     }
     
     .cohort-dropdown:focus {
-      transform: translateY(-4px);
-      box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+      border-color: #2b6cb0;
+      box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
     }
     
-    .cohort-dropdown:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 24px rgba(102, 126, 234, 0.2);
+    .region-filter {
+      margin-top: 1rem;
+    }
+    
+    .region-filter label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 500;
+      color: #4a5568;
+      cursor: pointer;
     }
     
     .main-controls {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 20px;
-      padding: 3rem;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 2rem;
       margin: 2rem 0;
       display: none;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
     
     .main-controls.show {
       display: block;
-      animation: slideUp 0.5s ease-out;
-    }
-    
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
     }
     
     .controls-grid {
       display: grid;
-      grid-template-columns: 1fr 2fr;
-      gap: 4rem;
+      grid-template-columns: 300px 1fr;
+      gap: 3rem;
       align-items: start;
     }
     
     .control-panel {
-      background: linear-gradient(135deg, #f7fafc, #edf2f7);
-      padding: 2rem;
-      border-radius: 16px;
+      background: #f8f9fa;
+      padding: 1.5rem;
+      border-radius: 8px;
       border: 1px solid #e2e8f0;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
     }
     
     .control-panel h4 {
-      margin: 0 0 1.5rem;
-      font-size: 1.4rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    
-    .scale-toggle {
-      display: flex;
-      gap: 0.8rem;
-      margin: 1.5rem 0;
-    }
-    
-    .scale-btn {
-      flex: 1;
-      padding: 1rem;
-      border: 2px solid transparent;
-      background: white;
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: 700;
+      margin: 0 0 1rem;
       font-size: 1.1rem;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 700;
+      color: #2d3748;
+    }
+    
+    .scale-toggle, .zoom-controls {
+      display: flex;
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+    
+    .scale-btn, .zoom-btn {
+      flex: 1;
+      padding: 0.7rem;
+      border: 2px solid #e2e8f0;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
       color: #4a5568;
     }
     
-    .scale-btn.active {
-      background: linear-gradient(135deg, #667eea, #764ba2);
+    .scale-btn.active, .zoom-btn.active {
+      background: #2b6cb0;
       color: white;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+      border-color: #2b6cb0;
     }
     
-    .scale-btn:hover:not(.active) {
-      background: #f7fafc;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    .scale-btn:hover:not(.active), .zoom-btn:hover:not(.active) {
+      background: #e6f3ff;
+      color: #2b6cb0;
+      border-color: #2b6cb0;
     }
     
     .button {
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: #2b6cb0;
       color: white;
-      padding: 1.2rem 2rem;
+      padding: 0.8rem 1.2rem;
       border: none;
-      border-radius: 12px;
-      font-size: 1.1rem;
-      font-weight: 700;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
       cursor: pointer;
-      margin: 0.8rem 0;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      margin: 0.3rem 0;
+      transition: all 0.2s ease;
       width: 100%;
-      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
     }
     
     .button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+      background: #2c5aa0;
     }
     
     .button:disabled {
       opacity: 0.6;
       cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
     }
     
     .button.secondary {
-      background: linear-gradient(135deg, #38b2ac, #319795);
-      box-shadow: 0 8px 20px rgba(56, 178, 172, 0.3);
-    }
-    
-    .button.secondary:hover {
-      box-shadow: 0 12px 30px rgba(56, 178, 172, 0.4);
+      background: #38a169;
     }
     
     .series-selection {
-      background: linear-gradient(135deg, #f7fafc, #edf2f7);
+      background: #f8f9fa;
       border: 1px solid #e2e8f0;
-      border-radius: 16px;
-      padding: 2rem;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+      padding: 1.5rem;
     }
     
-    .series-selection h4 {
-      margin: 0 0 1.5rem;
-      font-size: 1.4rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    .series-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 1rem;
+    }
+    
+    .series-header h4 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #2d3748;
+    }
+    
+    .series-search {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      outline: none;
+    }
+    
+    .series-search:focus {
+      border-color: #2b6cb0;
+      box-shadow: 0 0 0 2px rgba(43, 108, 176, 0.1);
     }
     
     .series-controls {
       display: flex;
-      gap: 0.8rem;
-      margin-bottom: 1.5rem;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
     }
     
     .series-control-btn {
-      padding: 0.8rem 1.5rem;
+      padding: 0.5rem 0.8rem;
       background: white;
-      color: #667eea;
-      border: 2px solid #667eea;
-      border-radius: 10px;
+      color: #2b6cb0;
+      border: 1px solid #2b6cb0;
+      border-radius: 4px;
       cursor: pointer;
-      font-size: 1rem;
-      font-weight: 700;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-size: 0.8rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
     }
     
     .series-control-btn:hover {
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: #2b6cb0;
       color: white;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
     }
     
     .series-list {
-      max-height: 320px;
+      max-height: 350px;
       overflow-y: auto;
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 1.5rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 0.8rem;
       background: white;
-      box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.05);
     }
     
     .series-item {
       display: flex;
       align-items: center;
-      padding: 0.8rem;
-      margin: 0.4rem 0;
-      border-radius: 10px;
-      transition: all 0.2s ease;
+      padding: 0.5rem;
+      margin: 0.2rem 0;
+      border-radius: 4px;
+      transition: background 0.2s ease;
       cursor: pointer;
     }
     
     .series-item:hover {
-      background: linear-gradient(135deg, #f0f4ff, #e6f0ff);
-      transform: translateX(4px);
+      background: #f7fafc;
     }
     
     .series-item input[type="checkbox"] {
-      margin-right: 1.2rem;
-      transform: scale(1.3);
-      cursor: pointer;
+      margin-right: 0.8rem;
+      transform: scale(1.1);
     }
     
     .color-indicator {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      margin-right: 1rem;
-      border: 3px solid white;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      margin-right: 0.6rem;
+      border: 1px solid #e2e8f0;
     }
     
     .series-label {
       flex: 1;
-      font-weight: 600;
+      font-weight: 500;
       color: #2d3748;
-      font-size: 1.1rem;
+      font-size: 0.9rem;
+    }
+    
+    .visibility-btn {
+      padding: 0.2rem 0.5rem;
+      background: #e2e8f0;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 0.7rem;
+      color: #4a5568;
+      transition: all 0.2s ease;
+    }
+    
+    .visibility-btn:hover {
+      background: #cbd5e0;
+    }
+    
+    .visibility-btn.hidden {
+      background: #feb2b2;
+      color: #c53030;
     }
     
     #chart {
       width: 100%;
-      height: 750px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 20px;
+      height: 700px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
       margin: 2rem 0;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      background: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
     
     .chart-info {
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-      border: 2px solid rgba(102, 126, 234, 0.3);
-      border-radius: 16px;
-      padding: 2rem;
+      background: #f0f8ff;
+      border: 1px solid #bee3f8;
+      border-radius: 8px;
+      padding: 1.2rem;
       margin: 1rem 0;
       text-align: center;
-      backdrop-filter: blur(10px);
     }
     
     .chart-info h4 {
-      margin: 0 0 0.8rem;
-      font-size: 1.6rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      margin: 0 0 0.3rem;
+      color: #2b6cb0;
+      font-size: 1.2rem;
+      font-weight: 700;
     }
     
     .chart-info p {
       color: #4a5568;
       font-weight: 500;
-      font-size: 1.1rem;
+      margin: 0;
+      font-size: 0.95rem;
+    }
+    
+    .sw-pennsylvania-filter {
+      background: #f0fff4;
+      border: 1px solid #9ae6b4;
+      border-radius: 6px;
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+    
+    .sw-pennsylvania-filter label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      color: #2f855a;
+      cursor: pointer;
     }
     
     /* Scrollbar styling */
     .series-list::-webkit-scrollbar {
-      width: 8px;
+      width: 6px;
     }
     
     .series-list::-webkit-scrollbar-track {
       background: #f1f1f1;
-      border-radius: 10px;
+      border-radius: 3px;
     }
     
     .series-list::-webkit-scrollbar-thumb {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      border-radius: 10px;
+      background: #cbd5e0;
+      border-radius: 3px;
     }
     
-    @media (max-width: 1024px) {
+    @media (max-width: 1200px) {
       .controls-grid {
         grid-template-columns: 1fr;
         gap: 2rem;
       }
       
-      .category-tabs {
-        flex-direction: column;
-        align-items: center;
-      }
-      
-      .category-tab {
-        width: 100%;
-        max-width: 300px;
+      .cohort-grid {
+        grid-template-columns: 1fr;
       }
     }
     
@@ -486,15 +491,21 @@
       }
       
       .hero {
-        padding: 2rem;
+        padding: 1.5rem;
       }
       
       .hero h1 {
-        font-size: 2.5rem;
+        font-size: 2rem;
       }
       
-      .cohort-selection {
-        padding: 2rem;
+      .view-toggle {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .view-btn {
+        width: 100%;
+        max-width: 300px;
       }
     }
   </style>
@@ -504,7 +515,6 @@
     <div class="nav-content">
       <a class="brand" href="./">ROCIS LCMP</a>
       <div class="nav-links">
-        <a href="./cohorts.html">Cohorts</a>
         <a href="./about.html">About</a>
       </div>
     </div>
@@ -513,52 +523,79 @@
   <div class="container">
     <div class="hero">
       <h1>Outdoor Data Explorer</h1>
-      <p>Advanced visualization with enhanced clarity and professional analytics</p>
+      <p>Professional visualization tools with advanced comparison features</p>
     </div>
 
-    <div class="category-tabs">
-      <div class="category-tab active" onclick="switchCategory('large')">
-        🔵 Large Particles
-      </div>
-      <div class="category-tab" onclick="switchCategory('small')">
-        🟢 Total
+    <div class="view-toggle">
+      <button class="view-btn active" onclick="switchView('single')">📊 Single View</button>
+      <button class="view-btn" onclick="switchView('compare')">🔄 Compare Large vs Total</button>
+    </div>
+
+    <!-- Single View -->
+    <div id="single-view" class="view-content">
+      <div class="cohort-grid single">
+        <div class="cohort-panel">
+          <h3>Select Dataset Type & Cohort</h3>
+          <select class="cohort-dropdown" id="singleTypeSelect" onchange="updateSingleCohorts()">
+            <option value="">Choose dataset type...</option>
+            <option value="large">Large Particles</option>
+            <option value="small">Total Particles</option>
+          </select>
+          <select class="cohort-dropdown" id="singleCohortSelect" onchange="selectSingleCohort()" disabled>
+            <option value="">Choose a cohort...</option>
+          </select>
+          <div class="sw-pennsylvania-filter">
+            <label>
+              <input type="checkbox" id="singleSwPaFilter"> Show only Southwest Pennsylvania participants
+            </label>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Large Particles Section -->
-    <div id="large-section" class="cohort-section active">
-      <div class="cohort-selection">
-        <h3>Select Large Particle Cohort</h3>
-        <select class="cohort-dropdown" id="largeCohortSelect" onchange="selectCohort('large', this.value)">
-          <option value="">Choose a cohort...</option>
-          <option value="large_59">Cohort 59</option>
-          <option value="large_60">Cohort 60</option>
-          <option value="large_61">Cohort 61</option>
-          <option value="large_62">Cohort 62</option>
-          <option value="large_63">Cohort 63</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Total Particles Section -->
-    <div id="small-section" class="cohort-section">
-      <div class="cohort-selection">
-        <h3>Select Total Particle Cohort</h3>
-        <select class="cohort-dropdown" id="smallCohortSelect" onchange="selectCohort('small', this.value)">
-          <option value="">Choose a cohort...</option>
-          <option value="small_59">Cohort 59</option>
-          <option value="small_60">Cohort 60</option>
-          <option value="small_61">Cohort 61</option>
-          <option value="small_62">Cohort 62</option>
-          <option value="small_63">Cohort 63</option>
-        </select>
+    <!-- Compare View -->
+    <div id="compare-view" class="view-content" style="display: none;">
+      <div class="cohort-grid">
+        <div class="cohort-panel large">
+          <h3>🔵 Large Particles</h3>
+          <select class="cohort-dropdown" id="largeCohortSelect" onchange="selectCompareCohort('large', this.value)">
+            <option value="">Choose a cohort...</option>
+            <option value="large_59">Cohort 59</option>
+            <option value="large_60">Cohort 60</option>
+            <option value="large_61">Cohort 61</option>
+            <option value="large_62">Cohort 62</option>
+            <option value="large_63">Cohort 63</option>
+          </select>
+          <div class="region-filter">
+            <label>
+              <input type="checkbox" id="largeSwPaFilter"> Southwest PA only
+            </label>
+          </div>
+        </div>
+        
+        <div class="cohort-panel total">
+          <h3>🟢 Total Particles</h3>
+          <select class="cohort-dropdown" id="totalCohortSelect" onchange="selectCompareCohort('total', this.value)">
+            <option value="">Choose a cohort...</option>
+            <option value="small_59">Cohort 59</option>
+            <option value="small_60">Cohort 60</option>
+            <option value="small_61">Cohort 61</option>
+            <option value="small_62">Cohort 62</option>
+            <option value="small_63">Cohort 63</option>
+          </select>
+          <div class="region-filter">
+            <label>
+              <input type="checkbox" id="totalSwPaFilter"> Southwest PA only
+            </label>
+          </div>
+        </div>
       </div>
     </div>
 
     <div id="mainControls" class="main-controls">
       <div class="chart-info">
         <h4 id="selectedCohortTitle">No cohort selected</h4>
-        <p>All data series will be displayed. Use the controls below to customize your visualization.</p>
+        <p id="selectedCohortDesc">Select datasets above to begin visualization</p>
       </div>
       
       <div class="controls-grid">
@@ -573,31 +610,42 @@
             <button class="scale-btn" onclick="setScale('log')">Log</button>
           </div>
           
-          <div style="margin-top: 1.5rem; padding: 1.5rem; background: rgba(255,255,255,0.7); border-radius: 12px;">
-            <strong style="color: #2d3748; font-size: 1.1rem;">Data Sampling:</strong><br>
-            <label style="margin: 0.8rem 0; display: block; font-weight: 500; color: #4a5568;">
-              <input type="radio" name="sampling" value="1" checked style="margin-right: 0.5rem;"> Show all data points
+          <h4>🔍 Zoom Level</h4>
+          <div class="zoom-controls">
+            <button class="zoom-btn" onclick="setZoom('fit')">Fit All</button>
+            <button class="zoom-btn" onclick="setZoom('recent')">Recent</button>
+          </div>
+          
+          <div style="margin-top: 1rem; padding: 1rem; background: white; border-radius: 6px; border: 1px solid #e2e8f0;">
+            <strong style="color: #2d3748; font-size: 0.9rem;">Data Sampling:</strong><br>
+            <label style="margin: 0.4rem 0; display: block; font-weight: 500; color: #4a5568; font-size: 0.85rem;">
+              <input type="radio" name="sampling" value="1" checked style="margin-right: 0.5rem;"> All points
             </label>
-            <label style="margin: 0.8rem 0; display: block; font-weight: 500; color: #4a5568;">
-              <input type="radio" name="sampling" value="5" style="margin-right: 0.5rem;"> Every 5th point (faster)
+            <label style="margin: 0.4rem 0; display: block; font-weight: 500; color: #4a5568; font-size: 0.85rem;">
+              <input type="radio" name="sampling" value="5" style="margin-right: 0.5rem;"> Every 5th
             </label>
-            <label style="margin: 0.8rem 0; display: block; font-weight: 500; color: #4a5568;">
-              <input type="radio" name="sampling" value="10" style="margin-right: 0.5rem;"> Every 10th point (overview)
+            <label style="margin: 0.4rem 0; display: block; font-weight: 500; color: #4a5568; font-size: 0.85rem;">
+              <input type="radio" name="sampling" value="10" style="margin-right: 0.5rem;"> Every 10th
             </label>
           </div>
         </div>
         
         <div class="series-selection">
-          <h4>
-            📈 Data Series Selection 
-            <span id="seriesCount" style="font-size: 1rem; font-weight: 600; color: #667eea;">(0 available)</span>
-          </h4>
-          <div class="series-controls">
-            <button class="series-control-btn" onclick="selectAllSeries()">✓ Select All</button>
-            <button class="series-control-btn" onclick="clearAllSeries()">✗ Clear All</button>
+          <div class="series-header">
+            <h4>📈 Data Series</h4>
+            <span id="seriesCount" style="font-size: 0.85rem; font-weight: 500; color: #718096;">(0 available)</span>
           </div>
+          
+          <input type="text" class="series-search" id="seriesSearch" placeholder="🔍 Search series..." onkeyup="filterSeries()">
+          
+          <div class="series-controls">
+            <button class="series-control-btn" onclick="selectAllSeries()">✓ All</button>
+            <button class="series-control-btn" onclick="clearAllSeries()">✗ None</button>
+            <button class="series-control-btn" onclick="selectTopSeries()">📈 Top 10</button>
+          </div>
+          
           <div id="seriesList" class="series-list">
-            <p style="color: #718096; text-align: center; margin: 3rem 0; font-size: 1.1rem; font-weight: 500;">Load a dataset to see available data series</p>
+            <p style="color: #718096; text-align: center; margin: 2rem 0; font-weight: 500;">Load a dataset to see available data series</p>
           </div>
         </div>
       </div>
@@ -607,115 +655,202 @@
   </div>
 
   <script>
-    let selectedCohort = null;
-    let selectedCategory = 'large';
-    let currentData = null;
+    let currentView = 'single';
+    let selectedCohorts = { single: null, large: null, total: null };
+    let currentData = { single: null, large: null, total: null };
     let allSeries = [];
     let currentScale = 'linear';
+    let hiddenSeries = new Set();
     
-    // Extended color palette for many series
+    // Professional color palette - more distinct colors
     const colors = [
-      "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
-      "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf",
-      "#aec7e8", "#ffbb78", "#98df8a", "#ff9896", "#c5b0d5",
-      "#c49c94", "#f7b6d3", "#c7c7c7", "#dbdb8d", "#9edae5"
+      "#e74c3c", "#3498db", "#2ecc71", "#f39c12", "#9b59b6",
+      "#1abc9c", "#34495e", "#e67e22", "#95a5a6", "#f1c40f",
+      "#8e44ad", "#16a085", "#27ae60", "#2980b9", "#c0392b"
     ];
 
-    function switchCategory(category) {
-      selectedCategory = category;
+    // Southwest Pennsylvania location identifiers (simplified for demo)
+    const swPennsylvaniaLocations = ['PITT', 'ALLE', 'WEST', 'WASH', 'BUTL', 'BEAV', 'FAYE', 'ARMS', 'INDI'];
+
+    function switchView(view) {
+      currentView = view;
       
-      // Update tab buttons
-      document.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('active'));
+      // Update buttons
+      document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
       event.target.classList.add('active');
       
       // Show/hide sections
-      document.querySelectorAll('.cohort-section').forEach(section => section.classList.remove('active'));
-      document.getElementById(`${category}-section`).classList.add('active');
+      document.getElementById('single-view').style.display = view === 'single' ? 'block' : 'none';
+      document.getElementById('compare-view').style.display = view === 'compare' ? 'block' : 'none';
       
-      // Reset selection
-      selectedCohort = null;
+      // Reset and hide controls
       document.getElementById('mainControls').classList.remove('show');
+      resetSelections();
     }
 
-    function selectCohort(category, cohortId) {
-      if (!cohortId) {
-        selectedCohort = null;
-        document.getElementById('mainControls').classList.remove('show');
-        return;
+    function resetSelections() {
+      selectedCohorts = { single: null, large: null, total: null };
+      currentData = { single: null, large: null, total: null };
+      allSeries = [];
+    }
+
+    function updateSingleCohorts() {
+      const typeSelect = document.getElementById('singleTypeSelect');
+      const cohortSelect = document.getElementById('singleCohortSelect');
+      
+      cohortSelect.innerHTML = '<option value="">Choose a cohort...</option>';
+      
+      if (typeSelect.value) {
+        const cohorts = ['59', '60', '61', '62', '63'];
+        cohorts.forEach(num => {
+          const option = document.createElement('option');
+          option.value = `${typeSelect.value}_${num}`;
+          option.textContent = `Cohort ${num}`;
+          cohortSelect.appendChild(option);
+        });
+        cohortSelect.disabled = false;
+      } else {
+        cohortSelect.disabled = true;
       }
+    }
+
+    function selectSingleCohort() {
+      const cohortSelect = document.getElementById('singleCohortSelect');
+      selectedCohorts.single = cohortSelect.value;
       
-      selectedCohort = cohortId;
-      selectedCategory = category;
+      if (selectedCohorts.single) {
+        document.getElementById('mainControls').classList.add('show');
+        document.getElementById('selectedCohortTitle').textContent = `Single View: ${selectedCohorts.single.replace('_', ' ').toUpperCase()}`;
+        document.getElementById('selectedCohortDesc').textContent = 'Click "Load Dataset" to visualize this cohort\'s data';
+      }
+    }
+
+    function selectCompareCohort(type, cohortId) {
+      selectedCohorts[type] = cohortId;
       
-      // Show controls
-      document.getElementById('mainControls').classList.add('show');
-      document.getElementById('selectedCohortTitle').textContent = `Selected: ${cohortId.replace('_', ' ').toUpperCase()}`;
+      const hasSelections = selectedCohorts.large || selectedCohorts.total;
+      if (hasSelections) {
+        document.getElementById('mainControls').classList.add('show');
+        
+        let title = 'Compare View: ';
+        if (selectedCohorts.large && selectedCohorts.total) {
+          title += `${selectedCohorts.large.toUpperCase()} vs ${selectedCohorts.total.toUpperCase()}`;
+        } else if (selectedCohorts.large) {
+          title += `${selectedCohorts.large.toUpperCase()} (Large)`;
+        } else {
+          title += `${selectedCohorts.total.toUpperCase()} (Total)`;
+        }
+        
+        document.getElementById('selectedCohortTitle').textContent = title;
+        document.getElementById('selectedCohortDesc').textContent = 'Click "Load Dataset" to visualize selected cohorts';
+      }
     }
 
     function setScale(scale) {
       currentScale = scale;
       
-      // Update button states
       document.querySelectorAll('.scale-btn').forEach(btn => btn.classList.remove('active'));
       event.target.classList.add('active');
       
-      // Update visualization if data is loaded
-      if (currentData) {
+      if (Object.values(currentData).some(data => data)) {
         updateVisualization();
       }
     }
 
-    async function loadData() {
-      if (!selectedCohort) {
-        alert('❌ Please select a cohort first!');
-        return;
+    function setZoom(zoomType) {
+      document.querySelectorAll('.zoom-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      if (zoomType === 'recent') {
+        // Zoom to last 7 days of data
+        const layout_update = {
+          'xaxis.range': [
+            new Date(Date.now() - 7*24*60*60*1000),
+            new Date()
+          ]
+        };
+        Plotly.relayout('chart', layout_update);
+      } else {
+        // Fit all data
+        Plotly.relayout('chart', {
+          'xaxis.autorange': true,
+          'yaxis.autorange': true
+        });
       }
+    }
 
+    async function loadData() {
       const loadBtn = document.getElementById('loadBtn');
       loadBtn.disabled = true;
       loadBtn.textContent = '⏳ Loading...';
 
-      const csvPath = `Data/${selectedCohort}.csv`;
-
       try {
-        const response = await fetch(csvPath);
-        if (!response.ok) {
-          throw new Error(`File not found: ${csvPath}`);
+        if (currentView === 'single') {
+          if (!selectedCohorts.single) throw new Error('No cohort selected');
+          await loadCohortData('single', selectedCohorts.single);
+        } else {
+          // Compare view - load both if selected
+          if (selectedCohorts.large) await loadCohortData('large', selectedCohorts.large);
+          if (selectedCohorts.total) await loadCohortData('total', selectedCohorts.total);
         }
-
-        const csvText = await response.text();
         
+        setupSeriesSelection();
+        resetLoadButton();
+        
+      } catch (error) {
+        alert(`❌ Error: ${error.message}`);
+        resetLoadButton();
+      }
+    }
+
+    async function loadCohortData(key, cohortId) {
+      const csvPath = `Data/${cohortId}.csv`;
+      const response = await fetch(csvPath);
+      if (!response.ok) throw new Error(`File not found: ${csvPath}`);
+
+      const csvText = await response.text();
+      
+      return new Promise((resolve, reject) => {
         Papa.parse(csvText, {
           header: true,
           skipEmptyLines: true,
           complete: function(results) {
-            const data = results.data.filter(row => 
+            let data = results.data.filter(row => 
               Object.values(row).some(val => val !== null && val !== '')
             );
             
-            if (data.length === 0) {
-              alert('❌ No valid data found in file');
-              resetLoadButton();
-              return;
+            // Apply Southwest PA filter if enabled
+            const swPaFilterId = currentView === 'single' ? 'singleSwPaFilter' : `${key}SwPaFilter`;
+            if (document.getElementById(swPaFilterId)?.checked) {
+              data = filterSouthwestPA(data);
             }
-
-            currentData = data;
-            const columns = Object.keys(data[0]);
-            allSeries = columns.slice(1); // All except time column
             
-            setupSeriesSelection();
-            resetLoadButton();
+            if (data.length === 0) throw new Error('No valid data found');
+            
+            currentData[key] = data;
+            const columns = Object.keys(data[0]);
+            const newSeries = columns.slice(1); // All except time column
+            
+            // Merge series from all loaded datasets
+            allSeries = [...new Set([...allSeries, ...newSeries])];
+            
+            resolve();
           },
-          error: function(error) {
-            alert(`❌ Error parsing CSV: ${error.message}`);
-            resetLoadButton();
-          }
+          error: reject
         });
+      });
+    }
 
-      } catch (error) {
-        alert(`❌ Error loading file: ${error.message}`);
-        resetLoadButton();
-      }
+    function filterSouthwestPA(data) {
+      return data.filter(row => {
+        // Check if any column name contains Southwest PA location identifiers
+        const columns = Object.keys(row);
+        return columns.some(col => 
+          swPennsylvaniaLocations.some(location => 
+            col.toUpperCase().includes(location)
+          )
+        );
+      });
     }
 
     function resetLoadButton() {
@@ -737,7 +872,7 @@
         
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.checked = true; // All series selected by default
+        checkbox.checked = index < 10; // Only first 10 checked by default
         checkbox.value = series;
         checkbox.onchange = updateVisualization;
         
@@ -749,14 +884,45 @@
         label.className = 'series-label';
         label.textContent = series;
         
+        const visibilityBtn = document.createElement('button');
+        visibilityBtn.className = 'visibility-btn';
+        visibilityBtn.textContent = 'Hide';
+        visibilityBtn.onclick = (e) => {
+          e.stopPropagation();
+          toggleSeriesVisibility(series, visibilityBtn);
+        };
+        
         item.appendChild(checkbox);
         item.appendChild(colorDiv);
         item.appendChild(label);
+        item.appendChild(visibilityBtn);
         seriesList.appendChild(item);
       });
       
-      // Initial visualization with all series
       updateVisualization();
+    }
+
+    function toggleSeriesVisibility(series, button) {
+      if (hiddenSeries.has(series)) {
+        hiddenSeries.delete(series);
+        button.textContent = 'Hide';
+        button.classList.remove('hidden');
+      } else {
+        hiddenSeries.add(series);
+        button.textContent = 'Show';
+        button.classList.add('hidden');
+      }
+      updateVisualization();
+    }
+
+    function filterSeries() {
+      const search = document.getElementById('seriesSearch').value.toLowerCase();
+      const items = document.querySelectorAll('.series-item');
+      
+      items.forEach(item => {
+        const label = item.querySelector('.series-label').textContent.toLowerCase();
+        item.style.display = label.includes(search) ? 'flex' : 'none';
+      });
     }
 
     function selectAllSeries() {
@@ -769,9 +935,19 @@
       updateVisualization();
     }
 
+    function selectTopSeries() {
+      const checkboxes = document.querySelectorAll('#seriesList input[type="checkbox"]');
+      checkboxes.forEach((cb, index) => {
+        cb.checked = index < 10; // Top 10 series
+      });
+      updateVisualization();
+    }
+
     function getSelectedSeries() {
       const checkboxes = document.querySelectorAll('#seriesList input[type="checkbox"]:checked');
-      return Array.from(checkboxes).map(cb => cb.value);
+      return Array.from(checkboxes)
+        .map(cb => cb.value)
+        .filter(series => !hiddenSeries.has(series));
     }
 
     function getSamplingRate() {
@@ -780,107 +956,96 @@
     }
 
     function updateVisualization() {
-      if (!currentData) return;
-      
       const selectedSeries = getSelectedSeries();
       if (selectedSeries.length === 0) {
-        document.getElementById('chart').innerHTML = '<div style="padding: 3rem; text-align: center; color: #718096; font-size: 1.2rem; font-weight: 500;">Select at least one data series to display the chart</div>';
+        document.getElementById('chart').innerHTML = '<div style="padding: 3rem; text-align: center; color: #718096; font-size: 1.1rem; font-weight: 500;">Select at least one data series to display the chart</div>';
         return;
       }
-      
-      const samplingRate = getSamplingRate();
-      const columns = Object.keys(currentData[0]);
-      const timeColumn = columns[0];
-      
-      // Sample data if needed
-      const sampledData = samplingRate > 1 ? 
-        currentData.filter((_, index) => index % samplingRate === 0) : 
-        currentData;
 
-      const traces = selectedSeries.map((series, index) => {
-        const seriesIndex = allSeries.indexOf(series);
-        return {
-          type: 'scatter',
-          mode: 'lines',
-          name: series,
-          x: sampledData.map(row => row[timeColumn]),
-          y: sampledData.map(row => {
-            const val = parseFloat(row[series]);
-            return isNaN(val) ? null : val;
-          }),
-          line: { 
-            width: 3, 
-            color: colors[seriesIndex % colors.length] 
-          },
-          hovertemplate: `<b>${series}</b><br>%{x}<br>%{y:.2f} particles<extra></extra>`,
-          connectgaps: false
-        };
-      });
+      const samplingRate = getSamplingRate();
+      let traces = [];
+
+      // Generate traces based on current view
+      if (currentView === 'single' && currentData.single) {
+        traces = generateTraces(currentData.single, selectedSeries, samplingRate, '');
+      } else if (currentView === 'compare') {
+        if (currentData.large) {
+          traces = traces.concat(generateTraces(currentData.large, selectedSeries, samplingRate, 'Large: '));
+        }
+        if (currentData.total) {
+          traces = traces.concat(generateTraces(currentData.total, selectedSeries, samplingRate, 'Total: '));
+        }
+      }
+
+      if (traces.length === 0) return;
 
       const layout = {
         title: {
-          text: `${selectedCohort.replace('_', ' ').toUpperCase()} - Outdoor Data Explorer (${selectedSeries.length} of ${allSeries.length} series)`,
-          font: { size: 24, family: "Inter, Arial, sans-serif", color: "#2d3748", weight: "bold" },
+          text: getChartTitle(selectedSeries.length),
+          font: { size: 20, family: "system-ui, sans-serif", color: "#1a202c" },
           x: 0.5,
           xanchor: 'center'
         },
         xaxis: { 
           title: {
             text: 'Date and Time',
-            font: { size: 18, color: "#2d3748", weight: "600" }
+            font: { size: 14, color: "#2d3748" }
           },
           showgrid: true,
-          gridcolor: '#e2e8f0',
+          gridcolor: '#f5f5f5',
           gridwidth: 1,
-          linecolor: '#cbd5e0',
-          linewidth: 2,
-          tickfont: { size: 14, color: "#4a5568" },
+          linecolor: '#d0d0d0',
+          linewidth: 1,
+          tickfont: { size: 12, color: "#4a5568" },
           showspikes: true,
           spikemode: 'across',
           spikesnap: 'cursor',
-          spikecolor: '#667eea',
-          spikethickness: 2
+          spikecolor: '#2b6cb0',
+          spikethickness: 1,
+          spikedash: 'dot'
         },
         yaxis: { 
           title: {
             text: 'Particle Count (per 0.01 ft³)',
-            font: { size: 18, color: "#2d3748", weight: "600" }
+            font: { size: 14, color: "#2d3748" }
           },
           type: currentScale,
           showgrid: true,
-          gridcolor: '#e2e8f0',
+          gridcolor: '#f5f5f5',
           gridwidth: 1,
-          linecolor: '#cbd5e0',
-          linewidth: 2,
-          tickfont: { size: 14, color: "#4a5568" }
+          linecolor: '#d0d0d0',
+          linewidth: 1,
+          tickfont: { size: 12, color: "#4a5568" }
         },
-        margin: { l: 100, r: 240, t: 100, b: 100 },
+        margin: { l: 80, r: 160, t: 70, b: 60 },
         legend: {
           orientation: 'v',
           x: 1.02,
           y: 1,
           xanchor: 'left',
           yanchor: 'top',
-          bgcolor: 'rgba(255,255,255,0.95)',
+          bgcolor: 'rgba(255,255,255,0.9)',
           bordercolor: '#e2e8f0',
-          borderwidth: 2,
-          font: { size: 13, color: "#2d3748", weight: "500" }
+          borderwidth: 1,
+          font: { size: 11, color: "#2d3748" }
         },
         hovermode: 'x unified',
         plot_bgcolor: 'white',
         paper_bgcolor: 'white',
-        font: { family: "Inter, Arial, sans-serif", color: "#2d3748" }
+        font: { family: "system-ui, sans-serif", color: "#2d3748" }
       };
 
       const config = {
         responsive: true,
         displaylogo: false,
-        modeBarButtonsToAdd: ['toImage'],
+        scrollZoom: true, // Enable zoom with mouse wheel
+        doubleClick: 'reset', // Double click to reset zoom
+        modeBarButtonsToAdd: ['select2d', 'lasso2d'],
         toImageButtonOptions: {
           format: 'png',
-          filename: `rocis_${selectedCohort}_outdoor_data_explorer`,
-          height: 750,
-          width: 1400,
+          filename: `rocis_outdoor_data_explorer_${Date.now()}`,
+          height: 700,
+          width: 1200,
           scale: 2
         }
       };
@@ -888,17 +1053,85 @@
       Plotly.react('chart', traces, layout, config);
     }
 
-    function downloadData() {
-      if (!selectedCohort) {
-        alert('❌ Please select a cohort first!');
-        return;
-      }
+    function generateTraces(data, selectedSeries, samplingRate, prefix) {
+      const columns = Object.keys(data[0]);
+      const timeColumn = columns[0];
       
+      const sampledData = samplingRate > 1 ? 
+        data.filter((_, index) => index % samplingRate === 0) : 
+        data;
+
+      return selectedSeries
+        .filter(series => columns.includes(series))
+        .map((series, index) => {
+          const seriesIndex = allSeries.indexOf(series);
+          return {
+            type: 'scatter',
+            mode: 'lines',
+            name: prefix + series,
+            x: sampledData.map(row => row[timeColumn]),
+            y: sampledData.map(row => {
+              const val = parseFloat(row[series]);
+              return isNaN(val) ? null : val;
+            }),
+            line: { 
+              width: 2.5, // Slightly thinner lines as requested
+              color: colors[seriesIndex % colors.length] 
+            },
+            hovertemplate: `<b>${prefix}${series}</b><br>%{x}<br>%{y:.2f} particles<extra></extra>`,
+            connectgaps: false
+          };
+        });
+    }
+
+    function getChartTitle(seriesCount) {
+      if (currentView === 'single') {
+        return `${selectedCohorts.single?.replace('_', ' ').toUpperCase() || 'Single View'} - Outdoor Data Explorer (${seriesCount} series)`;
+      } else {
+        let title = 'Compare View - ';
+        if (selectedCohorts.large && selectedCohorts.total) {
+          title += `${selectedCohorts.large.toUpperCase()} vs ${selectedCohorts.total.toUpperCase()}`;
+        } else if (selectedCohorts.large) {
+          title += `${selectedCohorts.large.toUpperCase()} (Large)`;
+        } else if (selectedCohorts.total) {
+          title += `${selectedCohorts.total.toUpperCase()} (Total)`;
+        }
+        return `${title} (${seriesCount} series)`;
+      }
+    }
+
+    function downloadData() {
+      if (currentView === 'single' && selectedCohorts.single) {
+        downloadCsv(selectedCohorts.single);
+      } else if (currentView === 'compare') {
+        if (selectedCohorts.large) downloadCsv(selectedCohorts.large);
+        if (selectedCohorts.total) downloadCsv(selectedCohorts.total);
+      } else {
+        alert('❌ Please select a cohort first!');
+      }
+    }
+
+    function downloadCsv(cohortId) {
       const link = document.createElement('a');
-      link.href = `Data/${selectedCohort}.csv`;
-      link.download = `${selectedCohort}.csv`;
+      link.href = `Data/${cohortId}.csv`;
+      link.download = `${cohortId}.csv`;
       link.click();
     }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      // Set up filter change listeners
+      ['singleSwPaFilter', 'largeSwPaFilter', 'totalSwPaFilter'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.addEventListener('change', () => {
+            if (Object.values(currentData).some(data => data)) {
+              loadData(); // Reload with new filter
+            }
+          });
+        }
+      });
+    });
   </script>
 </body>
 </html>
