@@ -3,38 +3,49 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ROCIS LCMP – Complete Data Explorer</title>
+  <title>ROCIS LCMP – Outdoor Data Explorer</title>
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    * {
       margin: 0;
-      background: white;
-      color: #2d3748;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #1a202c;
     }
     
     .nav {
-      background: white;
-      border-bottom: 1px solid #e2e8f0;
-      padding: 1.5rem 0;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     }
     
     .nav-content {
       max-width: 1400px;
       margin: 0 auto;
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
-      gap: 3rem;
-      padding: 0 2rem;
+      padding: 1rem 2rem;
     }
     
     .brand {
       font-weight: 800;
-      font-size: 1.5rem;
-      color: #0066cc;
+      font-size: 1.8rem;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
       text-decoration: none;
     }
     
@@ -44,17 +55,19 @@
     }
     
     .nav-links a {
-      color: #2d3748;
+      color: #4a5568;
       text-decoration: none;
-      font-weight: 500;
+      font-weight: 600;
       padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      transition: all 0.2s;
+      border-radius: 50px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     .nav-links a:hover {
-      background: #e6f3ff;
-      color: #0066cc;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
     }
     
     .container {
@@ -64,27 +77,33 @@
     }
     
     .hero {
-      background: linear-gradient(135deg, #e6f3ff, #e6fffe);
-      padding: 3rem;
-      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      padding: 4rem 3rem;
+      border-radius: 24px;
       margin-bottom: 3rem;
       text-align: center;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
     }
     
     .hero h1 {
       margin: 0 0 1rem;
-      font-size: 3rem;
-      color: #0066cc;
-      font-weight: 800;
-      letter-spacing: -0.025em;
+      font-size: 4rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #ffffff, #f7fafc);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.02em;
+      text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
     
     .hero p {
       margin: 0;
-      font-size: 1.25rem;
-      color: #4a5568;
+      font-size: 1.4rem;
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 500;
     }
     
     .category-tabs {
@@ -95,31 +114,32 @@
     }
     
     .category-tab {
-      padding: 1rem 2rem;
-      background: white;
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
+      padding: 1.2rem 2.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
       cursor: pointer;
-      font-weight: 600;
-      font-size: 1.1rem;
-      color: #4a5568;
-      transition: all 0.3s;
-      min-width: 200px;
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: rgba(255, 255, 255, 0.8);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      min-width: 220px;
       text-align: center;
     }
     
     .category-tab.active {
-      background: #0066cc;
-      color: white;
-      border-color: #0066cc;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(0, 102, 204, 0.3);
+      background: rgba(255, 255, 255, 0.95);
+      color: #667eea;
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(255, 255, 255, 0.2);
     }
     
     .category-tab:hover:not(.active) {
-      background: #e6f3ff;
-      color: #0066cc;
-      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(255, 255, 255, 0.1);
     }
     
     .cohort-section {
@@ -129,123 +149,191 @@
     
     .cohort-section.active {
       display: block;
+      animation: fadeIn 0.5s ease-out;
     }
     
-    .cohort-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 2rem;
-      margin-bottom: 3rem;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     
-    .cohort-card {
-      background: white;
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 2rem;
-      cursor: pointer;
-      transition: all 0.3s;
+    .cohort-selection {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 4rem;
       text-align: center;
+      margin-bottom: 2rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
     }
     
-    .cohort-card:hover {
-      border-color: #0066cc;
+    .cohort-selection h3 {
+      margin: 0 0 2rem;
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .cohort-dropdown {
+      width: 100%;
+      max-width: 600px;
+      padding: 1.5rem 2rem;
+      border: 3px solid transparent;
+      background: linear-gradient(white, white) padding-box, 
+                  linear-gradient(135deg, #667eea, #764ba2) border-box;
+      border-radius: 16px;
+      font-size: 1.3rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      color: #2d3748;
+      outline: none;
+    }
+    
+    .cohort-dropdown:focus {
       transform: translateY(-4px);
-      box-shadow: 0 8px 25px rgba(0, 102, 204, 0.15);
+      box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
     }
     
-    .cohort-card.selected {
-      border-color: #0066cc;
-      background: #e6f3ff;
+    .cohort-dropdown:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(0, 102, 204, 0.2);
-    }
-    
-    .cohort-card h3 {
-      margin: 0 0 1rem;
-      color: #0066cc;
-      font-size: 1.5rem;
-      font-weight: 700;
-    }
-    
-    .cohort-card p {
-      margin: 0.5rem 0;
-      color: #4a5568;
+      box-shadow: 0 12px 24px rgba(102, 126, 234, 0.2);
     }
     
     .main-controls {
-      background: #fafbfc;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 2rem;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 3rem;
       margin: 2rem 0;
       display: none;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
     }
     
     .main-controls.show {
       display: block;
+      animation: slideUp 0.5s ease-out;
+    }
+    
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     
     .controls-grid {
       display: grid;
       grid-template-columns: 1fr 2fr;
-      gap: 3rem;
+      gap: 4rem;
       align-items: start;
     }
     
     .control-panel {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 8px;
+      background: linear-gradient(135deg, #f7fafc, #edf2f7);
+      padding: 2rem;
+      border-radius: 16px;
       border: 1px solid #e2e8f0;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
     }
     
     .control-panel h4 {
-      margin: 0 0 1rem;
-      color: #0066cc;
+      margin: 0 0 1.5rem;
+      font-size: 1.4rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .scale-toggle {
+      display: flex;
+      gap: 0.8rem;
+      margin: 1.5rem 0;
+    }
+    
+    .scale-btn {
+      flex: 1;
+      padding: 1rem;
+      border: 2px solid transparent;
+      background: white;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
       font-size: 1.1rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      color: #4a5568;
+    }
+    
+    .scale-btn.active {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    .scale-btn:hover:not(.active) {
+      background: #f7fafc;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
     
     .button {
-      background: linear-gradient(135deg, #0066cc, #004499);
+      background: linear-gradient(135deg, #667eea, #764ba2);
       color: white;
-      padding: 1rem 2rem;
+      padding: 1.2rem 2rem;
       border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 700;
       cursor: pointer;
-      margin: 0.5rem 0;
-      transition: all 0.3s;
+      margin: 0.8rem 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       width: 100%;
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
     }
     
     .button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(0, 102, 204, 0.3);
+      box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
     }
     
     .button:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       transform: none;
+      box-shadow: none;
     }
     
     .button.secondary {
-      background: linear-gradient(135deg, #00b4a6, #009688);
+      background: linear-gradient(135deg, #38b2ac, #319795);
+      box-shadow: 0 8px 20px rgba(56, 178, 172, 0.3);
+    }
+    
+    .button.secondary:hover {
+      box-shadow: 0 12px 30px rgba(56, 178, 172, 0.4);
     }
     
     .series-selection {
-      background: white;
+      background: linear-gradient(135deg, #f7fafc, #edf2f7);
       border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 1.5rem;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
     }
     
     .series-selection h4 {
-      margin: 0 0 1rem;
-      color: #0066cc;
-      font-size: 1.1rem;
+      margin: 0 0 1.5rem;
+      font-size: 1.4rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -253,119 +341,126 @@
     
     .series-controls {
       display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
     }
     
     .series-control-btn {
-      padding: 0.5rem 1rem;
-      background: #e6f3ff;
-      color: #0066cc;
-      border: 1px solid #0066cc;
-      border-radius: 6px;
+      padding: 0.8rem 1.5rem;
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+      border-radius: 10px;
       cursor: pointer;
-      font-size: 0.9rem;
-      font-weight: 600;
-      transition: all 0.2s;
+      font-size: 1rem;
+      font-weight: 700;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     .series-control-btn:hover {
-      background: #0066cc;
+      background: linear-gradient(135deg, #667eea, #764ba2);
       color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
     }
     
     .series-list {
-      max-height: 300px;
+      max-height: 320px;
       overflow-y: auto;
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
-      padding: 1rem;
-      background: #f8f9fa;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1.5rem;
+      background: white;
+      box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.05);
     }
     
     .series-item {
       display: flex;
       align-items: center;
-      padding: 0.5rem;
-      margin: 0.25rem 0;
-      border-radius: 6px;
-      transition: background 0.2s;
+      padding: 0.8rem;
+      margin: 0.4rem 0;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+      cursor: pointer;
     }
     
     .series-item:hover {
-      background: #e6f3ff;
+      background: linear-gradient(135deg, #f0f4ff, #e6f0ff);
+      transform: translateX(4px);
     }
     
     .series-item input[type="checkbox"] {
-      margin-right: 1rem;
-      transform: scale(1.1);
+      margin-right: 1.2rem;
+      transform: scale(1.3);
+      cursor: pointer;
     }
     
     .color-indicator {
-      width: 16px;
-      height: 16px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
-      margin-right: 0.75rem;
-      border: 2px solid white;
-      box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+      margin-right: 1rem;
+      border: 3px solid white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
     
     .series-label {
       flex: 1;
-      font-weight: 500;
+      font-weight: 600;
       color: #2d3748;
+      font-size: 1.1rem;
     }
     
     #chart {
       width: 100%;
-      height: 700px;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
+      height: 750px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
       margin: 2rem 0;
-      background: white;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-    
-    .status {
-      padding: 1rem;
-      margin: 1rem 0;
-      border-radius: 8px;
-      border: 1px solid #e2e8f0;
-      background: #f7fafc;
-      font-weight: 500;
-      text-align: center;
-    }
-    
-    .loading {
-      color: #d69e2e;
-      background: #fff4e6;
-      border-color: #fbd38d;
-    }
-    
-    .success {
-      color: #38a169;
-      background: #f0fff4;
-      border-color: #9ae6b4;
-    }
-    
-    .error {
-      color: #e53e3e;
-      background: #fed7d7;
-      border-color: #feb2b2;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
     }
     
     .chart-info {
-      background: #e6f3ff;
-      border: 1px solid #0066cc;
-      border-radius: 8px;
-      padding: 1rem;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+      border: 2px solid rgba(102, 126, 234, 0.3);
+      border-radius: 16px;
+      padding: 2rem;
       margin: 1rem 0;
       text-align: center;
+      backdrop-filter: blur(10px);
     }
     
     .chart-info h4 {
-      margin: 0 0 0.5rem;
-      color: #0066cc;
+      margin: 0 0 0.8rem;
+      font-size: 1.6rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .chart-info p {
+      color: #4a5568;
+      font-weight: 500;
+      font-size: 1.1rem;
+    }
+    
+    /* Scrollbar styling */
+    .series-list::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .series-list::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    
+    .series-list::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 10px;
     }
     
     @media (max-width: 1024px) {
@@ -395,11 +490,11 @@
       }
       
       .hero h1 {
-        font-size: 2rem;
+        font-size: 2.5rem;
       }
       
-      .cohort-grid {
-        grid-template-columns: 1fr;
+      .cohort-selection {
+        padding: 2rem;
       }
     }
   </style>
@@ -417,8 +512,8 @@
 
   <div class="container">
     <div class="hero">
-      <h1>Complete Data Explorer</h1>
-      <p>Fair visualization of ALL data series with user choice and clear organization by particle size</p>
+      <h1>Outdoor Data Explorer</h1>
+      <p>Advanced visualization with enhanced clarity and professional analytics</p>
     </div>
 
     <div class="category-tabs">
@@ -426,99 +521,68 @@
         🔵 Large Particles
       </div>
       <div class="category-tab" onclick="switchCategory('small')">
-        🟢 Small Particles
+        🟢 Total
       </div>
     </div>
 
     <!-- Large Particles Section -->
     <div id="large-section" class="cohort-section active">
-      <h2 style="text-align: center; color: #0066cc; margin-bottom: 2rem;">Large Particle Monitoring Data</h2>
-      <div class="cohort-grid">
-        <div class="cohort-card" onclick="selectCohort('large_59', this)">
-          <h3>Cohort 59</h3>
-          <p>📊 Large particle monitoring</p>
-          <p>📅 Complete dataset available</p>
-        </div>
-        <div class="cohort-card" onclick="selectCohort('large_60', this)">
-          <h3>Cohort 60</h3>
-          <p>📊 Large particle monitoring</p>
-          <p>📅 Complete dataset available</p>
-        </div>
-        <div class="cohort-card" onclick="selectCohort('large_61', this)">
-          <h3>Cohort 61</h3>
-          <p>📊 Large particle monitoring</p>
-          <p>📅 Complete dataset available</p>
-        </div>
-        <div class="cohort-card" onclick="selectCohort('large_62', this)">
-          <h3>Cohort 62</h3>
-          <p>📊 Large particle monitoring</p>
-          <p>📅 Complete dataset available</p>
-        </div>
-        <div class="cohort-card" onclick="selectCohort('large_63', this)">
-          <h3>Cohort 63</h3>
-          <p>📊 Large particle monitoring</p>
-          <p>📅 Complete dataset available</p>
-        </div>
+      <div class="cohort-selection">
+        <h3>Select Large Particle Cohort</h3>
+        <select class="cohort-dropdown" id="largeCohortSelect" onchange="selectCohort('large', this.value)">
+          <option value="">Choose a cohort...</option>
+          <option value="large_59">Cohort 59</option>
+          <option value="large_60">Cohort 60</option>
+          <option value="large_61">Cohort 61</option>
+          <option value="large_62">Cohort 62</option>
+          <option value="large_63">Cohort 63</option>
+        </select>
       </div>
     </div>
 
-    <!-- Small Particles Section -->
+    <!-- Total Particles Section -->
     <div id="small-section" class="cohort-section">
-      <h2 style="text-align: center; color: #00b4a6; margin-bottom: 2rem;">Small Particle Monitoring Data</h2>
-      <div class="cohort-grid">
-        <div class="cohort-card" onclick="selectCohort('small_59', this)">
-          <h3>Cohort 59</h3>
-          <p>📊 Small particle monitoring</p>
-          <p>📅 Complete dataset available</p>
-        </div>
-        <div class="cohort-card" onclick="selectCohort('small_60', this)">
-          <h3>Cohort 60</h3>
-          <p>📊 Small particle monitoring</p>
-          <p>📅 Complete dataset available</p>
-        </div>
-        <div class="cohort-card" onclick="selectCohort('small_61', this)">
-          <h3>Cohort 61</h3>
-          <p>📊 Small particle monitoring</p>
-          <p>📅 Complete dataset available</p>
-        </div>
-        <div class="cohort-card" onclick="selectCohort('small_62', this)">
-          <h3>Cohort 62</h3>
-          <p>📊 Small particle monitoring</p>
-          <p>📅 Complete dataset available</p>
-        </div>
-        <div class="cohort-card" onclick="selectCohort('small_63', this)">
-          <h3>Cohort 63</h3>
-          <p>📊 Small particle monitoring</p>
-          <p>📅 Complete dataset available</p>
-        </div>
+      <div class="cohort-selection">
+        <h3>Select Total Particle Cohort</h3>
+        <select class="cohort-dropdown" id="smallCohortSelect" onchange="selectCohort('small', this.value)">
+          <option value="">Choose a cohort...</option>
+          <option value="small_59">Cohort 59</option>
+          <option value="small_60">Cohort 60</option>
+          <option value="small_61">Cohort 61</option>
+          <option value="small_62">Cohort 62</option>
+          <option value="small_63">Cohort 63</option>
+        </select>
       </div>
-    </div>
-
-    <div id="status" class="status success">
-      ✅ Ready! Choose Large or Small particles, then select a specific cohort to begin.
     </div>
 
     <div id="mainControls" class="main-controls">
       <div class="chart-info">
         <h4 id="selectedCohortTitle">No cohort selected</h4>
-        <p>All data series will be shown. You can choose which ones to display using the controls below.</p>
+        <p>All data series will be displayed. Use the controls below to customize your visualization.</p>
       </div>
       
       <div class="controls-grid">
         <div class="control-panel">
-          <h4>🎛️ Actions</h4>
-          <button class="button" id="loadBtn" onclick="loadData()">📊 Load Complete Dataset</button>
+          <h4>🎛️ Controls</h4>
+          <button class="button" id="loadBtn" onclick="loadData()">📊 Load Dataset</button>
           <button class="button secondary" onclick="downloadData()">📥 Download CSV</button>
-          <div style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 6px;">
-            <strong>Data Sampling:</strong><br>
-            <label style="margin: 0.5rem 0; display: block;">
-              <input type="radio" name="sampling" value="1" checked> Show all data points
+          
+          <h4>📏 Scale Type</h4>
+          <div class="scale-toggle">
+            <button class="scale-btn active" onclick="setScale('linear')">Linear</button>
+            <button class="scale-btn" onclick="setScale('log')">Log</button>
+          </div>
+          
+          <div style="margin-top: 1.5rem; padding: 1.5rem; background: rgba(255,255,255,0.7); border-radius: 12px;">
+            <strong style="color: #2d3748; font-size: 1.1rem;">Data Sampling:</strong><br>
+            <label style="margin: 0.8rem 0; display: block; font-weight: 500; color: #4a5568;">
+              <input type="radio" name="sampling" value="1" checked style="margin-right: 0.5rem;"> Show all data points
             </label>
-            <label style="margin: 0.5rem 0; display: block;">
-              <input type="radio" name="sampling" value="5"> Every 5th point (faster)
+            <label style="margin: 0.8rem 0; display: block; font-weight: 500; color: #4a5568;">
+              <input type="radio" name="sampling" value="5" style="margin-right: 0.5rem;"> Every 5th point (faster)
             </label>
-            <label style="margin: 0.5rem 0; display: block;">
-              <input type="radio" name="sampling" value="10"> Every 10th point (overview)
+            <label style="margin: 0.8rem 0; display: block; font-weight: 500; color: #4a5568;">
+              <input type="radio" name="sampling" value="10" style="margin-right: 0.5rem;"> Every 10th point (overview)
             </label>
           </div>
         </div>
@@ -526,14 +590,14 @@
         <div class="series-selection">
           <h4>
             📈 Data Series Selection 
-            <span id="seriesCount">(0 available)</span>
+            <span id="seriesCount" style="font-size: 1rem; font-weight: 600; color: #667eea;">(0 available)</span>
           </h4>
           <div class="series-controls">
             <button class="series-control-btn" onclick="selectAllSeries()">✓ Select All</button>
             <button class="series-control-btn" onclick="clearAllSeries()">✗ Clear All</button>
           </div>
           <div id="seriesList" class="series-list">
-            <p style="color: #666; text-align: center; margin: 2rem 0;">Load a dataset to see available data series</p>
+            <p style="color: #718096; text-align: center; margin: 3rem 0; font-size: 1.1rem; font-weight: 500;">Load a dataset to see available data series</p>
           </div>
         </div>
       </div>
@@ -544,8 +608,10 @@
 
   <script>
     let selectedCohort = null;
+    let selectedCategory = 'large';
     let currentData = null;
     let allSeries = [];
+    let currentScale = 'linear';
     
     // Extended color palette for many series
     const colors = [
@@ -555,13 +621,9 @@
       "#c49c94", "#f7b6d3", "#c7c7c7", "#dbdb8d", "#9edae5"
     ];
 
-    function updateStatus(message, type = 'success') {
-      const status = document.getElementById('status');
-      status.textContent = message;
-      status.className = `status ${type}`;
-    }
-
     function switchCategory(category) {
+      selectedCategory = category;
+      
       // Update tab buttons
       document.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('active'));
       event.target.classList.add('active');
@@ -572,38 +634,46 @@
       
       // Reset selection
       selectedCohort = null;
-      document.querySelectorAll('.cohort-card').forEach(card => card.classList.remove('selected'));
       document.getElementById('mainControls').classList.remove('show');
-      
-      updateStatus(`📊 ${category === 'large' ? 'Large' : 'Small'} particles selected. Choose a specific cohort to continue.`, 'success');
     }
 
-    function selectCohort(cohortId, cardElement) {
-      // Remove previous selection
-      document.querySelectorAll('.cohort-card').forEach(card => card.classList.remove('selected'));
+    function selectCohort(category, cohortId) {
+      if (!cohortId) {
+        selectedCohort = null;
+        document.getElementById('mainControls').classList.remove('show');
+        return;
+      }
       
-      // Add selection to clicked card
-      cardElement.classList.add('selected');
       selectedCohort = cohortId;
+      selectedCategory = category;
       
       // Show controls
       document.getElementById('mainControls').classList.add('show');
       document.getElementById('selectedCohortTitle').textContent = `Selected: ${cohortId.replace('_', ' ').toUpperCase()}`;
+    }
+
+    function setScale(scale) {
+      currentScale = scale;
       
-      updateStatus(`📊 Selected ${cohortId.replace('_', ' ').toUpperCase()}. Click "Load Complete Dataset" to see all data series.`, 'success');
+      // Update button states
+      document.querySelectorAll('.scale-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      // Update visualization if data is loaded
+      if (currentData) {
+        updateVisualization();
+      }
     }
 
     async function loadData() {
       if (!selectedCohort) {
-        updateStatus('❌ Please select a cohort first!', 'error');
+        alert('❌ Please select a cohort first!');
         return;
       }
 
       const loadBtn = document.getElementById('loadBtn');
       loadBtn.disabled = true;
       loadBtn.textContent = '⏳ Loading...';
-
-      updateStatus(`📊 Loading complete dataset for ${selectedCohort.replace('_', ' ').toUpperCase()}...`, 'loading');
 
       const csvPath = `Data/${selectedCohort}.csv`;
 
@@ -624,7 +694,7 @@
             );
             
             if (data.length === 0) {
-              updateStatus('❌ No valid data found in file', 'error');
+              alert('❌ No valid data found in file');
               resetLoadButton();
               return;
             }
@@ -634,17 +704,16 @@
             allSeries = columns.slice(1); // All except time column
             
             setupSeriesSelection();
-            updateStatus(`✅ Loaded ${data.length} data points with ${allSeries.length} data series. Choose which series to display below.`, 'success');
             resetLoadButton();
           },
           error: function(error) {
-            updateStatus(`❌ Error parsing CSV: ${error.message}`, 'error');
+            alert(`❌ Error parsing CSV: ${error.message}`);
             resetLoadButton();
           }
         });
 
       } catch (error) {
-        updateStatus(`❌ Error loading file: ${error.message}`, 'error');
+        alert(`❌ Error loading file: ${error.message}`);
         resetLoadButton();
       }
     }
@@ -652,7 +721,7 @@
     function resetLoadButton() {
       const loadBtn = document.getElementById('loadBtn');
       loadBtn.disabled = false;
-      loadBtn.textContent = '📊 Load Complete Dataset';
+      loadBtn.textContent = '📊 Load Dataset';
     }
 
     function setupSeriesSelection() {
@@ -715,7 +784,7 @@
       
       const selectedSeries = getSelectedSeries();
       if (selectedSeries.length === 0) {
-        document.getElementById('chart').innerHTML = '<div style="padding: 2rem; text-align: center; color: #666;">Select at least one data series to display the chart</div>';
+        document.getElementById('chart').innerHTML = '<div style="padding: 3rem; text-align: center; color: #718096; font-size: 1.2rem; font-weight: 500;">Select at least one data series to display the chart</div>';
         return;
       }
       
@@ -740,38 +809,52 @@
             return isNaN(val) ? null : val;
           }),
           line: { 
-            width: 2.5, 
+            width: 3, 
             color: colors[seriesIndex % colors.length] 
           },
-          hovertemplate: `<b>${series}</b><br>%{x}<br>%{y:.1f} particles<extra></extra>`,
+          hovertemplate: `<b>${series}</b><br>%{x}<br>%{y:.2f} particles<extra></extra>`,
           connectgaps: false
         };
       });
 
       const layout = {
         title: {
-          text: `${selectedCohort.replace('_', ' ').toUpperCase()} - Complete Data (${selectedSeries.length} of ${allSeries.length} series shown)`,
-          font: { size: 18, family: "Arial, sans-serif" },
+          text: `${selectedCohort.replace('_', ' ').toUpperCase()} - Outdoor Data Explorer (${selectedSeries.length} of ${allSeries.length} series)`,
+          font: { size: 24, family: "Inter, Arial, sans-serif", color: "#2d3748", weight: "bold" },
           x: 0.5,
           xanchor: 'center'
         },
         xaxis: { 
           title: {
             text: 'Date and Time',
-            font: { size: 14 }
+            font: { size: 18, color: "#2d3748", weight: "600" }
           },
           showgrid: true,
-          gridcolor: '#f0f0f0'
+          gridcolor: '#e2e8f0',
+          gridwidth: 1,
+          linecolor: '#cbd5e0',
+          linewidth: 2,
+          tickfont: { size: 14, color: "#4a5568" },
+          showspikes: true,
+          spikemode: 'across',
+          spikesnap: 'cursor',
+          spikecolor: '#667eea',
+          spikethickness: 2
         },
         yaxis: { 
           title: {
             text: 'Particle Count (per 0.01 ft³)',
-            font: { size: 14 }
+            font: { size: 18, color: "#2d3748", weight: "600" }
           },
+          type: currentScale,
           showgrid: true,
-          gridcolor: '#f0f0f0'
+          gridcolor: '#e2e8f0',
+          gridwidth: 1,
+          linecolor: '#cbd5e0',
+          linewidth: 2,
+          tickfont: { size: 14, color: "#4a5568" }
         },
-        margin: { l: 80, r: 200, t: 80, b: 80 },
+        margin: { l: 100, r: 240, t: 100, b: 100 },
         legend: {
           orientation: 'v',
           x: 1.02,
@@ -779,14 +862,14 @@
           xanchor: 'left',
           yanchor: 'top',
           bgcolor: 'rgba(255,255,255,0.95)',
-          bordercolor: '#333',
-          borderwidth: 1,
-          font: { size: 12 }
+          bordercolor: '#e2e8f0',
+          borderwidth: 2,
+          font: { size: 13, color: "#2d3748", weight: "500" }
         },
         hovermode: 'x unified',
         plot_bgcolor: 'white',
         paper_bgcolor: 'white',
-        font: { family: "Arial, sans-serif" }
+        font: { family: "Inter, Arial, sans-serif", color: "#2d3748" }
       };
 
       const config = {
@@ -795,9 +878,9 @@
         modeBarButtonsToAdd: ['toImage'],
         toImageButtonOptions: {
           format: 'png',
-          filename: `rocis_${selectedCohort}_complete_chart`,
-          height: 700,
-          width: 1200,
+          filename: `rocis_${selectedCohort}_outdoor_data_explorer`,
+          height: 750,
+          width: 1400,
           scale: 2
         }
       };
@@ -807,7 +890,7 @@
 
     function downloadData() {
       if (!selectedCohort) {
-        updateStatus('❌ Please select a cohort first!', 'error');
+        alert('❌ Please select a cohort first!');
         return;
       }
       
@@ -815,8 +898,6 @@
       link.href = `Data/${selectedCohort}.csv`;
       link.download = `${selectedCohort}.csv`;
       link.click();
-      
-      updateStatus(`📥 Downloading ${selectedCohort.replace('_', ' ').toUpperCase()} data...`, 'success');
     }
   </script>
 </body>
