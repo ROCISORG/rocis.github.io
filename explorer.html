@@ -709,23 +709,71 @@
       "#8e44ad", "#16a085", "#27ae60", "#2980b9", "#c0392b"
     ];
 
-    // Load Southwest Pennsylvania participants from external file
-    let swPennsylvaniaLocations = [];
+    // Auto-detect Southwest Pennsylvania participants from CSV columns
+    let swPennsylvaniaData = {};
     
-    async function loadSWPAParticipants() {
-      try {
-        const response = await fetch('Data/sw_pa_participants.json');
-        if (response.ok) {
-          const data = await response.json();
-          swPennsylvaniaLocations = data.participants || [];
-        } else {
-          // Fallback to default list if file not found
-          swPennsylvaniaLocations = ['OAMT', 'RBN', 'SWVL', 'ALPK', 'DORM', 'BLOO', 'FRHL', 'GARF', 'FNVL', 'CHAL', 'BATP'];
-        }
-      } catch (error) {
-        console.log('Using default SW PA participants list');
-        swPennsylvaniaLocations = ['OAMT', 'RBN', 'SWVL', 'ALPK', 'DORM', 'BLOO', 'FRHL', 'GARF', 'FNVL', 'CHAL', 'BATP'];
+    // Known non-PA location patterns (these will be excluded from SW PA filter)
+    const NON_PA_PATTERNS = [
+      '_ME',     // Maine
+      '_CA',     // California  
+      '_OR',     // Oregon
+      '_MN',     // Minnesota
+      '_FL',     // Florida
+      '_TX',     // Texas
+      '_NY',     // New York
+      '_WA',     // Washington
+      '_IL',     // Illinois
+      'CASJ',    // California (San Jose)
+      'ORCB',    // Oregon
+      'MEBA',    // Maine
+      'MNMP'     // Minnesota (Minneapolis)
+    ];
+    
+    function detectSWPAParticipants(csvData, cohortId) {
+      if (!csvData || csvData.length === 0) return [];
+      
+      const columns = Object.keys(csvData[0]);
+      const dataColumns = columns.slice(1); // Skip DateTime column
+      
+      console.log(`🔍 Detecting SW PA participants for ${cohortId} from columns:`, dataColumns);
+      
+      // Extract location codes from column names
+      const allParticipants = dataColumns
+        .map(col => {
+          // Extract location code from pattern like "7645_O_MEBA_ME" -> "MEBA"
+          const match = col.match(/_O_([^_]+)/);
+          return match ? match[1] : null;
+        })
+        .filter(code => code !== null);
+      
+      // Filter out non-PA locations
+      const paParticipants = allParticipants.filter(participant => {
+        const isNonPA = NON_PA_PATTERNS.some(pattern => 
+          participant.includes(pattern.replace('_', ''))
+        );
+        return !isNonPA;
+      });
+      
+      // Remove duplicates
+      const uniquePAParticipants = [...new Set(paParticipants)];
+      
+      console.log(`✅ Detected SW PA participants for ${cohortId}:`, uniquePAParticipants);
+      console.log(`❌ Excluded non-PA participants:`, allParticipants.filter(p => !uniquePAParticipants.includes(p)));
+      
+      return uniquePAParticipants;
+    }
+    
+    function updateSWPAData(cohortId, participants) {
+      const parts = cohortId.split('_');
+      const cohortNum = parts[1];
+      const cohortKey = `cohort_${cohortNum}`;
+      
+      if (!swPennsylvaniaData[cohortKey]) {
+        swPennsylvaniaData[cohortKey] = {};
       }
+      
+      swPennsylvaniaData[cohortKey][cohortId] = participants;
+      console.log(`📝 Updated SW PA data for ${cohortKey}:`, swPennsylvaniaData[cohortKey]);
     }
 
     function switchView(view) {
@@ -884,10 +932,14 @@
               Object.values(row).some(val => val !== null && val !== '')
             );
             
+            // Auto-detect and update SW PA participants from CSV
+            const detectedParticipants = detectSWPAParticipants(data, cohortId);
+            updateSWPAData(cohortId, detectedParticipants);
+            
             // Apply Southwest PA filter if enabled
-            const swPaFilterId = currentView === 'single' ? 'singleSwPaFilter' : `${key}SwPaFilter`;
+            const swPaFilterId = currentView === 'single' ? 'singleSwPaFilter' : 'compareSwPaFilter';
             if (document.getElementById(swPaFilterId)?.checked) {
-              data = filterSouthwestPA(data);
+              data = filterSouthwestPA(data, cohortId);
             }
             
             if (data.length === 0) throw new Error('No valid data found');
@@ -906,15 +958,39 @@
       });
     }
 
-    function filterSouthwestPA(data) {
+    // Updated function to use cohort-wise filtering
+    function filterSouthwestPA(data, cohortId) {
+      // Extract cohort number and dataset type from cohortId (e.g., "large_59" or "small_60")
+      const parts = cohortId.split('_');
+      const cohortNum = parts[1];
+      const cohortKey = `cohort_${cohortNum}`;
+      
+      console.log(`🔍 Filtering SW PA for ${cohortId}, looking up: ${cohortKey}`);
+      
+      // Get the SW PA locations for this specific cohort and dataset type
+      const swPaLocations = swPennsylvaniaData[cohortKey] && swPennsylvaniaData[cohortKey][cohortId];
+      
+      if (!swPaLocations || swPaLocations.length === 0) {
+        console.warn(`⚠️ No SW PA locations found for ${cohortId}`);
+        return data; // Return unfiltered data if no SW PA locations specified
+      }
+      
+      console.log(`✅ SW PA locations for ${cohortId}:`, swPaLocations);
+      
       return data.filter(row => {
-        // Check if any column name contains Southwest PA location identifiers
+        // Check if any column name contains Southwest PA location identifiers for this cohort
         const columns = Object.keys(row);
-        return columns.some(col => 
-          swPennsylvaniaLocations.some(location => 
-            col.toUpperCase().includes(location)
+        const hasSwPaLocation = columns.some(col => 
+          swPaLocations.some(location => 
+            col.toUpperCase().includes(location.toUpperCase())
           )
         );
+        
+        if (hasSwPaLocation) {
+          console.log(`✅ Row included: found SW PA location in columns for ${cohortId}`);
+        }
+        
+        return hasSwPaLocation;
       });
     }
 
@@ -1180,7 +1256,7 @@
               return isNaN(val) ? null : val;
             }),
             line: { 
-              width: 2.5, // Slightly thinner lines as requested
+              width: 1.2, // Much thinner lines for better visibility
               color: colors[seriesIndex % colors.length] 
             },
             hovertemplate: `<b>${prefix}${series}</b><br>%{x}<br>%{y:.2f} particles<extra></extra>`,
@@ -1225,8 +1301,7 @@
 
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
-      // Load Southwest PA participants list
-      loadSWPAParticipants();
+      // No need to load external JSON - SW PA detection is automatic
       
       // Set up filter change listeners
       ['singleSwPaFilter', 'compareSwPaFilter'].forEach(id => {
