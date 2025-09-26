@@ -14,8 +14,8 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #f8f9fa;
+      font-family: "Times New Roman", Times, serif;
+      background: #fefefe;
       color: #2d3748;
       line-height: 1.6;
     }
@@ -71,57 +71,99 @@
     }
     
     .hero {
-      background: white;
-      padding: 2rem;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
+      backdrop-filter: blur(10px);
+      padding: 3.5rem 3rem;
       border-radius: 12px;
-      margin-bottom: 2rem;
+      margin-bottom: 2.5rem;
       text-align: center;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+      position: relative;
+    }
+    
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #1a365d, #2c5aa0, #4a90a4);
+      border-radius: 12px 12px 0 0;
     }
     
     .hero h1 {
-      margin: 0 0 0.5rem;
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: #2d3748;
+      margin: 0 0 1rem;
+      font-size: 2.8rem;
+      font-weight: 400;
+      background: linear-gradient(135deg, #1a365d, #2c5aa0);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 0.01em;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     
     .hero p {
       margin: 0;
-      font-size: 1.1rem;
-      color: #718096;
+      font-size: 1.2rem;
+      color: #4a5568;
+      font-weight: 400;
+      font-style: italic;
     }
     
     .view-toggle {
       display: flex;
       justify-content: center;
-      gap: 1rem;
-      margin-bottom: 2rem;
+      gap: 1.5rem;
+      margin-bottom: 3rem;
     }
     
     .view-btn {
-      padding: 0.8rem 1.5rem;
-      background: white;
-      border: 2px solid #e2e8f0;
+      padding: 1rem 2.5rem;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(0, 0, 0, 0.08);
       border-radius: 8px;
       cursor: pointer;
       font-weight: 600;
-      font-size: 1rem;
+      font-size: 1.1rem;
       color: #4a5568;
-      transition: all 0.2s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-family: "Times New Roman", Times, serif;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .view-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .view-btn:hover::before {
+      left: 100%;
     }
     
     .view-btn.active {
-      background: #2b6cb0;
+      background: linear-gradient(135deg, #1a365d, #2c5aa0);
       color: white;
-      border-color: #2b6cb0;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(26, 54, 93, 0.3);
+      border-color: #1a365d;
     }
     
     .view-btn:hover:not(.active) {
-      background: #e6f3ff;
-      color: #2b6cb0;
-      border-color: #2b6cb0;
+      background: linear-gradient(135deg, rgba(26, 54, 93, 0.1), rgba(44, 90, 160, 0.1));
+      color: #1a365d;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
     
     .cohort-grid {
@@ -483,6 +525,10 @@
       .cohort-grid {
         grid-template-columns: 1fr;
       }
+      
+      #compareCharts > div {
+        grid-template-columns: 1fr !important;
+      }
     }
     
     @media (max-width: 768px) {
@@ -527,8 +573,8 @@
     </div>
 
     <div class="view-toggle">
-      <button class="view-btn active" onclick="switchView('single')">📊 Single Dataset</button>
-      <button class="view-btn" onclick="switchView('compare')">🔄 Compare Large vs Total (Same Cohort)</button>
+      <button class="view-btn active" onclick="switchView('single')">Single Dataset</button>
+      <button class="view-btn" onclick="switchView('compare')">Compare Large vs Total (Same Cohort)</button>
     </div>
 
     <!-- Single View -->
@@ -583,17 +629,17 @@
       
       <div class="controls-grid">
         <div class="control-panel">
-          <h4>🎛️ Controls</h4>
-          <button class="button" id="loadBtn" onclick="loadData()">📊 Load Dataset</button>
-          <button class="button secondary" onclick="downloadData()">📥 Download CSV</button>
+          <h4>Controls</h4>
+          <button class="button" id="loadBtn" onclick="loadData()">Load Dataset</button>
+          <button class="button secondary" onclick="downloadData()">Download CSV</button>
           
-          <h4>📏 Scale Type</h4>
+          <h4>Scale Type</h4>
           <div class="scale-toggle">
             <button class="scale-btn active" onclick="setScale('linear')">Linear</button>
             <button class="scale-btn" onclick="setScale('log')">Log</button>
           </div>
           
-          <h4>🔍 Zoom Level</h4>
+          <h4>Zoom Level</h4>
           <div class="zoom-controls">
             <button class="zoom-btn" onclick="setZoom('fit')">Fit All</button>
             <button class="zoom-btn" onclick="setZoom('recent')">Recent</button>
@@ -619,12 +665,11 @@
             <span id="seriesCount" style="font-size: 0.85rem; font-weight: 500; color: #718096;">(0 available)</span>
           </div>
           
-          <input type="text" class="series-search" id="seriesSearch" placeholder="🔍 Search series..." onkeyup="filterSeries()">
+          <input type="text" class="series-search" id="seriesSearch" placeholder="Search series..." onkeyup="filterSeries()">
           
           <div class="series-controls">
-            <button class="series-control-btn" onclick="selectAllSeries()">✓ All</button>
-            <button class="series-control-btn" onclick="clearAllSeries()">✗ None</button>
-            <button class="series-control-btn" onclick="selectTopSeries()">📈 Top 10</button>
+            <button class="series-control-btn" onclick="selectAllSeries()">Select All</button>
+            <button class="series-control-btn" onclick="clearAllSeries()">Clear All</button>
           </div>
           
           <div id="seriesList" class="series-list">
@@ -638,11 +683,11 @@
     <div id="compareCharts" style="display: none;">
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
         <div>
-          <h3 style="text-align: center; color: #2b6cb0; margin-bottom: 1rem;">🔵 Large Particles</h3>
+          <h3 style="text-align: center; color: #2b6cb0; margin-bottom: 1rem;">Large Particles</h3>
           <div id="chartLarge" style="width: 100%; height: 600px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);"></div>
         </div>
         <div>
-          <h3 style="text-align: center; color: #059669; margin-bottom: 1rem;">🟢 Total Particles</h3>
+          <h3 style="text-align: center; color: #059669; margin-bottom: 1rem;">Total Particles</h3>
           <div id="chartTotal" style="width: 100%; height: 600px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);"></div>
         </div>
       </div>
@@ -664,8 +709,24 @@
       "#8e44ad", "#16a085", "#27ae60", "#2980b9", "#c0392b"
     ];
 
-    // Southwest Pennsylvania location identifiers (simplified for demo)
-    const swPennsylvaniaLocations = ['PITT', 'ALLE', 'WEST', 'WASH', 'BUTL', 'BEAV', 'FAYE', 'ARMS', 'INDI'];
+    // Load Southwest Pennsylvania participants from external file
+    let swPennsylvaniaLocations = [];
+    
+    async function loadSWPAParticipants() {
+      try {
+        const response = await fetch('Data/sw_pa_participants.json');
+        if (response.ok) {
+          const data = await response.json();
+          swPennsylvaniaLocations = data.participants || [];
+        } else {
+          // Fallback to default list if file not found
+          swPennsylvaniaLocations = ['OAMT', 'RBN', 'SWVL', 'ALPK', 'DORM', 'BLOO', 'FRHL', 'GARF', 'FNVL', 'CHAL', 'BATP'];
+        }
+      } catch (error) {
+        console.log('Using default SW PA participants list');
+        swPennsylvaniaLocations = ['OAMT', 'RBN', 'SWVL', 'ALPK', 'DORM', 'BLOO', 'FRHL', 'GARF', 'FNVL', 'CHAL', 'BATP'];
+      }
+    }
 
     function switchView(view) {
       currentView = view;
@@ -677,6 +738,15 @@
       // Show/hide sections
       document.getElementById('single-view').style.display = view === 'single' ? 'block' : 'none';
       document.getElementById('compare-view').style.display = view === 'compare' ? 'block' : 'none';
+      
+      // Show/hide appropriate chart containers
+      if (view === 'single') {
+        document.getElementById('chart').style.display = 'block';
+        document.getElementById('compareCharts').style.display = 'none';
+      } else {
+        document.getElementById('chart').style.display = 'none';
+        document.getElementById('compareCharts').style.display = 'block';
+      }
       
       // Reset and hide controls
       document.getElementById('mainControls').classList.remove('show');
@@ -780,11 +850,13 @@
         if (currentView === 'single') {
           if (!selectedCohorts.single) throw new Error('No cohort selected');
           await loadCohortData('single', selectedCohorts.single);
-        } else {
+        } else if (currentView === 'compare') {
           // Compare view - automatically load both Large and Total for same cohort
           if (!selectedCohorts.large || !selectedCohorts.total) throw new Error('No cohort selected for comparison');
-          await loadCohortData('large', selectedCohorts.large);
-          await loadCohortData('total', selectedCohorts.total);
+          await Promise.all([
+            loadCohortData('large', selectedCohorts.large),
+            loadCohortData('total', selectedCohorts.total)
+          ]);
         }
         
         setupSeriesSelection();
@@ -849,7 +921,7 @@
     function resetLoadButton() {
       const loadBtn = document.getElementById('loadBtn');
       loadBtn.disabled = false;
-      loadBtn.textContent = '📊 Load Dataset';
+      loadBtn.textContent = 'Load Dataset';
     }
 
     function setupSeriesSelection() {
@@ -928,14 +1000,6 @@
       updateVisualization();
     }
 
-    function selectTopSeries() {
-      const checkboxes = document.querySelectorAll('#seriesList input[type="checkbox"]');
-      checkboxes.forEach((cb, index) => {
-        cb.checked = index < 10; // Top 10 series
-      });
-      updateVisualization();
-    }
-
     function getSelectedSeries() {
       const checkboxes = document.querySelectorAll('#seriesList input[type="checkbox"]:checked');
       return Array.from(checkboxes)
@@ -951,7 +1015,9 @@
     function updateVisualization() {
       const selectedSeries = getSelectedSeries();
       if (selectedSeries.length === 0) {
-        document.getElementById('chart').innerHTML = '<div style="padding: 3rem; text-align: center; color: #718096; font-size: 1.1rem; font-weight: 500;">Select at least one data series to display the chart</div>';
+        if (currentView === 'single') {
+          document.getElementById('chart').innerHTML = '<div style="padding: 3rem; text-align: center; color: #718096; font-size: 1.1rem; font-weight: 500;">Select at least one data series to display the chart</div>';
+        }
         return;
       }
 
@@ -970,6 +1036,20 @@
         if (traces.length === 0) return;
 
         const layout = createChartLayout(getChartTitle(selectedSeries.length));
+        layout.margin = { l: 80, r: 160, t: 70, b: 60 };
+        layout.legend = {
+          orientation: 'v',
+          x: 1.02,
+          y: 1,
+          xanchor: 'left',
+          yanchor: 'top',
+          bgcolor: 'rgba(255,255,255,0.9)',
+          bordercolor: '#e2e8f0',
+          borderwidth: 1,
+          font: { size: 11, color: "#2d3748" },
+          itemclick: 'toggle',
+          itemdoubleclick: 'toggleothers'
+        };
         const config = createChartConfig('single');
 
         Plotly.react('chart', traces, layout, config);
@@ -985,17 +1065,15 @@
         if (currentData.large) {
           const largeTraces = generateTraces(currentData.large, selectedSeries, samplingRate, '');
           const largeLayout = createChartLayout(`Large Particles - Cohort ${selectedCohorts.large?.split('_')[1] || ''} (${selectedSeries.length} series)`);
-          largeLayout.showlegend = true;
           const largeConfig = createChartConfig('large');
           
           Plotly.react('chartLarge', largeTraces, largeLayout, largeConfig);
         }
         
-        // Create Total Particles chart
+        // Create Total Particles chart  
         if (currentData.total) {
           const totalTraces = generateTraces(currentData.total, selectedSeries, samplingRate, '');
           const totalLayout = createChartLayout(`Total Particles - Cohort ${selectedCohorts.total?.split('_')[1] || ''} (${selectedSeries.length} series)`);
-          totalLayout.showlegend = true;
           const totalConfig = createChartConfig('total');
           
           Plotly.react('chartTotal', totalTraces, totalLayout, totalConfig);
@@ -1007,21 +1085,21 @@
       return {
         title: {
           text: title,
-          font: { size: 18, family: "system-ui, sans-serif", color: "#1a202c" },
+          font: { size: 18, family: "Times New Roman, Times, serif", color: "#1a365d" },
           x: 0.5,
           xanchor: 'center'
         },
         xaxis: { 
           title: {
             text: 'Date and Time',
-            font: { size: 14, color: "#2d3748" }
+            font: { size: 14, color: "#2d3748", family: "Times New Roman, Times, serif" }
           },
           showgrid: true,
           gridcolor: '#f5f5f5',
           gridwidth: 1,
           linecolor: '#d0d0d0',
           linewidth: 1,
-          tickfont: { size: 11, color: "#4a5568" },
+          tickfont: { size: 11, color: "#4a5568", family: "Times New Roman, Times, serif" },
           showspikes: true,
           spikemode: 'across',
           spikesnap: 'cursor',
@@ -1032,7 +1110,7 @@
         yaxis: { 
           title: {
             text: 'Particle Count (per 0.01 ft³)',
-            font: { size: 14, color: "#2d3748" }
+            font: { size: 14, color: "#2d3748", family: "Times New Roman, Times, serif" }
           },
           type: currentScale,
           showgrid: true,
@@ -1040,7 +1118,7 @@
           gridwidth: 1,
           linecolor: '#d0d0d0',
           linewidth: 1,
-          tickfont: { size: 11, color: "#4a5568" }
+          tickfont: { size: 11, color: "#4a5568", family: "Times New Roman, Times, serif" }
         },
         margin: { l: 70, r: 10, t: 60, b: 50 },
         legend: {
@@ -1052,14 +1130,14 @@
           bgcolor: 'rgba(255,255,255,0.9)',
           bordercolor: '#e2e8f0',
           borderwidth: 1,
-          font: { size: 10, color: "#2d3748" },
+          font: { size: 10, color: "#2d3748", family: "Times New Roman, Times, serif" },
           itemclick: 'toggle',
           itemdoubleclick: 'toggleothers'
         },
         hovermode: 'x unified',
         plot_bgcolor: 'white',
         paper_bgcolor: 'white',
-        font: { family: "system-ui, sans-serif", color: "#2d3748" }
+        font: { family: "Times New Roman, Times, serif", color: "#2d3748" }
       };
     }
 
@@ -1147,8 +1225,11 @@
 
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
+      // Load Southwest PA participants list
+      loadSWPAParticipants();
+      
       // Set up filter change listeners
-      ['singleSwPaFilter', 'largeSwPaFilter', 'totalSwPaFilter'].forEach(id => {
+      ['singleSwPaFilter', 'compareSwPaFilter'].forEach(id => {
         const element = document.getElementById(id);
         if (element) {
           element.addEventListener('change', () => {
