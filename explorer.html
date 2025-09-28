@@ -726,23 +726,23 @@
     let hiddenSeries = new Set();
     let selectedSeries = new Set(); // Track which series are selected
     
-    // Standard color palette - bright, visible, and easy to differentiate
-    const standardColors = [
-      "#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6",
-      "#06B6D4", "#F97316", "#EC4899", "#84CC16", "#6366F1",
-      "#14B8A6", "#F43F5E", "#8B5CF6", "#F59E0B", "#10B981"
+    // Default: High contrast bright colors - visually appealing and easy to distinguish
+    const defaultColors = [
+      "#FF0066", "#0066FF", "#00CC33", "#FF6600", "#9933FF",
+      "#00CCCC", "#FF3333", "#3366FF", "#66CC00", "#FF9900",
+      "#CC0099", "#0099CC", "#CC6600", "#6600CC", "#FF6699"
     ];
     
-    // Colorblind-friendly palette - specifically designed for accessibility
+    // Colorblind-friendly palette - when accessibility is enabled
     const colorblindColors = [
       "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
-      "#8c564b", "#e377c2", "#17becf", "#bcbd22", "#9edae5",
-      "#ff9896", "#98df8a", "#ffbb78", "#c5b0d5", "#c49c94"
+      "#8c564b", "#e377c2", "#17becf", "#bcbd22", "#aec7e8",
+      "#ffbb78", "#98df8a", "#ff9896", "#c5b0d5", "#c49c94"
     ];
     
     // Get current color palette
     function getCurrentColors() {
-      return isColorblindMode ? colorblindColors : standardColors;
+      return isColorblindMode ? colorblindColors : defaultColors;
     }
 
     // Auto-detect Pennsylvania participants from CSV columns
