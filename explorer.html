@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ROCIS LCMP – Outdoor Data Explorer</title>
+  <title>ROCIS – Outdoor Data Explorer</title>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script src="https://unpkg.com/papaparse@5/papaparse.min.js"></script>
   <style>
@@ -15,7 +15,8 @@
 
     body {
       font-family: "Times New Roman", Times, serif;
-      background: #fefefe;
+      background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 50%, #dbeafe 100%);
+      min-height: 100vh;
       color: #2d3748;
       line-height: 1.6;
     }
@@ -71,14 +72,14 @@
     }
     
     .hero {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.95));
       backdrop-filter: blur(10px);
       padding: 3.5rem 3rem;
       border-radius: 12px;
       margin-bottom: 2.5rem;
       text-align: center;
-      border: 1px solid rgba(0, 0, 0, 0.06);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(59, 130, 246, 0.1);
+      box-shadow: 0 8px 32px rgba(59, 130, 246, 0.1);
       position: relative;
     }
     
@@ -180,11 +181,12 @@
     }
     
     .cohort-panel {
-      background: white;
-      border: 1px solid #e2e8f0;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(59, 130, 246, 0.2);
       border-radius: 12px;
       padding: 2rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.1);
+      backdrop-filter: blur(5px);
     }
     
     .cohort-panel h3 {
@@ -237,13 +239,14 @@
     }
     
     .main-controls {
-      background: white;
-      border: 1px solid #e2e8f0;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(59, 130, 246, 0.2);
       border-radius: 12px;
       padding: 2rem;
       margin: 2rem 0;
       display: none;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.1);
+      backdrop-filter: blur(5px);
     }
     
     .main-controls.show {
@@ -271,13 +274,13 @@
       color: #2d3748;
     }
     
-    .scale-toggle, .zoom-controls {
+    .scale-toggle, .zoom-controls, .color-mode-toggle {
       display: flex;
       gap: 0.5rem;
       margin: 1rem 0;
     }
     
-    .scale-btn, .zoom-btn {
+    .scale-btn, .zoom-btn, .color-btn {
       flex: 1;
       padding: 0.7rem;
       border: 2px solid #e2e8f0;
@@ -290,13 +293,13 @@
       color: #4a5568;
     }
     
-    .scale-btn.active, .zoom-btn.active {
+    .scale-btn.active, .zoom-btn.active, .color-btn.active {
       background: #2b6cb0;
       color: white;
       border-color: #2b6cb0;
     }
     
-    .scale-btn:hover:not(.active), .zoom-btn:hover:not(.active) {
+    .scale-btn:hover:not(.active), .zoom-btn:hover:not(.active), .color-btn:hover:not(.active) {
       background: #e6f3ff;
       color: #2b6cb0;
       border-color: #2b6cb0;
@@ -484,7 +487,7 @@
       font-size: 0.95rem;
     }
     
-    .sw-pennsylvania-filter {
+    .pennsylvania-filter {
       background: #f0fff4;
       border: 1px solid #9ae6b4;
       border-radius: 6px;
@@ -492,7 +495,7 @@
       margin: 1rem 0;
     }
     
-    .sw-pennsylvania-filter label {
+    .pennsylvania-filter label {
       display: flex;
       align-items: center;
       gap: 0.5rem;
@@ -559,7 +562,7 @@
 <body>
   <nav class="nav">
     <div class="nav-content">
-      <a class="brand" href="./">ROCIS LCMP</a>
+      <a class="brand" href="./">ROCIS</a>
       <div class="nav-links">
         <a href="./about.html">About</a>
       </div>
@@ -590,9 +593,9 @@
           <select class="cohort-dropdown" id="singleCohortSelect" onchange="selectSingleCohort()" disabled>
             <option value="">Choose a cohort...</option>
           </select>
-          <div class="sw-pennsylvania-filter">
+          <div class="pennsylvania-filter">
             <label>
-              <input type="checkbox" id="singleSwPaFilter"> Show only Southwest Pennsylvania participants
+              <input type="checkbox" id="singlePaFilter"> Pennsylvania participants only
             </label>
           </div>
         </div>
@@ -612,9 +615,9 @@
             <option value="62">Cohort 62</option>
             <option value="63">Cohort 63</option>
           </select>
-          <div class="sw-pennsylvania-filter">
+          <div class="pennsylvania-filter">
             <label>
-              <input type="checkbox" id="compareSwPaFilter"> Show only Southwest Pennsylvania participants
+              <input type="checkbox" id="comparePaFilter"> Pennsylvania participants only
             </label>
           </div>
         </div>
@@ -639,6 +642,12 @@
             <button class="scale-btn" onclick="setScale('log')">Log</button>
           </div>
           
+          <h4>Color Mode</h4>
+          <div class="color-mode-toggle">
+            <button class="color-btn active" onclick="setColorMode('normal')">Normal</button>
+            <button class="color-btn" onclick="setColorMode('colorblind')">Colorblind Safe</button>
+          </div>
+          
           <h4>Zoom Level</h4>
           <div class="zoom-controls">
             <button class="zoom-btn" onclick="setZoom('fit')">Fit All</button>
@@ -661,7 +670,7 @@
         
         <div class="series-selection">
           <div class="series-header">
-            <h4>📈 Data Series</h4>
+            <h4>Data Series</h4>
             <span id="seriesCount" style="font-size: 0.85rem; font-weight: 500; color: #718096;">(0 available)</span>
           </div>
           
@@ -700,19 +709,32 @@
     let currentData = { single: null, large: null, total: null };
     let allSeries = [];
     let currentScale = 'linear';
+    let currentColorMode = 'normal';
     let hiddenSeries = new Set();
     
-    // Professional color palette - more distinct colors
-    const colors = [
+    // Normal color palette - vibrant colors
+    const normalColors = [
       "#e74c3c", "#3498db", "#2ecc71", "#f39c12", "#9b59b6",
       "#1abc9c", "#34495e", "#e67e22", "#95a5a6", "#f1c40f",
       "#8e44ad", "#16a085", "#27ae60", "#2980b9", "#c0392b"
     ];
-
-    // Auto-detect Southwest Pennsylvania participants from CSV columns
-    let swPennsylvaniaData = {};
     
-    // Known non-PA location patterns (these will be excluded from SW PA filter)
+    // Colorblind-friendly palette (Deuteranopia/Protanopia safe)
+    const colorblindColors = [
+      "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+      "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf",
+      "#aec7e8", "#ffbb78", "#98df8a", "#ff9896", "#c5b0d5"
+    ];
+    
+    // Get current color palette
+    function getCurrentColors() {
+      return currentColorMode === 'normal' ? normalColors : colorblindColors;
+    }
+
+    // Auto-detect Pennsylvania participants from CSV columns
+    let pennsylvaniaData = {};
+    
+    // Known non-PA location patterns (these will be excluded from PA filter)
     const NON_PA_PATTERNS = [
       '_ME',     // Maine
       '_CA',     // California  
@@ -729,13 +751,13 @@
       'MNMP'     // Minnesota (Minneapolis)
     ];
     
-    function detectSWPAParticipants(csvData, cohortId) {
+    function detectPAParticipants(csvData, cohortId) {
       if (!csvData || csvData.length === 0) return [];
       
       const columns = Object.keys(csvData[0]);
       const dataColumns = columns.slice(1); // Skip DateTime column
       
-      console.log(`🔍 Detecting SW PA participants for ${cohortId} from columns:`, dataColumns);
+      console.log(`🔍 Detecting PA participants for ${cohortId} from columns:`, dataColumns);
       
       // Extract location codes from column names
       const allParticipants = dataColumns
@@ -757,23 +779,23 @@
       // Remove duplicates
       const uniquePAParticipants = [...new Set(paParticipants)];
       
-      console.log(`✅ Detected SW PA participants for ${cohortId}:`, uniquePAParticipants);
+      console.log(`✅ Detected PA participants for ${cohortId}:`, uniquePAParticipants);
       console.log(`❌ Excluded non-PA participants:`, allParticipants.filter(p => !uniquePAParticipants.includes(p)));
       
       return uniquePAParticipants;
     }
     
-    function updateSWPAData(cohortId, participants) {
+    function updatePAData(cohortId, participants) {
       const parts = cohortId.split('_');
       const cohortNum = parts[1];
       const cohortKey = `cohort_${cohortNum}`;
       
-      if (!swPennsylvaniaData[cohortKey]) {
-        swPennsylvaniaData[cohortKey] = {};
+      if (!pennsylvaniaData[cohortKey]) {
+        pennsylvaniaData[cohortKey] = {};
       }
       
-      swPennsylvaniaData[cohortKey][cohortId] = participants;
-      console.log(`📝 Updated SW PA data for ${cohortKey}:`, swPennsylvaniaData[cohortKey]);
+      pennsylvaniaData[cohortKey][cohortId] = participants;
+      console.log(`📝 Updated PA data for ${cohortKey}:`, pennsylvaniaData[cohortKey]);
     }
 
     function switchView(view) {
@@ -867,6 +889,24 @@
       }
     }
 
+    function setColorMode(mode) {
+      currentColorMode = mode;
+      
+      document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      // Update color indicators in series list
+      const colorIndicators = document.querySelectorAll('.color-indicator');
+      const colors = getCurrentColors();
+      colorIndicators.forEach((indicator, index) => {
+        indicator.style.backgroundColor = colors[index % colors.length];
+      });
+      
+      if (Object.values(currentData).some(data => data)) {
+        updateVisualization();
+      }
+    }
+
     function setZoom(zoomType) {
       document.querySelectorAll('.zoom-btn').forEach(btn => btn.classList.remove('active'));
       event.target.classList.add('active');
@@ -892,7 +932,7 @@
     async function loadData() {
       const loadBtn = document.getElementById('loadBtn');
       loadBtn.disabled = true;
-      loadBtn.textContent = '⏳ Loading...';
+      loadBtn.textContent = 'Loading...';
 
       try {
         if (currentView === 'single') {
@@ -911,7 +951,7 @@
         resetLoadButton();
         
       } catch (error) {
-        alert(`❌ Error: ${error.message}`);
+        alert(`Error: ${error.message}`);
         resetLoadButton();
       }
     }
@@ -932,14 +972,14 @@
               Object.values(row).some(val => val !== null && val !== '')
             );
             
-            // Auto-detect and update SW PA participants from CSV
-            const detectedParticipants = detectSWPAParticipants(data, cohortId);
-            updateSWPAData(cohortId, detectedParticipants);
+            // Auto-detect and update PA participants from CSV
+            const detectedParticipants = detectPAParticipants(data, cohortId);
+            updatePAData(cohortId, detectedParticipants);
             
-            // Apply Southwest PA filter if enabled
-            const swPaFilterId = currentView === 'single' ? 'singleSwPaFilter' : 'compareSwPaFilter';
-            if (document.getElementById(swPaFilterId)?.checked) {
-              data = filterSouthwestPA(data, cohortId);
+            // Apply Pennsylvania filter if enabled
+            const paFilterId = currentView === 'single' ? 'singlePaFilter' : 'comparePaFilter';
+            if (document.getElementById(paFilterId)?.checked) {
+              data = filterPennsylvania(data, cohortId);
             }
             
             if (data.length === 0) throw new Error('No valid data found');
@@ -959,38 +999,38 @@
     }
 
     // Updated function to use cohort-wise filtering
-    function filterSouthwestPA(data, cohortId) {
+    function filterPennsylvania(data, cohortId) {
       // Extract cohort number and dataset type from cohortId (e.g., "large_59" or "small_60")
       const parts = cohortId.split('_');
       const cohortNum = parts[1];
       const cohortKey = `cohort_${cohortNum}`;
       
-      console.log(`🔍 Filtering SW PA for ${cohortId}, looking up: ${cohortKey}`);
+      console.log(`Filtering PA for ${cohortId}, looking up: ${cohortKey}`);
       
-      // Get the SW PA locations for this specific cohort and dataset type
-      const swPaLocations = swPennsylvaniaData[cohortKey] && swPennsylvaniaData[cohortKey][cohortId];
+      // Get the PA locations for this specific cohort and dataset type
+      const paLocations = pennsylvaniaData[cohortKey] && pennsylvaniaData[cohortKey][cohortId];
       
-      if (!swPaLocations || swPaLocations.length === 0) {
-        console.warn(`⚠️ No SW PA locations found for ${cohortId}`);
-        return data; // Return unfiltered data if no SW PA locations specified
+      if (!paLocations || paLocations.length === 0) {
+        console.warn(`No PA locations found for ${cohortId}`);
+        return data; // Return unfiltered data if no PA locations specified
       }
       
-      console.log(`✅ SW PA locations for ${cohortId}:`, swPaLocations);
+      console.log(`PA locations for ${cohortId}:`, paLocations);
       
       return data.filter(row => {
-        // Check if any column name contains Southwest PA location identifiers for this cohort
+        // Check if any column name contains Pennsylvania location identifiers for this cohort
         const columns = Object.keys(row);
-        const hasSwPaLocation = columns.some(col => 
-          swPaLocations.some(location => 
+        const hasPaLocation = columns.some(col => 
+          paLocations.some(location => 
             col.toUpperCase().includes(location.toUpperCase())
           )
         );
         
-        if (hasSwPaLocation) {
-          console.log(`✅ Row included: found SW PA location in columns for ${cohortId}`);
+        if (hasPaLocation) {
+          console.log(`Row included: found PA location in columns for ${cohortId}`);
         }
         
-        return hasSwPaLocation;
+        return hasPaLocation;
       });
     }
 
@@ -1006,6 +1046,8 @@
       
       seriesCount.textContent = `(${allSeries.length} available)`;
       seriesList.innerHTML = '';
+      
+      const colors = getCurrentColors();
       
       allSeries.forEach((series, index) => {
         const item = document.createElement('div');
@@ -1237,6 +1279,7 @@
     function generateTraces(data, selectedSeries, samplingRate, prefix) {
       const columns = Object.keys(data[0]);
       const timeColumn = columns[0];
+      const colors = getCurrentColors();
       
       const sampledData = samplingRate > 1 ? 
         data.filter((_, index) => index % samplingRate === 0) : 
@@ -1256,7 +1299,7 @@
               return isNaN(val) ? null : val;
             }),
             line: { 
-              width: 1.2, // Much thinner lines for better visibility
+              width: 1.2,
               color: colors[seriesIndex % colors.length] 
             },
             hovertemplate: `<b>${prefix}${series}</b><br>%{x}<br>%{y:.2f} particles<extra></extra>`,
@@ -1288,7 +1331,7 @@
         if (selectedCohorts.large) downloadCsv(selectedCohorts.large);
         if (selectedCohorts.total) downloadCsv(selectedCohorts.total);
       } else {
-        alert('❌ Please select a cohort first!');
+        alert('Please select a cohort first!');
       }
     }
 
@@ -1301,10 +1344,10 @@
 
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
-      // No need to load external JSON - SW PA detection is automatic
+      // No need to load external JSON - PA detection is automatic
       
       // Set up filter change listeners
-      ['singleSwPaFilter', 'compareSwPaFilter'].forEach(id => {
+      ['singlePaFilter', 'comparePaFilter'].forEach(id => {
         const element = document.getElementById(id);
         if (element) {
           element.addEventListener('change', () => {
