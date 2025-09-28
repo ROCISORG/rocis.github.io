@@ -66,9 +66,9 @@
     }
     
     .container {
-      max-width: 1600px;
+      max-width: 1800px;
       margin: 0 auto;
-      padding: 2rem;
+      padding: 2rem 1rem;
     }
     
     .hero {
@@ -644,8 +644,9 @@
           
           <h4>Color Mode</h4>
           <div class="color-mode-toggle">
-            <button class="color-btn active" onclick="setColorMode('normal')">Normal</button>
+            <button class="color-btn active" onclick="setColorMode('original')">Original</button>
             <button class="color-btn" onclick="setColorMode('colorblind')">Colorblind Safe</button>
+            <button class="color-btn" onclick="setColorMode('vibrant')">High Contrast</button>
           </div>
           
           <h4>Zoom Level</h4>
@@ -709,11 +710,12 @@
     let currentData = { single: null, large: null, total: null };
     let allSeries = [];
     let currentScale = 'linear';
-    let currentColorMode = 'normal';
+    let currentColorMode = 'original';
     let hiddenSeries = new Set();
+    let selectedSeries = new Set(); // Track which series are selected
     
-    // Normal color palette - vibrant colors
-    const normalColors = [
+    // Original color palette - vibrant colors (default)
+    const originalColors = [
       "#e74c3c", "#3498db", "#2ecc71", "#f39c12", "#9b59b6",
       "#1abc9c", "#34495e", "#e67e22", "#95a5a6", "#f1c40f",
       "#8e44ad", "#16a085", "#27ae60", "#2980b9", "#c0392b"
@@ -726,9 +728,21 @@
       "#aec7e8", "#ffbb78", "#98df8a", "#ff9896", "#c5b0d5"
     ];
     
+    // High contrast palette for better visibility
+    const vibrantColors = [
+      "#FF0000", "#0000FF", "#00FF00", "#FF8000", "#8000FF",
+      "#00FFFF", "#FF00FF", "#808000", "#008080", "#800080",
+      "#000080", "#008000", "#800000", "#FFA500", "#A52A2A"
+    ];
+    
     // Get current color palette
     function getCurrentColors() {
-      return currentColorMode === 'normal' ? normalColors : colorblindColors;
+      switch(currentColorMode) {
+        case 'original': return originalColors;
+        case 'colorblind': return colorblindColors;
+        case 'vibrant': return vibrantColors;
+        default: return originalColors;
+      }
     }
 
     // Auto-detect Pennsylvania participants from CSV columns
@@ -827,6 +841,7 @@
       selectedCohorts = { single: null, large: null, total: null };
       currentData = { single: null, large: null, total: null };
       allSeries = [];
+      selectedSeries.clear(); // Clear the selection tracking
     }
 
     function updateSingleCohorts() {
@@ -1055,9 +1070,17 @@
         
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.checked = index < 10; // Only first 10 checked by default
+        // Preserve previous selection state, or default to first 10 if no previous state
+        checkbox.checked = selectedSeries.has(series) || (selectedSeries.size === 0 && index < 10);
         checkbox.value = series;
-        checkbox.onchange = updateVisualization;
+        checkbox.onchange = (e) => {
+          if (e.target.checked) {
+            selectedSeries.add(series);
+          } else {
+            selectedSeries.delete(series);
+          }
+          updateVisualization();
+        };
         
         const colorDiv = document.createElement('div');
         colorDiv.className = 'color-indicator';
@@ -1080,6 +1103,11 @@
         item.appendChild(label);
         item.appendChild(visibilityBtn);
         seriesList.appendChild(item);
+        
+        // Update selectedSeries set based on checkbox state
+        if (checkbox.checked) {
+          selectedSeries.add(series);
+        }
       });
       
       updateVisualization();
@@ -1109,12 +1137,19 @@
     }
 
     function selectAllSeries() {
-      document.querySelectorAll('#seriesList input[type="checkbox"]').forEach(cb => cb.checked = true);
+      document.querySelectorAll('#seriesList input[type="checkbox"]').forEach(cb => {
+        cb.checked = true;
+        selectedSeries.add(cb.value);
+      });
       updateVisualization();
     }
 
     function clearAllSeries() {
-      document.querySelectorAll('#seriesList input[type="checkbox"]').forEach(cb => cb.checked = false);
+      document.querySelectorAll('#seriesList input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+        selectedSeries.delete(cb.value);
+      });
+      selectedSeries.clear();
       updateVisualization();
     }
 
@@ -1238,7 +1273,7 @@
           linewidth: 1,
           tickfont: { size: 11, color: "#4a5568", family: "Times New Roman, Times, serif" }
         },
-        margin: { l: 70, r: 10, t: 60, b: 50 },
+        margin: { l: 80, r: 40, t: 70, b: 60 },
         legend: {
           orientation: 'h',
           x: 0.5,
