@@ -276,13 +276,13 @@
       color: #2d3748;
     }
     
-    .scale-toggle, .zoom-controls, .view-mode-toggle {
+    .scale-toggle, .zoom-controls, .accessibility-toggle {
       display: flex;
       gap: 0.5rem;
       margin: 1rem 0;
     }
     
-    .scale-btn, .zoom-btn, .view-mode-btn {
+    .scale-btn, .zoom-btn, .accessibility-btn {
       flex: 1;
       padding: 0.8rem;
       border: 2px solid #e2e8f0;
@@ -295,16 +295,28 @@
       color: #4a5568;
     }
     
-    .scale-btn.active, .zoom-btn.active, .view-mode-btn.active {
+    .scale-btn.active, .zoom-btn.active {
       background: #2b6cb0;
       color: white;
       border-color: #2b6cb0;
     }
     
-    .scale-btn:hover:not(.active), .zoom-btn:hover:not(.active), .view-mode-btn:hover:not(.active) {
+    .accessibility-btn.active {
+      background: #059669;
+      color: white;
+      border-color: #059669;
+    }
+    
+    .scale-btn:hover:not(.active), .zoom-btn:hover:not(.active) {
       background: #e6f3ff;
       color: #2b6cb0;
       border-color: #2b6cb0;
+    }
+    
+    .accessibility-btn:hover:not(.active) {
+      background: #dcfce7;
+      color: #059669;
+      border-color: #059669;
     }
     
     .button {
@@ -350,7 +362,7 @@
     
     .series-header h4 {
       margin: 0;
-      font-size: 1.1rem;
+      font-size: 1.3rem;
       font-weight: 700;
       color: #2d3748;
     }
@@ -638,10 +650,9 @@
           <button class="button" id="loadBtn" onclick="loadData()">Load Dataset</button>
           <button class="button secondary" onclick="downloadData()">Download CSV</button>
           
-          <h4>View Mode</h4>
-          <div class="view-mode-toggle">
-            <button class="view-mode-btn active" onclick="setViewMode('normal')">Normal</button>
-            <button class="view-mode-btn" onclick="setViewMode('contrast')">High Contrast</button>
+          <h4>Accessibility</h4>
+          <div class="accessibility-toggle">
+            <button class="accessibility-btn" onclick="toggleColorblind()">Enable Colorblind Mode</button>
           </div>
           
           <h4>Scale Type</h4>
@@ -711,27 +722,27 @@
     let currentData = { single: null, large: null, total: null };
     let allSeries = [];
     let currentScale = 'linear';
-    let currentViewMode = 'normal'; // normal or contrast
+    let isColorblindMode = false; // Simple toggle for colorblind accessibility
     let hiddenSeries = new Set();
     let selectedSeries = new Set(); // Track which series are selected
     
-    // Normal color palette - great visibility on white background
-    const normalColors = [
-      "#2563eb", "#dc2626", "#16a34a", "#ca8a04", "#9333ea",
-      "#0891b2", "#ea580c", "#be123c", "#059669", "#7c3aed",
-      "#0f766e", "#b91c1c", "#1d4ed8", "#c2410c", "#7c2d12"
+    // Standard color palette - bright, visible, and easy to differentiate
+    const standardColors = [
+      "#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6",
+      "#06B6D4", "#F97316", "#EC4899", "#84CC16", "#6366F1",
+      "#14B8A6", "#F43F5E", "#8B5CF6", "#F59E0B", "#10B981"
     ];
     
-    // High contrast palette - maximum visibility and accessibility
-    const contrastColors = [
-      "#000000", "#FF0000", "#0000FF", "#008000", "#FF8000",
-      "#800080", "#008080", "#800000", "#000080", "#808000",
-      "#FF00FF", "#00FFFF", "#A52A2A", "#2F4F4F", "#8B0000"
+    // Colorblind-friendly palette - specifically designed for accessibility
+    const colorblindColors = [
+      "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+      "#8c564b", "#e377c2", "#17becf", "#bcbd22", "#9edae5",
+      "#ff9896", "#98df8a", "#ffbb78", "#c5b0d5", "#c49c94"
     ];
     
     // Get current color palette
     function getCurrentColors() {
-      return currentViewMode === 'normal' ? normalColors : contrastColors;
+      return isColorblindMode ? colorblindColors : standardColors;
     }
 
     // Auto-detect Pennsylvania participants from CSV columns
@@ -893,11 +904,18 @@
       }
     }
 
-    function setViewMode(mode) {
-      currentViewMode = mode;
+    function toggleColorblind() {
+      const button = document.querySelector('.accessibility-btn');
       
-      document.querySelectorAll('.view-mode-btn').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
+      isColorblindMode = !isColorblindMode;
+      
+      if (isColorblindMode) {
+        button.textContent = 'Disable Colorblind Mode';
+        button.classList.add('active');
+      } else {
+        button.textContent = 'Enable Colorblind Mode';
+        button.classList.remove('active');
+      }
       
       // Update color indicators in series list
       const colorIndicators = document.querySelectorAll('.color-indicator');
@@ -1227,21 +1245,21 @@
       return {
         title: {
           text: title,
-          font: { size: 22, family: "Times New Roman, Times, serif", color: "#1a365d" },
+          font: { size: 26, family: "Times New Roman, Times, serif", color: "#1a365d" },
           x: 0.5,
           xanchor: 'center'
         },
         xaxis: { 
           title: {
             text: 'Date and Time',
-            font: { size: 16, color: "#2d3748", family: "Times New Roman, Times, serif" }
+            font: { size: 18, color: "#2d3748", family: "Times New Roman, Times, serif" }
           },
           showgrid: true,
           gridcolor: '#f0f8ff',
           gridwidth: 1,
           linecolor: '#2c5aa0',
           linewidth: 2,
-          tickfont: { size: 13, color: "#4a5568", family: "Times New Roman, Times, serif" },
+          tickfont: { size: 15, color: "#4a5568", family: "Times New Roman, Times, serif" },
           showspikes: true,
           spikemode: 'across',
           spikesnap: 'cursor',
@@ -1252,7 +1270,7 @@
         yaxis: { 
           title: {
             text: 'Particle Count (per 0.01 ft³)',
-            font: { size: 16, color: "#2d3748", family: "Times New Roman, Times, serif" }
+            font: { size: 18, color: "#2d3748", family: "Times New Roman, Times, serif" }
           },
           type: currentScale,
           showgrid: true,
@@ -1260,7 +1278,7 @@
           gridwidth: 1,
           linecolor: '#2c5aa0',
           linewidth: 2,
-          tickfont: { size: 13, color: "#4a5568", family: "Times New Roman, Times, serif" }
+          tickfont: { size: 15, color: "#4a5568", family: "Times New Roman, Times, serif" }
         },
         margin: { l: 90, r: 50, t: 80, b: 70 },
         legend: {
@@ -1272,7 +1290,7 @@
           bgcolor: 'rgba(240, 248, 255, 0.95)',
           bordercolor: '#2c5aa0',
           borderwidth: 1,
-          font: { size: 12, color: "#2d3748", family: "Times New Roman, Times, serif" },
+          font: { size: 14, color: "#2d3748", family: "Times New Roman, Times, serif" },
           itemclick: 'toggle',
           itemdoubleclick: 'toggleothers'
         },
@@ -1304,7 +1322,6 @@
       const columns = Object.keys(data[0]);
       const timeColumn = columns[0];
       const colors = getCurrentColors();
-      const isContrast = currentViewMode === 'contrast';
       
       const sampledData = samplingRate > 1 ? 
         data.filter((_, index) => index % samplingRate === 0) : 
@@ -1324,7 +1341,7 @@
               return isNaN(val) ? null : val;
             }),
             line: { 
-              width: isContrast ? 3 : 2,
+              width: 2.5,
               color: colors[seriesIndex % colors.length]
             },
             hovertemplate: `<b>${prefix}${series}</b><br>%{x}<br>%{y:.2f} particles<extra></extra>`,
