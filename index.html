@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ROCIS LCMP – Low Cost Monitoring Project</title>
+  <title>ROCIS</title>
   <style>
     * {
       margin: 0;
@@ -15,7 +15,8 @@
       font-family: "Times New Roman", Times, serif;
       background: #fefefe;
       color: #2d3748;
-      line-height: 1.6;
+      line-height: 1.7;
+      font-size: 16px;
     }
     
     .nav {
@@ -51,15 +52,21 @@
     .nav-links a {
       color: #4a5568;
       text-decoration: none;
-      font-weight: 600;
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      transition: all 0.2s ease;
+      font-weight: 700;
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      font-size: 1.2rem;
+      background: linear-gradient(135deg, #f8f9fa, #e8f4f8);
+      border: 2px solid #e2e8f0;
+      box-shadow: 0 4px 12px rgba(43, 108, 176, 0.15);
     }
     
     .nav-links a:hover {
-      background: #e6f3ff;
+      background: linear-gradient(135deg, #e6f3ff, #d1e7ff);
       color: #2b6cb0;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(43, 108, 176, 0.25);
     }
     
     .container {
@@ -71,12 +78,12 @@
     .hero {
       background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
       backdrop-filter: blur(10px);
-      padding: 3.5rem 3rem;
-      border-radius: 12px;
-      margin-bottom: 2.5rem;
+      padding: 4rem 3.5rem;
+      border-radius: 16px;
+      margin-bottom: 3rem;
       text-align: center;
       border: 1px solid rgba(0, 0, 0, 0.06);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
       position: relative;
     }
     
@@ -92,256 +99,152 @@
     }
     
     .hero h1 {
-      margin: 0 0 1rem;
-      font-size: 2.8rem;
-      font-weight: 400;
+      margin: 0 0 1.5rem;
+      font-size: 3.2rem;
+      font-weight: 500;
       background: linear-gradient(135deg, #1a365d, #2c5aa0);
       background-clip: text;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      letter-spacing: 0.01em;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      letter-spacing: -0.02em;
+      text-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     }
     
     .hero p {
-      margin: 0;
-      font-size: 1.2rem;
+      margin: 0 0 2.5rem;
+      font-size: 1.4rem;
       color: #4a5568;
       font-weight: 400;
-      font-style: italic;
+      line-height: 1.8;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
-    .main-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-      gap: 2rem;
-      margin: 3rem 0;
-    }
-
-    .card {
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 2rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
-      position: relative;
-    }
-
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      border-radius: 12px 12px 0 0;
-    }
-
-    .card.explorer::before {
-      background: linear-gradient(90deg, #1a365d, #2c5aa0);
-    }
-
-    .card.cohorts::before {
-      background: linear-gradient(90deg, #059669, #38a169);
-    }
-
-    .card.about::before {
-      background: linear-gradient(90deg, #7c3aed, #a855f7);
-    }
-
-    .card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-    }
-
-    .card-icon {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-      display: block;
-    }
-
-    .card h3 {
-      margin: 0 0 1rem;
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: #2d3748;
-    }
-
-    .card p {
-      margin: 0 0 1.5rem;
-      color: #4a5568;
-      line-height: 1.6;
-    }
-
-    .button {
-      background: #2b6cb0;
+    .learn-more-btn {
+      background: linear-gradient(135deg, #2b6cb0, #2c5aa0);
       color: white;
-      padding: 0.8rem 1.5rem;
+      padding: 1.2rem 2.5rem;
       border: none;
-      border-radius: 6px;
-      font-size: 0.9rem;
+      border-radius: 12px;
+      font-size: 1.2rem;
       font-weight: 600;
       cursor: pointer;
       text-decoration: none;
       display: inline-block;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
       font-family: "Times New Roman", Times, serif;
-    }
-
-    .button:hover {
-      background: #2c5aa0;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(43, 108, 176, 0.3);
-    }
-
-    .button.secondary {
-      background: #38a169;
-    }
-
-    .button.secondary:hover {
-      background: #2f855a;
-    }
-
-    .button.tertiary {
-      background: #7c3aed;
-    }
-
-    .button.tertiary:hover {
-      background: #6d28d9;
-    }
-
-    .features-section {
-      margin: 4rem 0;
-    }
-
-    .features-title {
-      text-align: center;
-      font-size: 2.2rem;
-      font-weight: 400;
-      color: #1a365d;
-      margin-bottom: 3rem;
-    }
-
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 2rem;
-    }
-
-    .feature-item {
-      text-align: center;
-      padding: 2rem 1rem;
-    }
-
-    .feature-icon {
-      font-size: 3rem;
-      margin-bottom: 1rem;
-      display: block;
-    }
-
-    .feature-item h4 {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: #2d3748;
-      margin-bottom: 0.5rem;
-    }
-
-    .feature-item p {
-      color: #4a5568;
-      font-size: 0.9rem;
-      margin: 0;
-    }
-
-    .cta-section {
-      background: linear-gradient(135deg, rgba(26, 54, 93, 0.95), rgba(44, 90, 160, 0.9));
-      backdrop-filter: blur(10px);
-      color: white;
-      border-radius: 12px;
-      padding: 3rem;
-      text-align: center;
-      margin: 3rem 0;
+      box-shadow: 0 6px 20px rgba(43, 108, 176, 0.4);
       position: relative;
+      overflow: hidden;
     }
 
-    .cta-section::before {
+    .learn-more-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.6s;
+    }
+
+    .learn-more-btn:hover::before {
+      left: 100%;
+    }
+
+    .learn-more-btn:hover {
+      background: linear-gradient(135deg, #2c5aa0, #1a365d);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(43, 108, 176, 0.5);
+    }
+
+    .explorer-info-section {
+      background: white;
+      border-radius: 16px;
+      padding: 3.5rem;
+      margin: 3.5rem 0;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      position: relative;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .explorer-info-section:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+    }
+
+    .explorer-info-section::before {
       content: '';
       position: absolute;
       top: 0;
       left: 0;
       right: 0;
       height: 3px;
-      background: linear-gradient(90deg, #ffffff, rgba(255, 255, 255, 0.6), #ffffff);
+      background: linear-gradient(90deg, #1a365d, #2c5aa0, #4a90a4);
       border-radius: 12px 12px 0 0;
     }
 
-    .cta-section h2 {
-      margin: 0 0 1rem;
-      font-size: 2.2rem;
-      font-weight: 400;
-    }
-
-    .cta-section p {
-      margin: 0 0 2rem;
-      font-size: 1.1rem;
-      opacity: 0.9;
-    }
-
-    .cta-button {
-      background: white;
-      color: #1a365d;
-      padding: 1rem 2rem;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 1.1rem;
-      transition: all 0.2s ease;
-      margin: 0.5rem;
-      display: inline-block;
-    }
-
-    .cta-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
-    }
-
-    .stats-section {
-      background: #f8f9fa;
-      border-radius: 12px;
-      padding: 3rem 2rem;
-      margin: 3rem 0;
-      text-align: center;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 2rem;
-      margin-top: 2rem;
-    }
-
-    .stat-item {
-      padding: 1rem;
-    }
-
-    .stat-number {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: #1a365d;
-      display: block;
-    }
-
-    .stat-label {
-      font-size: 1rem;
-      color: #4a5568;
-      margin-top: 0.5rem;
+    .explorer-info-section h2 {
+      margin: 0 0 2.5rem;
+      font-size: 2.6rem;
       font-weight: 500;
+      color: #1a365d;
+      text-align: center;
+      letter-spacing: -0.01em;
     }
 
-    @media (max-width: 1200px) {
-      .main-cards {
-        grid-template-columns: 1fr;
-      }
+    .explorer-info-section p {
+      margin: 0 0 2rem;
+      font-size: 1.2rem;
+      color: #4a5568;
+      line-height: 1.8;
+    }
+
+    .explorer-info-section ol {
+      margin: 2rem 0;
+      padding-left: 2.5rem;
+      color: #4a5568;
+    }
+
+    .explorer-info-section li {
+      margin: 1.5rem 0;
+      line-height: 1.8;
+      font-size: 1.1rem;
+    }
+
+    .explorer-info-section ul {
+      margin: 1.5rem 0;
+      padding-left: 2.5rem;
+      color: #4a5568;
+    }
+
+    .explorer-info-section ul li {
+      margin: 0.8rem 0;
+      line-height: 1.7;
+      font-size: 1.05rem;
+    }
+
+    .note-section {
+      background: linear-gradient(135deg, #f8f9fa, #e8f4f8);
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 2.5rem 0;
+      border-left: 5px solid #2b6cb0;
+      box-shadow: 0 4px 12px rgba(43, 108, 176, 0.1);
+    }
+
+    .note-section h4 {
+      margin: 0 0 1.2rem;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #1a365d;
+    }
+
+    .note-section ul li {
+      font-size: 1.1rem;
     }
 
     @media (max-width: 768px) {
@@ -369,21 +272,17 @@
         font-size: 2rem;
       }
       
-      .main-cards {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-      }
-      
-      .card {
-        padding: 1.5rem;
-      }
-      
-      .cta-section {
+      .explorer-info-section {
         padding: 2rem 1.5rem;
       }
       
-      .cta-section h2 {
+      .explorer-info-section h2 {
         font-size: 1.8rem;
+      }
+
+      .explorer-info-section ol,
+      .explorer-info-section ul {
+        padding-left: 1.5rem;
       }
     }
   </style>
@@ -391,112 +290,55 @@
 <body>
   <nav class="nav">
     <div class="nav-content">
-      <a class="brand" href="./">ROCIS LCMP</a>
+      <a class="brand" href="./">ROCIS</a>
       <div class="nav-links">
-        <a href="./explorer.html">Data Explorer</a>
-        <a href="./cohorts.html">Cohorts</a>
-        <a href="./about.html">About</a>
+        <a href="./explorer.html">Click Here - Outdoor Data Explorer</a>
       </div>
     </div>
   </nav>
 
   <div class="container">
     <div class="hero">
-      <h1>ROCIS Low Cost Monitoring Project</h1>
-      <p>Advanced visualization and analysis tools for particle monitoring data from the Reducing Outdoor Contaminants in Indoor Spaces project</p>
+      <h1>ROCIS</h1>
+      <p>ROCIS (Reducing Outdoor Contaminants in Indoor Spaces) is dedicated to monitoring and improving indoor air quality in the homes and workplaces where people spend their time.</p>
+      <a href="http://rocis.org/rocis-low-cost-monitoring-project" class="learn-more-btn" target="_blank">Learn More</a>
     </div>
 
-    <div class="main-cards">
-      <div class="card explorer">
-        <span class="card-icon">📊</span>
-        <h3>Advanced Data Explorer</h3>
-        <p>Professional-grade visualization tool with time range controls, data smoothing, series selection, and multiple chart types. Perfect for detailed analysis of your monitoring data with enhanced clarity and automatic Southwest Pennsylvania filtering.</p>
-        <a href="./explorer.html" class="button">Open Data Explorer</a>
-      </div>
-
-      <div class="card cohorts">
-        <span class="card-icon">📁</span>
-        <h3>Browse Cohorts</h3>
-        <p>View all available cohort datasets organized by particle size categories. Quick access to download CSV files or jump directly to visualization with support for both large particles and total particle monitoring.</p>
-        <a href="./cohorts.html" class="button secondary">Browse Cohorts</a>
-      </div>
-
-      <div class="card about">
-        <span class="card-icon">ℹ️</span>
-        <h3>About ROCIS</h3>
-        <p>Learn more about the Low Cost Monitoring Project, our research goals, and how particle monitoring helps improve indoor air quality. Understand our methodology and data collection protocols.</p>
-        <a href="./about.html" class="button tertiary">Learn More</a>
-      </div>
-    </div>
-
-    <div class="stats-section">
-      <h2 class="features-title">Project Overview</h2>
-      <div class="stats-grid">
-        <div class="stat-item">
-          <span class="stat-number">5</span>
-          <div class="stat-label">Active Cohorts</div>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">100+</span>
-          <div class="stat-label">Monitoring Locations</div>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">2</span>
-          <div class="stat-label">Particle Types</div>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">24/7</span>
-          <div class="stat-label">Data Collection</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="features-section">
-      <h2 class="features-title">Why Use Our Data Explorer?</h2>
-      <div class="features-grid">
-        <div class="feature-item">
-          <span class="feature-icon">📈</span>
-          <h4>Advanced Analytics</h4>
-          <p>Time range selection, data smoothing, and statistical summaries</p>
-        </div>
+    <div class="explorer-info-section">
+      <h2>How to Use the Outdoor Data Explorer</h2>
+      
+      <p>The Outdoor Data Explorer provides advanced visualization tools for analyzing particle monitoring data from the ROCIS project. Follow these steps to explore your data:</p>
+      
+      <ol>
+        <li><strong>Select a Cohort:</strong> Use the dropdown menu to choose from the available cohorts.</li>
         
-        <div class="feature-item">
-          <span class="feature-icon">⚙️</span>
-          <h4>Interactive Controls</h4>
-          <p>Real-time filtering, series selection, and chart customization</p>
-        </div>
+        <li><strong>Choose Particle Type:</strong> Select between "Total Particles" or "Large Particles" using the dropdown to focus on the specific particle measurements you want to analyze.</li>
         
-        <div class="feature-item">
-          <span class="feature-icon">📱</span>
-          <h4>Responsive Design</h4>
-          <p>Works perfectly on desktop, tablet, and mobile devices</p>
-        </div>
+        <li><strong>Apply Pennsylvania Filter:</strong> Check the "Pennsylvania Only" option to filter data specifically for participants outside Pennsylvania.</li>
         
-        <div class="feature-item">
-          <span class="feature-icon">💾</span>
-          <h4>Export Ready</h4>
-          <p>Download charts as images or access raw CSV data</p>
-        </div>
+        <li><strong>Load Your Data:</strong> Click the "Load Dataset" button to generate the interactive visualization with your selected parameters.</li>
         
-        <div class="feature-item">
-          <span class="feature-icon">🔍</span>
-          <h4>Automatic Detection</h4>
-          <p>Smart filtering for Southwest Pennsylvania participants</p>
-        </div>
+        <li><strong>Explore the Interactive Chart:</strong>
+          <ul>
+            <li><strong>Hover for Details:</strong> Move your mouse over data points to see specific values and timestamps</li>
+            <li><strong>Toggle Scale:</strong> Switch between linear and logarithmic scales using the buttons below the chart</li>
+            <li><strong>Zoom and Pan:</strong> Click and drag to zoom into specific areas of the chart. Use mouse wheel to zoom in/out. Hold shift and drag to pan across different time periods</li>
+            <li><strong>Legend Control:</strong> Click on legend items to show/hide specific data series. This allows you to focus on particular sensors or data streams</li>
+          </ul>
+        </li>
         
-        <div class="feature-item">
-          <span class="feature-icon">⚡</span>
-          <h4>High Performance</h4>
-          <p>Fast visualization of large datasets with sampling controls</p>
-        </div>
+        <li><strong>Compare Data (Optional):</strong> Use the "Compare Large vs Total" mode to view side-by-side charts comparing both particle types for the same cohort.</li>
+      </ol>
+      
+      <div class="note-section">
+        <h4>Tips for Best Results:</h4>
+        <ul>
+          <li>Start with a specific cohort to focus your analysis</li>
+          <li>Use the Pennsylvania filter if you're studying participants outside Pennsylvania</li>
+          <li>Try both linear and log scales to better understand data patterns</li>
+          <li>The comparison mode is particularly useful for understanding differences between particle types</li>
+        </ul>
       </div>
-    </div>
-
-    <div class="cta-section">
-      <h2>Start Exploring Your Data</h2>
-      <p>Access powerful visualization tools and comprehensive datasets to advance your indoor air quality research</p>
-      <a href="./explorer.html" class="cta-button">Launch Data Explorer</a>
-      <a href="./cohorts.html" class="cta-button">View All Cohorts</a>
     </div>
   </div>
 </body>
