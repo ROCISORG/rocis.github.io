@@ -19,7 +19,7 @@
       min-height: 100vh;
       color: #2d3748;
       line-height: 1.6;
-      font-size: 18px;
+      font-size: 20px;
     }
     
     .nav {
@@ -42,7 +42,7 @@
     
     .brand {
       font-weight: 800;
-      font-size: 1.8rem;
+      font-size: 2.2rem;
       color: #2b6cb0;
       text-decoration: none;
     }
@@ -59,6 +59,7 @@
       padding: 0.75rem 1.5rem;
       border-radius: 8px;
       transition: all 0.2s ease;
+      font-size: 1.2rem;
     }
     
     .nav-links a:hover {
@@ -97,7 +98,7 @@
     
     .hero h1 {
       margin: 0 0 1rem;
-      font-size: 3.5rem;
+      font-size: 4rem;
       font-weight: 400;
       background: linear-gradient(135deg, #1a365d, #2c5aa0);
       background-clip: text;
@@ -109,7 +110,7 @@
     
     .hero p {
       margin: 0;
-      font-size: 1.5rem;
+      font-size: 1.8rem;
       color: #4a5568;
       font-weight: 400;
       font-style: italic;
@@ -130,7 +131,7 @@
       border-radius: 8px;
       cursor: pointer;
       font-weight: 600;
-      font-size: 1.1rem;
+      font-size: 1.3rem;
       color: #4a5568;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       font-family: "Times New Roman", Times, serif;
@@ -192,7 +193,7 @@
     
     .cohort-panel h3 {
       margin: 0 0 1.5rem;
-      font-size: 1.6rem;
+      font-size: 1.8rem;
       font-weight: 700;
       color: #2d3748;
       text-align: center;
@@ -211,7 +212,7 @@
       padding: 1rem;
       border: 2px solid #e2e8f0;
       border-radius: 8px;
-      font-size: 1rem;
+      font-size: 1.2rem;
       font-weight: 500;
       background: white;
       cursor: pointer;
@@ -270,18 +271,18 @@
     
     .control-panel h4 {
       margin: 0 0 1rem;
-      font-size: 1.1rem;
+      font-size: 1.3rem;
       font-weight: 700;
       color: #2d3748;
     }
     
-    .scale-toggle, .zoom-controls, .color-mode-toggle, .graph-view-toggle {
+    .scale-toggle, .zoom-controls, .view-mode-toggle {
       display: flex;
       gap: 0.5rem;
       margin: 1rem 0;
     }
     
-    .scale-btn, .zoom-btn, .color-btn, .graph-view-btn {
+    .scale-btn, .zoom-btn, .view-mode-btn {
       flex: 1;
       padding: 0.8rem;
       border: 2px solid #e2e8f0;
@@ -289,18 +290,18 @@
       border-radius: 6px;
       cursor: pointer;
       font-weight: 600;
-      font-size: 1rem;
+      font-size: 1.2rem;
       transition: all 0.2s ease;
       color: #4a5568;
     }
     
-    .scale-btn.active, .zoom-btn.active, .color-btn.active, .graph-view-btn.active {
+    .scale-btn.active, .zoom-btn.active, .view-mode-btn.active {
       background: #2b6cb0;
       color: white;
       border-color: #2b6cb0;
     }
     
-    .scale-btn:hover:not(.active), .zoom-btn:hover:not(.active), .color-btn:hover:not(.active), .graph-view-btn:hover:not(.active) {
+    .scale-btn:hover:not(.active), .zoom-btn:hover:not(.active), .view-mode-btn:hover:not(.active) {
       background: #e6f3ff;
       color: #2b6cb0;
       border-color: #2b6cb0;
@@ -309,10 +310,10 @@
     .button {
       background: #2b6cb0;
       color: white;
-      padding: 0.8rem 1.2rem;
+      padding: 1rem 1.5rem;
       border: none;
       border-radius: 6px;
-      font-size: 0.9rem;
+      font-size: 1.1rem;
       font-weight: 600;
       cursor: pointer;
       margin: 0.3rem 0;
@@ -637,23 +638,16 @@
           <button class="button" id="loadBtn" onclick="loadData()">Load Dataset</button>
           <button class="button secondary" onclick="downloadData()">Download CSV</button>
           
-          <h4>Graph View</h4>
-          <div class="graph-view-toggle">
-            <button class="graph-view-btn active" onclick="setGraphView('normal')">Enhanced View</button>
-            <button class="graph-view-btn" onclick="setGraphView('colorblind')">Accessibility View</button>
+          <h4>View Mode</h4>
+          <div class="view-mode-toggle">
+            <button class="view-mode-btn active" onclick="setViewMode('normal')">Normal</button>
+            <button class="view-mode-btn" onclick="setViewMode('contrast')">High Contrast</button>
           </div>
           
           <h4>Scale Type</h4>
           <div class="scale-toggle">
             <button class="scale-btn active" onclick="setScale('linear')">Linear</button>
             <button class="scale-btn" onclick="setScale('log')">Log</button>
-          </div>
-          
-          <h4>Color Mode</h4>
-          <div class="color-mode-toggle">
-            <button class="color-btn active" onclick="setColorMode('original')">Original</button>
-            <button class="color-btn" onclick="setColorMode('colorblind')">Colorblind Safe</button>
-            <button class="color-btn" onclick="setColorMode('vibrant')">High Contrast</button>
           </div>
           
           <h4>Zoom Level</h4>
@@ -717,40 +711,27 @@
     let currentData = { single: null, large: null, total: null };
     let allSeries = [];
     let currentScale = 'linear';
-    let currentColorMode = 'original';
-    let currentGraphView = 'normal'; // Enhanced view with better visuals
+    let currentViewMode = 'normal'; // normal or contrast
     let hiddenSeries = new Set();
     let selectedSeries = new Set(); // Track which series are selected
     
-    // Original color palette - vibrant colors (default)
-    const originalColors = [
-      "#e74c3c", "#3498db", "#2ecc71", "#f39c12", "#9b59b6",
-      "#1abc9c", "#34495e", "#e67e22", "#95a5a6", "#f1c40f",
-      "#8e44ad", "#16a085", "#27ae60", "#2980b9", "#c0392b"
+    // Normal color palette - great visibility on white background
+    const normalColors = [
+      "#2563eb", "#dc2626", "#16a34a", "#ca8a04", "#9333ea",
+      "#0891b2", "#ea580c", "#be123c", "#059669", "#7c3aed",
+      "#0f766e", "#b91c1c", "#1d4ed8", "#c2410c", "#7c2d12"
     ];
     
-    // Colorblind-friendly palette (Deuteranopia/Protanopia safe)
-    const colorblindColors = [
-      "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
-      "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf",
-      "#aec7e8", "#ffbb78", "#98df8a", "#ff9896", "#c5b0d5"
-    ];
-    
-    // High contrast palette for better visibility
-    const vibrantColors = [
-      "#FF0000", "#0000FF", "#00FF00", "#FF8000", "#8000FF",
-      "#00FFFF", "#FF00FF", "#808000", "#008080", "#800080",
-      "#000080", "#008000", "#800000", "#FFA500", "#A52A2A"
+    // High contrast palette - maximum visibility and accessibility
+    const contrastColors = [
+      "#000000", "#FF0000", "#0000FF", "#008000", "#FF8000",
+      "#800080", "#008080", "#800000", "#000080", "#808000",
+      "#FF00FF", "#00FFFF", "#A52A2A", "#2F4F4F", "#8B0000"
     ];
     
     // Get current color palette
     function getCurrentColors() {
-      switch(currentColorMode) {
-        case 'original': return originalColors;
-        case 'colorblind': return colorblindColors;
-        case 'vibrant': return vibrantColors;
-        default: return originalColors;
-      }
+      return currentViewMode === 'normal' ? normalColors : contrastColors;
     }
 
     // Auto-detect Pennsylvania participants from CSV columns
@@ -912,21 +893,10 @@
       }
     }
 
-    function setGraphView(view) {
-      currentGraphView = view;
+    function setViewMode(mode) {
+      currentViewMode = mode;
       
-      document.querySelectorAll('.graph-view-btn').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
-      
-      if (Object.values(currentData).some(data => data)) {
-        updateVisualization();
-      }
-    }
-
-    function setColorMode(mode) {
-      currentColorMode = mode;
-      
-      document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.view-mode-btn').forEach(btn => btn.classList.remove('active'));
       event.target.classList.add('active');
       
       // Update color indicators in series list
@@ -1254,45 +1224,43 @@
     }
 
     function createChartLayout(title) {
-      const isEnhanced = currentGraphView === 'normal';
-      
       return {
         title: {
           text: title,
-          font: { size: isEnhanced ? 22 : 20, family: "Times New Roman, Times, serif", color: "#1a365d" },
+          font: { size: 22, family: "Times New Roman, Times, serif", color: "#1a365d" },
           x: 0.5,
           xanchor: 'center'
         },
         xaxis: { 
           title: {
             text: 'Date and Time',
-            font: { size: isEnhanced ? 16 : 14, color: "#2d3748", family: "Times New Roman, Times, serif" }
+            font: { size: 16, color: "#2d3748", family: "Times New Roman, Times, serif" }
           },
           showgrid: true,
-          gridcolor: isEnhanced ? '#f0f8ff' : '#f5f5f5',
-          gridwidth: isEnhanced ? 2 : 1,
-          linecolor: isEnhanced ? '#2c5aa0' : '#d0d0d0',
-          linewidth: isEnhanced ? 2 : 1,
-          tickfont: { size: isEnhanced ? 13 : 11, color: "#4a5568", family: "Times New Roman, Times, serif" },
+          gridcolor: '#f0f8ff',
+          gridwidth: 1,
+          linecolor: '#2c5aa0',
+          linewidth: 2,
+          tickfont: { size: 13, color: "#4a5568", family: "Times New Roman, Times, serif" },
           showspikes: true,
           spikemode: 'across',
           spikesnap: 'cursor',
-          spikecolor: isEnhanced ? '#1a365d' : '#2b6cb0',
-          spikethickness: isEnhanced ? 2 : 1,
-          spikedash: isEnhanced ? 'solid' : 'dot'
+          spikecolor: '#1a365d',
+          spikethickness: 2,
+          spikedash: 'solid'
         },
         yaxis: { 
           title: {
             text: 'Particle Count (per 0.01 ft³)',
-            font: { size: isEnhanced ? 16 : 14, color: "#2d3748", family: "Times New Roman, Times, serif" }
+            font: { size: 16, color: "#2d3748", family: "Times New Roman, Times, serif" }
           },
           type: currentScale,
           showgrid: true,
-          gridcolor: isEnhanced ? '#f0f8ff' : '#f5f5f5',
-          gridwidth: isEnhanced ? 2 : 1,
-          linecolor: isEnhanced ? '#2c5aa0' : '#d0d0d0',
-          linewidth: isEnhanced ? 2 : 1,
-          tickfont: { size: isEnhanced ? 13 : 11, color: "#4a5568", family: "Times New Roman, Times, serif" }
+          gridcolor: '#f0f8ff',
+          gridwidth: 1,
+          linecolor: '#2c5aa0',
+          linewidth: 2,
+          tickfont: { size: 13, color: "#4a5568", family: "Times New Roman, Times, serif" }
         },
         margin: { l: 90, r: 50, t: 80, b: 70 },
         legend: {
@@ -1301,16 +1269,16 @@
           y: -0.15,
           xanchor: 'center',
           yanchor: 'top',
-          bgcolor: isEnhanced ? 'rgba(240, 248, 255, 0.95)' : 'rgba(255,255,255,0.9)',
-          bordercolor: isEnhanced ? '#2c5aa0' : '#e2e8f0',
-          borderwidth: isEnhanced ? 2 : 1,
-          font: { size: isEnhanced ? 12 : 10, color: "#2d3748", family: "Times New Roman, Times, serif" },
+          bgcolor: 'rgba(240, 248, 255, 0.95)',
+          bordercolor: '#2c5aa0',
+          borderwidth: 1,
+          font: { size: 12, color: "#2d3748", family: "Times New Roman, Times, serif" },
           itemclick: 'toggle',
           itemdoubleclick: 'toggleothers'
         },
         hovermode: 'x unified',
-        plot_bgcolor: isEnhanced ? '#fafcff' : 'white',
-        paper_bgcolor: isEnhanced ? '#f8fbff' : 'white',
+        plot_bgcolor: 'white',
+        paper_bgcolor: 'white',
         font: { family: "Times New Roman, Times, serif", color: "#2d3748" }
       };
     }
@@ -1336,7 +1304,7 @@
       const columns = Object.keys(data[0]);
       const timeColumn = columns[0];
       const colors = getCurrentColors();
-      const isEnhanced = currentGraphView === 'normal';
+      const isContrast = currentViewMode === 'contrast';
       
       const sampledData = samplingRate > 1 ? 
         data.filter((_, index) => index % samplingRate === 0) : 
@@ -1356,21 +1324,11 @@
               return isNaN(val) ? null : val;
             }),
             line: { 
-              width: isEnhanced ? 2 : 1.2,
-              color: colors[seriesIndex % colors.length],
-              shape: isEnhanced ? 'spline' : 'linear',
-              smoothing: isEnhanced ? 0.3 : 0
+              width: isContrast ? 3 : 2,
+              color: colors[seriesIndex % colors.length]
             },
             hovertemplate: `<b>${prefix}${series}</b><br>%{x}<br>%{y:.2f} particles<extra></extra>`,
-            connectgaps: false,
-            marker: isEnhanced ? {
-              size: 3,
-              opacity: 0.8,
-              line: {
-                width: 1,
-                color: colors[seriesIndex % colors.length]
-              }
-            } : undefined
+            connectgaps: false
           };
         });
     }
