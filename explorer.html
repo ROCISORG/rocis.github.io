@@ -1214,23 +1214,39 @@
 
         Plotly.react('chart', traces, layout, config);
         
-        // Add hover highlighting
+        // Add hover highlighting effect
         const chartDiv = document.getElementById('chart');
-        chartDiv.on('plotly_hover', function(data) {
-          const traceIndex = data.points[0].curveNumber;
-          const update = {
-            'line.width': traces.map((_, i) => i === traceIndex ? 4 : 1),
-            'opacity': traces.map((_, i) => i === traceIndex ? 1 : 0.2)
-          };
-          Plotly.restyle('chart', update);
+        
+        chartDiv.on('plotly_hover', function(eventData) {
+          const curveNumber = eventData.points[0].curveNumber;
+          
+          // Update all traces - highlight hovered, dim others
+          const updates = traces.map((trace, i) => {
+            if (i === curveNumber) {
+              return {
+                line: { width: 5, color: trace.line.color },
+                opacity: 1
+              };
+            } else {
+              return {
+                line: { width: 1.5, color: trace.line.color },
+                opacity: 0.15
+              };
+            }
+          });
+          
+          Plotly.restyle('chart', {
+            'line.width': updates.map(u => u.line.width),
+            'opacity': updates.map(u => u.opacity)
+          });
         });
         
         chartDiv.on('plotly_unhover', function() {
-          const update = {
+          // Reset all traces to normal
+          Plotly.restyle('chart', {
             'line.width': traces.map(() => 2.5),
             'opacity': traces.map(() => 1)
-          };
-          Plotly.restyle('chart', update);
+          });
         });
         
       } else if (currentView === 'compare') {
@@ -1250,21 +1266,21 @@
           
           // Add hover highlighting for Large chart
           const chartLarge = document.getElementById('chartLarge');
-          chartLarge.on('plotly_hover', function(data) {
-            const traceIndex = data.points[0].curveNumber;
-            const update = {
-              'line.width': largeTraces.map((_, i) => i === traceIndex ? 4 : 1),
-              'opacity': largeTraces.map((_, i) => i === traceIndex ? 1 : 0.2)
-            };
-            Plotly.restyle('chartLarge', update);
+          
+          chartLarge.on('plotly_hover', function(eventData) {
+            const curveNumber = eventData.points[0].curveNumber;
+            
+            Plotly.restyle('chartLarge', {
+              'line.width': largeTraces.map((_, i) => i === curveNumber ? 5 : 1.5),
+              'opacity': largeTraces.map((_, i) => i === curveNumber ? 1 : 0.15)
+            });
           });
           
           chartLarge.on('plotly_unhover', function() {
-            const update = {
+            Plotly.restyle('chartLarge', {
               'line.width': largeTraces.map(() => 2.5),
               'opacity': largeTraces.map(() => 1)
-            };
-            Plotly.restyle('chartLarge', update);
+            });
           });
         }
         
@@ -1278,21 +1294,21 @@
           
           // Add hover highlighting for Total chart
           const chartTotal = document.getElementById('chartTotal');
-          chartTotal.on('plotly_hover', function(data) {
-            const traceIndex = data.points[0].curveNumber;
-            const update = {
-              'line.width': totalTraces.map((_, i) => i === traceIndex ? 4 : 1),
-              'opacity': totalTraces.map((_, i) => i === traceIndex ? 1 : 0.2)
-            };
-            Plotly.restyle('chartTotal', update);
+          
+          chartTotal.on('plotly_hover', function(eventData) {
+            const curveNumber = eventData.points[0].curveNumber;
+            
+            Plotly.restyle('chartTotal', {
+              'line.width': totalTraces.map((_, i) => i === curveNumber ? 5 : 1.5),
+              'opacity': totalTraces.map((_, i) => i === curveNumber ? 1 : 0.15)
+            });
           });
           
           chartTotal.on('plotly_unhover', function() {
-            const update = {
+            Plotly.restyle('chartTotal', {
               'line.width': totalTraces.map(() => 2.5),
               'opacity': totalTraces.map(() => 1)
-            };
-            Plotly.restyle('chartTotal', update);
+            });
           });
         }
       }
