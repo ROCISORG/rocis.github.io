@@ -726,11 +726,11 @@
     let hiddenSeries = new Set();
     let selectedSeries = new Set(); // Track which series are selected
     
-    // Default: High contrast bright colors - visually appealing and easy to distinguish
+    // Default: Balanced bright colors - no color overpowers others
     const defaultColors = [
-      "#FF0066", "#0066FF", "#00CC33", "#FF6600", "#9933FF",
-      "#00CCCC", "#FF3333", "#3366FF", "#66CC00", "#FF9900",
-      "#CC0099", "#0099CC", "#CC6600", "#6600CC", "#FF6699"
+      "#2563EB", "#DC2626", "#059669", "#EA580C", "#7C3AED",
+      "#0891B2", "#DB2777", "#2563EB", "#65A30D", "#C026D3",
+      "#0D9488", "#E11D48", "#4F46E5", "#CA8A04", "#16A34A"
     ];
     
     // Colorblind-friendly palette - when accessibility is enabled
@@ -1214,6 +1214,25 @@
 
         Plotly.react('chart', traces, layout, config);
         
+        // Add hover highlighting
+        const chartDiv = document.getElementById('chart');
+        chartDiv.on('plotly_hover', function(data) {
+          const traceIndex = data.points[0].curveNumber;
+          const update = {
+            'line.width': traces.map((_, i) => i === traceIndex ? 4 : 1),
+            'opacity': traces.map((_, i) => i === traceIndex ? 1 : 0.2)
+          };
+          Plotly.restyle('chart', update);
+        });
+        
+        chartDiv.on('plotly_unhover', function() {
+          const update = {
+            'line.width': traces.map(() => 2.5),
+            'opacity': traces.map(() => 1)
+          };
+          Plotly.restyle('chart', update);
+        });
+        
       } else if (currentView === 'compare') {
         // Show separate side-by-side charts
         document.getElementById('chart').style.display = 'none';
@@ -1228,6 +1247,25 @@
           const largeConfig = createChartConfig('large');
           
           Plotly.react('chartLarge', largeTraces, largeLayout, largeConfig);
+          
+          // Add hover highlighting for Large chart
+          const chartLarge = document.getElementById('chartLarge');
+          chartLarge.on('plotly_hover', function(data) {
+            const traceIndex = data.points[0].curveNumber;
+            const update = {
+              'line.width': largeTraces.map((_, i) => i === traceIndex ? 4 : 1),
+              'opacity': largeTraces.map((_, i) => i === traceIndex ? 1 : 0.2)
+            };
+            Plotly.restyle('chartLarge', update);
+          });
+          
+          chartLarge.on('plotly_unhover', function() {
+            const update = {
+              'line.width': largeTraces.map(() => 2.5),
+              'opacity': largeTraces.map(() => 1)
+            };
+            Plotly.restyle('chartLarge', update);
+          });
         }
         
         // Create Total Particles chart  
@@ -1237,6 +1275,25 @@
           const totalConfig = createChartConfig('total');
           
           Plotly.react('chartTotal', totalTraces, totalLayout, totalConfig);
+          
+          // Add hover highlighting for Total chart
+          const chartTotal = document.getElementById('chartTotal');
+          chartTotal.on('plotly_hover', function(data) {
+            const traceIndex = data.points[0].curveNumber;
+            const update = {
+              'line.width': totalTraces.map((_, i) => i === traceIndex ? 4 : 1),
+              'opacity': totalTraces.map((_, i) => i === traceIndex ? 1 : 0.2)
+            };
+            Plotly.restyle('chartTotal', update);
+          });
+          
+          chartTotal.on('plotly_unhover', function() {
+            const update = {
+              'line.width': totalTraces.map(() => 2.5),
+              'opacity': totalTraces.map(() => 1)
+            };
+            Plotly.restyle('chartTotal', update);
+          });
         }
       }
     }
@@ -1294,7 +1351,8 @@
           itemclick: 'toggle',
           itemdoubleclick: 'toggleothers'
         },
-        hovermode: 'x unified',
+        hovermode: 'closest',
+        hoverdistance: 50,
         plot_bgcolor: 'white',
         paper_bgcolor: 'white',
         font: { family: "Times New Roman, Times, serif", color: "#2d3748" }
