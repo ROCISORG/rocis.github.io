@@ -628,6 +628,7 @@
             <option value="61">Cohort 61</option>
             <option value="62">Cohort 62</option>
             <option value="63">Cohort 63</option>
+            <option value="65">Cohort 65</option>
           </select>
           <div class="pennsylvania-filter">
             <label>
@@ -722,67 +723,48 @@
     let currentData = { single: null, large: null, total: null };
     let allSeries = [];
     let currentScale = 'linear';
-    let isColorblindMode = false; // Simple toggle for colorblind accessibility
+    let isColorblindMode = false;
     let hiddenSeries = new Set();
-    let selectedSeries = new Set(); // Track which series are selected
+    let selectedSeries = new Set();
     
-    // Default: Balanced bright colors - no color overpowers others
     const defaultColors = [
       "#2563EB", "#DC2626", "#059669", "#EA580C", "#7C3AED",
       "#0891B2", "#DB2777", "#2563EB", "#65A30D", "#C026D3",
       "#0D9488", "#E11D48", "#4F46E5", "#CA8A04", "#16A34A"
     ];
     
-    // Colorblind-friendly palette - when accessibility is enabled
     const colorblindColors = [
       "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
       "#8c564b", "#e377c2", "#17becf", "#bcbd22", "#aec7e8",
       "#ffbb78", "#98df8a", "#ff9896", "#c5b0d5", "#c49c94"
     ];
     
-    // Get current color palette
     function getCurrentColors() {
       return isColorblindMode ? colorblindColors : defaultColors;
     }
 
-    // Auto-detect Pennsylvania participants from CSV columns
     let pennsylvaniaData = {};
     
-    // Known non-PA location patterns (these will be excluded from PA filter)
     const NON_PA_PATTERNS = [
-      '_ME',     // Maine
-      '_CA',     // California  
-      '_OR',     // Oregon
-      '_MN',     // Minnesota
-      '_FL',     // Florida
-      '_TX',     // Texas
-      '_NY',     // New York
-      '_WA',     // Washington
-      '_IL',     // Illinois
-      'CASJ',    // California (San Jose)
-      'ORCB',    // Oregon
-      'MEBA',    // Maine
-      'MNMP'     // Minnesota (Minneapolis)
+      '_ME', '_CA', '_OR', '_MN', '_FL', '_TX', '_NY', '_WA', '_IL',
+      'CASJ', 'ORCB', 'MEBA', 'MNMP'
     ];
     
     function detectPAParticipants(csvData, cohortId) {
       if (!csvData || csvData.length === 0) return [];
       
       const columns = Object.keys(csvData[0]);
-      const dataColumns = columns.slice(1); // Skip DateTime column
+      const dataColumns = columns.slice(1);
       
       console.log(`🔍 Detecting PA participants for ${cohortId} from columns:`, dataColumns);
       
-      // Extract location codes from column names
       const allParticipants = dataColumns
         .map(col => {
-          // Extract location code from pattern like "7645_O_MEBA_ME" -> "MEBA"
           const match = col.match(/_O_([^_]+)/);
           return match ? match[1] : null;
         })
         .filter(code => code !== null);
       
-      // Filter out non-PA locations
       const paParticipants = allParticipants.filter(participant => {
         const isNonPA = NON_PA_PATTERNS.some(pattern => 
           participant.includes(pattern.replace('_', ''))
@@ -790,7 +772,6 @@
         return !isNonPA;
       });
       
-      // Remove duplicates
       const uniquePAParticipants = [...new Set(paParticipants)];
       
       console.log(`✅ Detected PA participants for ${cohortId}:`, uniquePAParticipants);
@@ -815,15 +796,12 @@
     function switchView(view) {
       currentView = view;
       
-      // Update buttons
       document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
       event.target.classList.add('active');
       
-      // Show/hide sections
       document.getElementById('single-view').style.display = view === 'single' ? 'block' : 'none';
       document.getElementById('compare-view').style.display = view === 'compare' ? 'block' : 'none';
       
-      // Show/hide appropriate chart containers
       if (view === 'single') {
         document.getElementById('chart').style.display = 'block';
         document.getElementById('compareCharts').style.display = 'none';
@@ -832,7 +810,6 @@
         document.getElementById('compareCharts').style.display = 'block';
       }
       
-      // Reset and hide controls
       document.getElementById('mainControls').classList.remove('show');
       resetSelections();
     }
@@ -841,7 +818,7 @@
       selectedCohorts = { single: null, large: null, total: null };
       currentData = { single: null, large: null, total: null };
       allSeries = [];
-      selectedSeries.clear(); // Clear the selection tracking
+      selectedSeries.clear();
     }
 
     function updateSingleCohorts() {
@@ -851,7 +828,7 @@
       cohortSelect.innerHTML = '<option value="">Choose a cohort...</option>';
       
       if (typeSelect.value) {
-        const cohorts = ['59', '60', '61', '62', '63'];
+        const cohorts = ['59', '60', '61', '62', '63', '65'];
         cohorts.forEach(num => {
           const option = document.createElement('option');
           option.value = `${typeSelect.value}_${num}`;
@@ -917,7 +894,6 @@
         button.classList.remove('active');
       }
       
-      // Update color indicators in series list
       const colorIndicators = document.querySelectorAll('.color-indicator');
       const colors = getCurrentColors();
       colorIndicators.forEach((indicator, index) => {
@@ -934,7 +910,6 @@
       event.target.classList.add('active');
       
       if (zoomType === 'recent') {
-        // Zoom to last 7 days of data
         const layout_update = {
           'xaxis.range': [
             new Date(Date.now() - 7*24*60*60*1000),
@@ -943,7 +918,6 @@
         };
         Plotly.relayout('chart', layout_update);
       } else {
-        // Fit all data
         Plotly.relayout('chart', {
           'xaxis.autorange': true,
           'yaxis.autorange': true
@@ -961,7 +935,6 @@
           if (!selectedCohorts.single) throw new Error('No cohort selected');
           await loadCohortData('single', selectedCohorts.single);
         } else if (currentView === 'compare') {
-          // Compare view - automatically load both Large and Total for same cohort
           if (!selectedCohorts.large || !selectedCohorts.total) throw new Error('No cohort selected for comparison');
           await Promise.all([
             loadCohortData('large', selectedCohorts.large),
@@ -994,11 +967,9 @@
               Object.values(row).some(val => val !== null && val !== '')
             );
             
-            // Auto-detect and update PA participants from CSV
             const detectedParticipants = detectPAParticipants(data, cohortId);
             updatePAData(cohortId, detectedParticipants);
             
-            // Apply Pennsylvania filter if enabled
             const paFilterId = currentView === 'single' ? 'singlePaFilter' : 'comparePaFilter';
             if (document.getElementById(paFilterId)?.checked) {
               data = filterPennsylvania(data, cohortId);
@@ -1008,9 +979,8 @@
             
             currentData[key] = data;
             const columns = Object.keys(data[0]);
-            const newSeries = columns.slice(1); // All except time column
+            const newSeries = columns.slice(1);
             
-            // Merge series from all loaded datasets
             allSeries = [...new Set([...allSeries, ...newSeries])];
             
             resolve();
@@ -1020,27 +990,23 @@
       });
     }
 
-    // Updated function to use cohort-wise filtering
     function filterPennsylvania(data, cohortId) {
-      // Extract cohort number and dataset type from cohortId (e.g., "large_59" or "small_60")
       const parts = cohortId.split('_');
       const cohortNum = parts[1];
       const cohortKey = `cohort_${cohortNum}`;
       
       console.log(`Filtering PA for ${cohortId}, looking up: ${cohortKey}`);
       
-      // Get the PA locations for this specific cohort and dataset type
       const paLocations = pennsylvaniaData[cohortKey] && pennsylvaniaData[cohortKey][cohortId];
       
       if (!paLocations || paLocations.length === 0) {
         console.warn(`No PA locations found for ${cohortId}`);
-        return data; // Return unfiltered data if no PA locations specified
+        return data;
       }
       
       console.log(`PA locations for ${cohortId}:`, paLocations);
       
       return data.filter(row => {
-        // Check if any column name contains Pennsylvania location identifiers for this cohort
         const columns = Object.keys(row);
         const hasPaLocation = columns.some(col => 
           paLocations.some(location => 
@@ -1077,7 +1043,6 @@
         
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        // Preserve previous selection state, or default to first 10 if no previous state
         checkbox.checked = selectedSeries.has(series) || (selectedSeries.size === 0 && index < 10);
         checkbox.value = series;
         checkbox.onchange = (e) => {
@@ -1111,7 +1076,6 @@
         item.appendChild(visibilityBtn);
         seriesList.appendChild(item);
         
-        // Update selectedSeries set based on checkbox state
         if (checkbox.checked) {
           selectedSeries.add(series);
         }
@@ -1182,7 +1146,6 @@
       }
 
       if (currentView === 'single') {
-        // Show single chart
         document.getElementById('chart').style.display = 'block';
         document.getElementById('compareCharts').style.display = 'none';
         
@@ -1213,13 +1176,11 @@
         const config = createChartConfig('single');
 
         Plotly.react('chart', traces, layout, config).then(() => {
-          // Add hover highlighting effect after chart is rendered
           const chartDiv = document.getElementById('chart');
           
           chartDiv.on('plotly_hover', function(eventData) {
             const curveNumber = eventData.points[0].curveNumber;
             
-            // Highlight hovered line, fade others
             const widths = traces.map((_, i) => i === curveNumber ? 6 : 1);
             const opacities = traces.map((_, i) => i === curveNumber ? 1 : 0.1);
             
@@ -1230,7 +1191,6 @@
           });
           
           chartDiv.on('plotly_unhover', function() {
-            // Reset all traces to normal
             const widths = traces.map(() => 2.5);
             const opacities = traces.map(() => 1);
             
@@ -1242,13 +1202,11 @@
         });
         
       } else if (currentView === 'compare') {
-        // Show separate side-by-side charts
         document.getElementById('chart').style.display = 'none';
         document.getElementById('compareCharts').style.display = 'block';
         
         const samplingRate = getSamplingRate();
         
-        // Create Large Particles chart
         if (currentData.large) {
           const largeTraces = generateTraces(currentData.large, selectedSeries, samplingRate, '');
           const largeLayout = createChartLayout(`Large Particles - Cohort ${selectedCohorts.large?.split('_')[1] || ''} (${selectedSeries.length} series)`);
@@ -1277,7 +1235,6 @@
           });
         }
         
-        // Create Total Particles chart  
         if (currentData.total) {
           const totalTraces = generateTraces(currentData.total, selectedSeries, samplingRate, '');
           const totalLayout = createChartLayout(`Total Particles - Cohort ${selectedCohorts.total?.split('_')[1] || ''} (${selectedSeries.length} series)`);
@@ -1452,17 +1409,13 @@
       link.click();
     }
 
-    // Initialize
     document.addEventListener('DOMContentLoaded', function() {
-      // No need to load external JSON - PA detection is automatic
-      
-      // Set up filter change listeners
       ['singlePaFilter', 'comparePaFilter'].forEach(id => {
         const element = document.getElementById(id);
         if (element) {
           element.addEventListener('change', () => {
             if (Object.values(currentData).some(data => data)) {
-              loadData(); // Reload with new filter
+              loadData();
             }
           });
         }
