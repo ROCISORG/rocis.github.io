@@ -622,6 +622,21 @@
           <h3>Select Cohort for Large vs Total Comparison</h3>
           <select class="cohort-dropdown" id="compareCohortSelect" onchange="selectCompareCohort()">
             <option value="">Choose a cohort...</option>
+            <option value="44">Cohort 44</option>
+            <option value="45">Cohort 45</option>
+            <option value="46">Cohort 46</option>
+            <option value="47">Cohort 47</option>
+            <option value="48">Cohort 48</option>
+            <option value="49">Cohort 49</option>
+            <option value="50">Cohort 50</option>
+            <option value="51">Cohort 51</option>
+            <option value="52">Cohort 52</option>
+            <option value="53">Cohort 53</option>
+            <option value="54">Cohort 54</option>
+            <option value="55">Cohort 55</option>
+            <option value="56">Cohort 56</option>
+            <option value="57">Cohort 57</option>
+            <option value="58">Cohort 58</option>
             <option value="59">Cohort 59</option>
             <option value="60">Cohort 60</option>
             <option value="61">Cohort 61</option>
@@ -827,7 +842,7 @@
       cohortSelect.innerHTML = '<option value="">Choose a cohort...</option>';
       
       if (typeSelect.value) {
-        const cohorts = ['59', '60', '61', '62', '63', '65'];
+        const cohorts = ['44', '45', '46', '47', '48', '49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59', '60', '61', '62', '63', '65'];
         cohorts.forEach(num => {
           const option = document.createElement('option');
           option.value = `${typeSelect.value}_${num}`;
