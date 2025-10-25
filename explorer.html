@@ -1226,8 +1226,8 @@
             
             chartLarge.on('plotly_hover', function(eventData) {
               const curveNumber = eventData.points[0].curveNumber;
-              const widths = largeTraces.map((_, i) => i === curveNumber ? 6 : 1);
-              const opacities = largeTraces.map((_, i) => i === curveNumber ? 1 : 0.1);
+              const widths = largeTraces.map((_, i) => i === curveNumber ? 8 : 1);
+              const opacities = largeTraces.map((_, i) => i === curveNumber ? 1 : 0.05);
               
               Plotly.restyle('chartLarge', {
                 'line.width': [widths],
@@ -1254,8 +1254,8 @@
             
             chartTotal.on('plotly_hover', function(eventData) {
               const curveNumber = eventData.points[0].curveNumber;
-              const widths = totalTraces.map((_, i) => i === curveNumber ? 6 : 1);
-              const opacities = totalTraces.map((_, i) => i === curveNumber ? 1 : 0.1);
+              const widths = totalTraces.map((_, i) => i === curveNumber ? 8 : 1);
+              const opacities = totalTraces.map((_, i) => i === curveNumber ? 1 : 0.05);
               
               Plotly.restyle('chartTotal', {
                 'line.width': [widths],
