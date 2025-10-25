@@ -305,41 +305,44 @@
     </div>
 
     <div class="explorer-info-section">
-      <h2>How to Use the Outdoor Data Explorer</h2>
-      
-      <p>The Outdoor Data Explorer provides advanced visualization tools for analyzing particle monitoring data from the ROCIS project. Follow these steps to explore your data:</p>
-      
-      <ol>
-        <li><strong>Select a Cohort:</strong> Use the dropdown menu to choose from the available cohorts.</li>
-        
-        <li><strong>Choose Particle Type:</strong> Select between "Total Particles" or "Large Particles" using the dropdown to focus on the specific particle measurements you want to analyze.</li>
-        
-        <li><strong>Apply Pennsylvania Filter:</strong> Check the "Pennsylvania Only" option to filter data specifically for participants outside Pennsylvania.</li>
-        
-        <li><strong>Load Your Data:</strong> Click the "Load Dataset" button to generate the interactive visualization with your selected parameters.</li>
-        
-        <li><strong>Explore the Interactive Chart:</strong>
-          <ul>
-            <li><strong>Hover for Details:</strong> Move your mouse over data points to see specific values and timestamps</li>
-            <li><strong>Toggle Scale:</strong> Switch between linear and logarithmic scales using the buttons below the chart</li>
-            <li><strong>Zoom and Pan:</strong> Click and drag to zoom into specific areas of the chart. Use mouse wheel to zoom in/out. Hold shift and drag to pan across different time periods</li>
-            <li><strong>Legend Control:</strong> Click on legend items to show/hide specific data series. This allows you to focus on particular sensors or data streams</li>
-          </ul>
-        </li>
-        
-        <li><strong>Compare Data (Optional):</strong> Use the "Compare Large vs Total" mode to view side-by-side charts comparing both particle types for the same cohort.</li>
-      </ol>
-      
-      <div class="note-section">
-        <h4>Tips for Best Results:</h4>
-        <ul>
-          <li>Start with a specific cohort to focus your analysis</li>
-          <li>Use the Pennsylvania filter if you're studying participants outside Pennsylvania</li>
-          <li>Try both linear and log scales to better understand data patterns</li>
-          <li>The comparison mode is particularly useful for understanding differences between particle types</li>
-        </ul>
-      </div>
-    </div>
+  <h2>How to Use the Outdoor Data Explorer</h2>
+  
+  <p>The Outdoor Data Explorer provides advanced visualization tools for analyzing particle monitoring data from the ROCIS project. Follow these steps to explore your data:</p>
+  
+  <ol>
+    <li><strong>Select a Cohort:</strong> Use the dropdown menu to choose from the available cohorts.</li>
+    
+    <li><strong>Choose Particle Type:</strong> Select between "Total Particles" or "Large Particles" using the dropdown to focus on the specific particle measurements you want to analyze.</li>
+    
+    <li><strong>Apply Pennsylvania Filter:</strong> Check the "Pennsylvania Only" option to filter data specifically for participants outside Pennsylvania.</li>
+    
+    <li><strong>Load Your Data:</strong> Click the "Load Dataset" button to generate the interactive visualization with your selected parameters.</li>
+    
+    <li><strong>Explore the Interactive Chart:</strong>
+      <ul>
+        <li><strong>Hover for Details:</strong> Move your mouse over data points to see specific values and timestamps</li>
+        <li><strong>Toggle Scale:</strong> Switch between linear and logarithmic scales using the buttons below the chart</li>
+        <li><strong>Zoom and Pan:</strong> Click and drag to zoom into specific areas of the chart. Use mouse wheel to zoom in/out. Hold shift and drag to pan across different time periods. <strong>Double-click on the white space inside the graph to reset to original view</strong></li>
+        <li><strong>Legend Control:</strong> Click on legend items to show/hide specific data series. This allows you to focus on particular sensors or data streams</li>
+        <li><strong>Data Sampling:</strong> Choose between "All points", "Every 5th", or "Every 10th" to control how many data points are displayed. Large datasets with all points may load slowly, so using "Every 5th" or "Every 10th" speeds up visualization while maintaining the overall pattern. This only affects display speed - your complete data is always preserved and available for download.</li>
+      </ul>
+    </li>
+    
+    <li><strong>Compare Data (Optional):</strong> Use the "Compare Large vs Total" mode to view side-by-side charts comparing both particle types for the same cohort.</li>
+  </ol>
+  
+  <div class="note-section">
+    <h4>Tips for Best Results:</h4>
+    <ul>
+      <li>Start with a specific cohort to focus your analysis</li>
+      <li>Use the Pennsylvania filter if you're studying participants outside Pennsylvania</li>
+      <li>Try both linear and log scales to better understand data patterns</li>
+      <li>The comparison mode is particularly useful for understanding differences between particle types</li>
+      <li>Use data sampling ("Every 5th" or "Every 10th") when working with large datasets for faster performance</li>
+    </ul>
+  </div>
+</div>
+
   </div>
 </body>
 </html>
