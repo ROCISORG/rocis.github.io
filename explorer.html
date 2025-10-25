@@ -588,9 +588,9 @@
       <p>Professional visualization tools with advanced comparison features</p>
     </div>
 
-    <div class="view-toggle">
-      <button class="view-btn active" onclick="switchView('single')">Single Dataset</button>
+   <div class="view-toggle">
       <button class="view-btn" onclick="switchView('compare')">Compare Large vs Total (Same Cohort)</button>
+      <button class="view-btn active" onclick="switchView('single')">Single Dataset</button>
     </div>
 
     <!-- Single View -->
@@ -673,16 +673,10 @@
           
           <h4>Scale Type</h4>
           <div class="scale-toggle">
-            <button class="scale-btn active" onclick="setScale('linear')">Linear</button>
             <button class="scale-btn" onclick="setScale('log')">Log</button>
+            <button class="scale-btn active" onclick="setScale('linear')">Linear</button>
           </div>
-          
-          <h4>Zoom Level</h4>
-          <div class="zoom-controls">
-            <button class="zoom-btn" onclick="setZoom('fit')">Fit All</button>
-            <button class="zoom-btn" onclick="setZoom('recent')">Recent</button>
-          </div>
-          
+      
           <div style="margin-top: 1rem; padding: 1rem; background: white; border-radius: 6px; border: 1px solid #e2e8f0;">
             <strong style="color: #2d3748; font-size: 0.9rem;">Data Sampling:</strong><br>
             <label style="margin: 0.4rem 0; display: block; font-weight: 500; color: #4a5568; font-size: 0.85rem;">
