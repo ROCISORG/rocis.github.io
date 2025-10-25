@@ -1288,8 +1288,10 @@
             font: { size: 18, color: "#2d3748", family: "Times New Roman, Times, serif" }
           },
           showgrid: true,
-          gridcolor: '#f0f8ff',
-          gridwidth: 1,
+          gridcolor: '#cccccc',        // ← CHANGED
+          gridwidth: 2,                // ← CHANGED
+          dtick: 86400000,             // ← ADD THIS
+          tick0: '2020-01-01',         // ← ADD THIS
           linecolor: '#2c5aa0',
           linewidth: 2,
           tickfont: { size: 15, color: "#4a5568", family: "Times New Roman, Times, serif" },
@@ -1300,6 +1302,7 @@
           spikethickness: 2,
           spikedash: 'solid'
         },
+       
         yaxis: { 
           title: {
             text: 'Particle Count (per 0.01 ft³)',
