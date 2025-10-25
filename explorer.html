@@ -1190,8 +1190,8 @@
           chartDiv.on('plotly_hover', function(eventData) {
             const curveNumber = eventData.points[0].curveNumber;
             
-            const widths = traces.map((_, i) => i === curveNumber ? 6 : 1);
-            const opacities = traces.map((_, i) => i === curveNumber ? 1 : 0.1);
+            const widths = traces.map((_, i) => i === curveNumber ? 8 : 1);
+            const opacities = traces.map((_, i) => i === curveNumber ? 1 : 0.05);
             
             Plotly.restyle('chart', {
               'line.width': [widths],
