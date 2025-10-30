@@ -801,3 +801,966 @@
         <div class="control-panel">
           <h4>Controls</h4>
           <button class="button" id="loadBtn" onclick="loadData()">Load Dataset</button>
+          <button class="button secondary" onclick="downloadData()">Download CSV</button>
+          <a href="./index.html#how-to-use" class="button" style="background: #6366f1; color: white; text-decoration: none; display: block; text-align: center; margin: 0.3rem 0;">❓ How to Use</a>
+          
+          <h4>Accessibility</h4>
+          <div class="accessibility-toggle">
+            <button class="accessibility-btn" onclick="toggleColorblind()">Enable Colorblind Mode</button>
+          </div>
+          
+          <h4>Scale Type</h4>
+          <div class="scale-toggle">
+            <button class="scale-btn" onclick="setScale('log')">Log</button>
+            <button class="scale-btn active" onclick="setScale('linear')">Linear</button>
+          </div>
+      
+          <div style="margin-top: 1rem; padding: 1rem; background: white; border-radius: 6px; border: 1px solid #e2e8f0;">
+            <strong style="color: #2d3748; font-size: 0.9rem;">Data Sampling:</strong><br>
+            <label style="margin: 0.4rem 0; display: block; font-weight: 500; color: #4a5568; font-size: 0.85rem;">
+              <input type="radio" name="sampling" value="1" checked style="margin-right: 0.5rem;"> All points
+            </label>
+            <label style="margin: 0.4rem 0; display: block; font-weight: 500; color: #4a5568; font-size: 0.85rem;">
+              <input type="radio" name="sampling" value="5" style="margin-right: 0.5rem;"> Every 5th
+            </label>
+            <label style="margin: 0.4rem 0; display: block; font-weight: 500; color: #4a5568; font-size: 0.85rem;">
+              <input type="radio" name="sampling" value="10" style="margin-right: 0.5rem;"> Every 10th
+            </label>
+          </div>
+        </div>
+        
+        <div class="series-selection">
+          <div class="series-header">
+            <h4>Data Series</h4>
+            <span id="seriesCount" style="font-size: 0.85rem; font-weight: 500; color: #718096;">(0 available)</span>
+          </div>
+          
+          <input type="text" class="series-search" id="seriesSearch" placeholder="Search series..." onkeyup="filterSeries()">
+          
+          <div class="series-controls">
+            <button class="series-control-btn" onclick="selectAllSeries()">Select All</button>
+            <button class="series-control-btn" onclick="clearAllSeries()">Clear All</button>
+          </div>
+          
+          <div id="seriesList" class="series-list">
+            <p style="color: #718096; text-align: center; margin: 2rem 0; font-weight: 500;">Load a dataset to see available data series</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="chart"></div>
+    <div id="compareCharts" style="display: none;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
+        <div>
+          <h3 style="text-align: center; color: #2b6cb0; margin-bottom: 1rem; font-size: 1.4rem;">Large Particles</h3>
+          <div id="chartLarge" style="width: 100%; height: 750px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);"></div>
+        </div>
+        <div>
+          <h3 style="text-align: center; color: #059669; margin-bottom: 1rem; font-size: 1.4rem;">Total Particles</h3>
+          <div id="chartTotal" style="width: 100%; height: 750px; border: 1px solid #e2e8f0; border-radius: 8px; background: white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================
+    // COHORT GRID SYSTEM - START
+    // ============================================
+
+    // Cohort start dates (cohorts 1-65, skipping 31)
+    const cohortDates = {
+      1: "Sep 24, 2015",
+      2: "Oct 24, 2015",
+      3: "Nov 24, 2015",
+      4: "Jan 8, 2016",
+      5: "Feb 6, 2016",
+      6: "Mar 3, 2016",
+      7: "May 2, 2016",
+      8: "May 26, 2016",
+      9: "Jul 30, 2016",
+      10: "Aug 6, 2016",
+      11: "Sep 9, 2016",
+      12: "Oct 6, 2016",
+      13: "Nov 11, 2016",
+      14: "Dec 10, 2016",
+      15: "Jan 12, 2017",
+      16: "Feb 16, 2017",
+      17: "Mar 20, 2017",
+      18: "Apr 27, 2017",
+      19: "Jun 1, 2017",
+      20: "Jul 11, 2017",
+      21: "Aug 5, 2017",
+      22: "Sep 2, 2017",
+      23: "Oct 2, 2017",
+      24: "Nov 12, 2017",
+      25: "Dec 11, 2017",
+      26: "Jan 13, 2018",
+      27: "Feb 10, 2018",
+      28: "Mar 23, 2018",
+      29: "Apr 23, 2018",
+      30: "Jun 2, 2018",
+      // 31 is skipped
+      32: "Aug 17, 2018",
+      33: "Sep 16, 2018",
+      34: "Nov 1, 2018",
+      35: "Dec 15, 2018",
+      36: "Jan 12, 2019",
+      37: "Feb 20, 2019",
+      38: "Mar 22, 2019",
+      39: "Jun 15, 2019",
+      40: "Jul 25, 2019",
+      41: "Sep 13, 2019",
+      42: "Jan 22, 2020",
+      43: "Apr 16, 2020",
+      44: "Sep 6, 2020",
+      45: "Nov 5, 2020",
+      46: "Jan 20, 2021",
+      47: "Apr 13, 2021",
+      48: "Jul 10, 2021",
+      49: "Oct 8, 2021",
+      50: "Dec 7, 2021",
+      51: "Mar 2, 2022",
+      52: "Sep 16, 2022",
+      53: "Dec 1, 2022",
+      54: "Feb 22, 2023",
+      55: "Apr 30, 2023",
+      56: "Aug 28, 2023",
+      57: "Nov 10, 2023",
+      58: "Jan 31, 2024",
+      59: "Apr 19, 2024",
+      60: "Aug 18, 2024",
+      61: "Nov 8, 2024",
+      62: "Feb 2, 2025",
+      63: "Apr 12, 2025",
+      64: "Jun 19, 2025",
+      65: "Sep 2, 2025"
+    };
+
+    let selectedSingleType = null; // Track which dataset type is selected for Single view
+
+    // Generate cohort grid for Single view (cohorts 1-65, skipping 31)
+    function generateSingleCohortGrid() {
+      const rows = [
+        { id: 'singleCohortRow1', cohorts: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+        { id: 'singleCohortRow2', cohorts: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20] },
+        { id: 'singleCohortRow3', cohorts: [21, 22, 23, 24, 25, 26, 27, 28, 29, 30] },
+        { id: 'singleCohortRow4', cohorts: [32, 33, 34, 35, 36, 37, 38, 39, 40, 41] },
+        { id: 'singleCohortRow5', cohorts: [42, 43, 44, 45, 46, 47, 48, 49, 50, 51] },
+        { id: 'singleCohortRow6', cohorts: [52, 53, 54, 55, 56, 57, 58, 59, 60, 61] },
+        { id: 'singleCohortRow7', cohorts: [62, 63, 64, 65] }
+      ];
+      
+      rows.forEach(row => {
+        const container = document.getElementById(row.id);
+        if (!container) return;
+        
+        container.innerHTML = ''; // Clear existing
+        
+        row.cohorts.forEach(i => {
+          const button = document.createElement('div');
+          button.className = 'cohort-button';
+          button.setAttribute('data-cohort', i);
+          button.setAttribute('data-view', 'single');
+          button.onclick = () => selectSingleCohortFromGrid(i);
+          
+          button.innerHTML = `
+            <div class="cohort-number">Cohort ${i}</div>
+            <div class="cohort-date">${cohortDates[i] || 'TBD'}</div>
+          `;
+          
+          container.appendChild(button);
+        });
+      });
+    }
+
+    // Generate cohort grid for Compare view (cohorts 1-65, skipping 31)
+    function generateCompareCohortGrid() {
+      const rows = [
+        { id: 'compareCohortRow1', cohorts: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+        { id: 'compareCohortRow2', cohorts: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20] },
+        { id: 'compareCohortRow3', cohorts: [21, 22, 23, 24, 25, 26, 27, 28, 29, 30] },
+        { id: 'compareCohortRow4', cohorts: [32, 33, 34, 35, 36, 37, 38, 39, 40, 41] },
+        { id: 'compareCohortRow5', cohorts: [42, 43, 44, 45, 46, 47, 48, 49, 50, 51] },
+        { id: 'compareCohortRow6', cohorts: [52, 53, 54, 55, 56, 57, 58, 59, 60, 61] },
+        { id: 'compareCohortRow7', cohorts: [62, 63, 64, 65] }
+      ];
+      
+      rows.forEach(row => {
+        const container = document.getElementById(row.id);
+        if (!container) return;
+        
+        container.innerHTML = ''; // Clear existing
+        
+        row.cohorts.forEach(i => {
+          const button = document.createElement('div');
+          button.className = 'cohort-button';
+          button.setAttribute('data-cohort', i);
+          button.setAttribute('data-view', 'compare');
+          button.onclick = () => selectCompareCohortFromGrid(i);
+          
+          button.innerHTML = `
+            <div class="cohort-number">Cohort ${i}</div>
+            <div class="cohort-date">${cohortDates[i] || 'TBD'}</div>
+          `;
+          
+          container.appendChild(button);
+        });
+      });
+    }
+
+    // Handle dataset type selection for Single view
+    function selectSingleType(type) {
+      selectedSingleType = type;
+      
+      // Update button states
+      document.getElementById('singleLargeBtn').classList.remove('active');
+      document.getElementById('singleSmallBtn').classList.remove('active');
+      
+      if (type === 'large') {
+        document.getElementById('singleLargeBtn').classList.add('active');
+      } else {
+        document.getElementById('singleSmallBtn').classList.add('active');
+      }
+      
+      // Show cohort grid
+      document.getElementById('singleCohortGridContainer').style.display = 'block';
+      
+      // Clear previous cohort selection
+      document.querySelectorAll('[data-view="single"]').forEach(btn => {
+        btn.classList.remove('selected');
+      });
+      
+      // Hide controls until cohort is selected
+      document.getElementById('mainControls').classList.remove('show');
+    }
+
+    // Handle cohort selection for Single view
+    function selectSingleCohortFromGrid(cohortNum) {
+      if (!selectedSingleType) {
+        alert('Please select a dataset type first (Large or Total Particles)');
+        return;
+      }
+      
+      // Remove previous selection in single view
+      document.querySelectorAll('[data-view="single"]').forEach(btn => {
+        btn.classList.remove('selected');
+      });
+      
+      // Add selection to clicked button
+      const button = document.querySelector(`[data-view="single"][data-cohort="${cohortNum}"]`);
+      if (button) button.classList.add('selected');
+      
+      // Set the cohort value
+      selectedCohorts.single = `${selectedSingleType}_${cohortNum}`;
+      
+      // Show controls
+      document.getElementById('mainControls').classList.add('show');
+      const typeLabel = selectedSingleType === 'large' ? 'LARGE' : 'TOTAL';
+      document.getElementById('selectedCohortTitle').textContent = `Single View: ${typeLabel} ${cohortNum}`;
+      document.getElementById('selectedCohortDesc').textContent = 'Click "Load Dataset" to visualize this cohort\'s data';
+    }
+
+    // Handle cohort selection for Compare view
+    function selectCompareCohortFromGrid(cohortNum) {
+      // Remove previous selection in compare view
+      document.querySelectorAll('[data-view="compare"]').forEach(btn => {
+        btn.classList.remove('selected');
+      });
+      
+      // Add selection to clicked button
+      const button = document.querySelector(`[data-view="compare"][data-cohort="${cohortNum}"]`);
+      if (button) button.classList.add('selected');
+      
+      // Set the cohort values
+      selectedCohorts.large = `large_${cohortNum}`;
+      selectedCohorts.total = `small_${cohortNum}`;
+      
+      // Show controls
+      document.getElementById('mainControls').classList.add('show');
+      document.getElementById('selectedCohortTitle').textContent = `Compare View: Cohort ${cohortNum} - Large vs Total`;
+      document.getElementById('selectedCohortDesc').textContent = 'Click "Load Dataset" to visualize both Large and Total particles for this cohort';
+    }
+
+    // ============================================
+    // COHORT GRID SYSTEM - END
+    // ============================================
+
+    let currentView = 'single';
+    let selectedCohorts = { single: null, large: null, total: null };
+    let currentData = { single: null, large: null, total: null };
+    let allSeries = [];
+    let currentScale = 'linear';
+    let isColorblindMode = false;
+    let hiddenSeries = new Set();
+    let selectedSeries = new Set();
+    
+    const defaultColors = [
+      "#2563EB", "#DC2626", "#059669", "#EA580C", "#7C3AED",
+      "#0891B2", "#DB2777", "#2563EB", "#65A30D", "#C026D3",
+      "#0D9488", "#E11D48", "#4F46E5", "#CA8A04", "#16A34A"
+    ];
+    
+    const colorblindColors = [
+      "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+      "#8c564b", "#e377c2", "#17becf", "#bcbd22", "#aec7e8",
+      "#ffbb78", "#98df8a", "#ff9896", "#c5b0d5", "#c49c94"
+    ];
+    
+    function getCurrentColors() {
+      return isColorblindMode ? colorblindColors : defaultColors;
+    }
+
+    let pennsylvaniaData = {};
+    
+    const NON_PA_PATTERNS = [
+      '_ME', '_CA', '_OR', '_MN', '_FL', '_TX', '_NY', '_WA', '_IL',
+      'CASJ', 'ORCB', 'MEBA', 'MNMP'
+    ];
+    
+    function detectPAParticipants(csvData, cohortId) {
+      if (!csvData || csvData.length === 0) return [];
+      
+      const columns = Object.keys(csvData[0]);
+      const dataColumns = columns.slice(1);
+      
+      console.log(`🔍 Detecting PA participants for ${cohortId} from columns:`, dataColumns);
+      
+      const allParticipants = dataColumns
+        .map(col => {
+          const match = col.match(/_O_([^_]+)/);
+          return match ? match[1] : null;
+        })
+        .filter(code => code !== null);
+      
+      const paParticipants = allParticipants.filter(participant => {
+        const isNonPA = NON_PA_PATTERNS.some(pattern => 
+          participant.includes(pattern.replace('_', ''))
+        );
+        return !isNonPA;
+      });
+      
+      const uniquePAParticipants = [...new Set(paParticipants)];
+      
+      console.log(`✅ Detected PA participants for ${cohortId}:`, uniquePAParticipants);
+      console.log(`❌ Excluded non-PA participants:`, allParticipants.filter(p => !uniquePAParticipants.includes(p)));
+      
+      return uniquePAParticipants;
+    }
+    
+    function updatePAData(cohortId, participants) {
+      const parts = cohortId.split('_');
+      const cohortNum = parts[1];
+      const cohortKey = `cohort_${cohortNum}`;
+      
+      if (!pennsylvaniaData[cohortKey]) {
+        pennsylvaniaData[cohortKey] = {};
+      }
+      
+      pennsylvaniaData[cohortKey][cohortId] = participants;
+      console.log(`📝 Updated PA data for ${cohortKey}:`, pennsylvaniaData[cohortKey]);
+    }
+
+    function switchView(view) {
+      currentView = view;
+      
+      document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      document.getElementById('single-view').style.display = view === 'single' ? 'block' : 'none';
+      document.getElementById('compare-view').style.display = view === 'compare' ? 'block' : 'none';
+      
+      if (view === 'single') {
+        document.getElementById('chart').style.display = 'block';
+        document.getElementById('compareCharts').style.display = 'none';
+      } else {
+        document.getElementById('chart').style.display = 'none';
+        document.getElementById('compareCharts').style.display = 'block';
+      }
+      
+      document.getElementById('mainControls').classList.remove('show');
+      resetSelections();
+    }
+
+    function resetSelections() {
+      selectedCohorts = { single: null, large: null, total: null };
+      currentData = { single: null, large: null, total: null };
+      allSeries = [];
+      selectedSeries.clear();
+      
+      // Reset Single view
+      selectedSingleType = null;
+      document.getElementById('singleLargeBtn').classList.remove('active');
+      document.getElementById('singleSmallBtn').classList.remove('active');
+      document.getElementById('singleCohortGridContainer').style.display = 'none';
+      
+      // Clear all selections
+      document.querySelectorAll('.cohort-button').forEach(btn => {
+        btn.classList.remove('selected');
+      });
+    }
+
+    function setScale(scale) {
+      currentScale = scale;
+      
+      document.querySelectorAll('.scale-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      if (Object.values(currentData).some(data => data)) {
+        updateVisualization();
+      }
+    }
+
+    function toggleColorblind() {
+      const button = document.querySelector('.accessibility-btn');
+      
+      isColorblindMode = !isColorblindMode;
+      
+      if (isColorblindMode) {
+        button.textContent = 'Disable Colorblind Mode';
+        button.classList.add('active');
+      } else {
+        button.textContent = 'Enable Colorblind Mode';
+        button.classList.remove('active');
+      }
+      
+      const colorIndicators = document.querySelectorAll('.color-indicator');
+      const colors = getCurrentColors();
+      colorIndicators.forEach((indicator, index) => {
+        indicator.style.backgroundColor = colors[index % colors.length];
+      });
+      
+      if (Object.values(currentData).some(data => data)) {
+        updateVisualization();
+      }
+    }
+
+    function setZoom(zoomType) {
+      document.querySelectorAll('.zoom-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      if (zoomType === 'recent') {
+        const layout_update = {
+          'xaxis.range': [
+            new Date(Date.now() - 7*24*60*60*1000),
+            new Date()
+          ]
+        };
+        Plotly.relayout('chart', layout_update);
+      } else {
+        Plotly.relayout('chart', {
+          'xaxis.autorange': true,
+          'yaxis.autorange': true
+        });
+      }
+    }
+
+    async function loadData() {
+      const loadBtn = document.getElementById('loadBtn');
+      loadBtn.disabled = true;
+      loadBtn.textContent = 'Loading...';
+
+      try {
+        if (currentView === 'single') {
+          if (!selectedCohorts.single) throw new Error('No cohort selected');
+          await loadCohortData('single', selectedCohorts.single);
+        } else if (currentView === 'compare') {
+          if (!selectedCohorts.large || !selectedCohorts.total) throw new Error('No cohort selected for comparison');
+          await Promise.all([
+            loadCohortData('large', selectedCohorts.large),
+            loadCohortData('total', selectedCohorts.total)
+          ]);
+        }
+        
+        setupSeriesSelection();
+        resetLoadButton();
+        
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+        resetLoadButton();
+      }
+    }
+
+    async function loadCohortData(key, cohortId) {
+      const csvPath = `Data/${cohortId}.csv`;
+      const response = await fetch(csvPath);
+      if (!response.ok) throw new Error(`File not found: ${csvPath}`);
+
+      const csvText = await response.text();
+      
+      return new Promise((resolve, reject) => {
+        Papa.parse(csvText, {
+          header: true,
+          skipEmptyLines: true,
+          complete: function(results) {
+            let data = results.data.filter(row => 
+              Object.values(row).some(val => val !== null && val !== '')
+            );
+            
+            const detectedParticipants = detectPAParticipants(data, cohortId);
+            updatePAData(cohortId, detectedParticipants);
+            
+            const paFilterId = currentView === 'single' ? 'singlePaFilter' : 'comparePaFilter';
+            if (document.getElementById(paFilterId)?.checked) {
+              data = filterPennsylvania(data, cohortId);
+            }
+            
+            if (data.length === 0) throw new Error('No valid data found');
+            
+            currentData[key] = data;
+            const columns = Object.keys(data[0]);
+            const newSeries = columns.slice(1);
+            
+            allSeries = [...new Set([...allSeries, ...newSeries])];
+            
+            resolve();
+          },
+          error: reject
+        });
+      });
+    }
+
+    function filterPennsylvania(data, cohortId) {
+      const parts = cohortId.split('_');
+      const cohortNum = parts[1];
+      const cohortKey = `cohort_${cohortNum}`;
+      
+      console.log(`Filtering PA for ${cohortId}, looking up: ${cohortKey}`);
+      
+      const paLocations = pennsylvaniaData[cohortKey] && pennsylvaniaData[cohortKey][cohortId];
+      
+      if (!paLocations || paLocations.length === 0) {
+        console.warn(`No PA locations found for ${cohortId}`);
+        return data;
+      }
+      
+      console.log(`PA locations for ${cohortId}:`, paLocations);
+      
+      return data.filter(row => {
+        const columns = Object.keys(row);
+        const hasPaLocation = columns.some(col => 
+          paLocations.some(location => 
+            col.toUpperCase().includes(location.toUpperCase())
+          )
+        );
+        
+        if (hasPaLocation) {
+          console.log(`Row included: found PA location in columns for ${cohortId}`);
+        }
+        
+        return hasPaLocation;
+      });
+    }
+
+    function resetLoadButton() {
+      const loadBtn = document.getElementById('loadBtn');
+      loadBtn.disabled = false;
+      loadBtn.textContent = 'Load Dataset';
+    }
+
+    function setupSeriesSelection() {
+      const seriesCount = document.getElementById('seriesCount');
+      const seriesList = document.getElementById('seriesList');
+      
+      seriesCount.textContent = `(${allSeries.length} available)`;
+      seriesList.innerHTML = '';
+      
+      const colors = getCurrentColors();
+      
+      allSeries.forEach((series, index) => {
+        const item = document.createElement('div');
+        item.className = 'series-item';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = selectedSeries.has(series) || (selectedSeries.size === 0 && index < 10);
+        checkbox.value = series;
+        checkbox.onchange = (e) => {
+          if (e.target.checked) {
+            selectedSeries.add(series);
+          } else {
+            selectedSeries.delete(series);
+          }
+          updateVisualization();
+        };
+        
+        const colorDiv = document.createElement('div');
+        colorDiv.className = 'color-indicator';
+        colorDiv.style.backgroundColor = colors[index % colors.length];
+        
+        const label = document.createElement('span');
+        label.className = 'series-label';
+        label.textContent = series;
+        
+        const visibilityBtn = document.createElement('button');
+        visibilityBtn.className = 'visibility-btn';
+        visibilityBtn.textContent = 'Hide';
+        visibilityBtn.onclick = (e) => {
+          e.stopPropagation();
+          toggleSeriesVisibility(series, visibilityBtn);
+        };
+        
+        item.appendChild(checkbox);
+        item.appendChild(colorDiv);
+        item.appendChild(label);
+        item.appendChild(visibilityBtn);
+        seriesList.appendChild(item);
+        
+        if (checkbox.checked) {
+          selectedSeries.add(series);
+        }
+      });
+      
+      updateVisualization();
+    }
+
+    function toggleSeriesVisibility(series, button) {
+      if (hiddenSeries.has(series)) {
+        hiddenSeries.delete(series);
+        button.textContent = 'Hide';
+        button.classList.remove('hidden');
+      } else {
+        hiddenSeries.add(series);
+        button.textContent = 'Show';
+        button.classList.add('hidden');
+      }
+      updateVisualization();
+    }
+
+    function filterSeries() {
+      const search = document.getElementById('seriesSearch').value.toLowerCase();
+      const items = document.querySelectorAll('.series-item');
+      
+      items.forEach(item => {
+        const label = item.querySelector('.series-label').textContent.toLowerCase();
+        item.style.display = label.includes(search) ? 'flex' : 'none';
+      });
+    }
+
+    function selectAllSeries() {
+      document.querySelectorAll('#seriesList input[type="checkbox"]').forEach(cb => {
+        cb.checked = true;
+        selectedSeries.add(cb.value);
+      });
+      updateVisualization();
+    }
+
+    function clearAllSeries() {
+      document.querySelectorAll('#seriesList input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+        selectedSeries.delete(cb.value);
+      });
+      selectedSeries.clear();
+      updateVisualization();
+    }
+
+    function getSelectedSeries() {
+      const checkboxes = document.querySelectorAll('#seriesList input[type="checkbox"]:checked');
+      return Array.from(checkboxes)
+        .map(cb => cb.value)
+        .filter(series => !hiddenSeries.has(series));
+    }
+
+    function getSamplingRate() {
+      const selected = document.querySelector('input[name="sampling"]:checked');
+      return selected ? parseInt(selected.value) : 1;
+    }
+
+    function updateVisualization() {
+      const selectedSeries = getSelectedSeries();
+      if (selectedSeries.length === 0) {
+        if (currentView === 'single') {
+          document.getElementById('chart').innerHTML = '<div style="padding: 3rem; text-align: center; color: #718096; font-size: 1.1rem; font-weight: 500;">Select at least one data series to display the chart</div>';
+        }
+        return;
+      }
+
+      if (currentView === 'single') {
+        document.getElementById('chart').style.display = 'block';
+        document.getElementById('compareCharts').style.display = 'none';
+        
+        const samplingRate = getSamplingRate();
+        let traces = [];
+
+        if (currentData.single) {
+          traces = generateTraces(currentData.single, selectedSeries, samplingRate, '');
+        }
+
+        if (traces.length === 0) return;
+
+        const layout = createChartLayout(getChartTitle(selectedSeries.length));
+        layout.margin = { l: 80, r: 160, t: 70, b: 60 };
+        layout.legend = {
+          orientation: 'v',
+          x: 1.02,
+          y: 1,
+          xanchor: 'left',
+          yanchor: 'top',
+          bgcolor: 'rgba(255,255,255,0.9)',
+          bordercolor: '#e2e8f0',
+          borderwidth: 1,
+          font: { size: 11, color: "#2d3748" },
+          itemclick: 'toggle',
+          itemdoubleclick: 'toggleothers'
+        };
+        const config = createChartConfig('single');
+
+        Plotly.react('chart', traces, layout, config).then(() => {
+          const chartDiv = document.getElementById('chart');
+          
+          chartDiv.on('plotly_hover', function(eventData) {
+            const curveNumber = eventData.points[0].curveNumber;
+            
+            const widths = traces.map((_, i) => i === curveNumber ? 8 : 1);
+            const opacities = traces.map((_, i) => i === curveNumber ? 1 : 0.05);
+            
+            Plotly.restyle('chart', {
+              'line.width': [widths],
+              'opacity': [opacities]
+            });
+          });
+          
+          chartDiv.on('plotly_unhover', function() {
+            const widths = traces.map(() => 2.5);
+            const opacities = traces.map(() => 1);
+            
+            Plotly.restyle('chart', {
+              'line.width': [widths],
+              'opacity': [opacities]
+            });
+          });
+        });
+        
+      } else if (currentView === 'compare') {
+        document.getElementById('chart').style.display = 'none';
+        document.getElementById('compareCharts').style.display = 'block';
+        
+        const samplingRate = getSamplingRate();
+        
+        if (currentData.large) {
+          const largeTraces = generateTraces(currentData.large, selectedSeries, samplingRate, '');
+          const largeLayout = createChartLayout(`Large Particles - Cohort ${selectedCohorts.large?.split('_')[1] || ''} (${selectedSeries.length} series)`);
+          const largeConfig = createChartConfig('large');
+          
+          Plotly.react('chartLarge', largeTraces, largeLayout, largeConfig).then(() => {
+            const chartLarge = document.getElementById('chartLarge');
+            
+            chartLarge.on('plotly_hover', function(eventData) {
+              const curveNumber = eventData.points[0].curveNumber;
+              const widths = largeTraces.map((_, i) => i === curveNumber ? 8 : 1);
+              const opacities = largeTraces.map((_, i) => i === curveNumber ? 1 : 0.05);
+              
+              Plotly.restyle('chartLarge', {
+                'line.width': [widths],
+                'opacity': [opacities]
+              });
+            });
+            
+            chartLarge.on('plotly_unhover', function() {
+              Plotly.restyle('chartLarge', {
+                'line.width': [largeTraces.map(() => 2.5)],
+                'opacity': [largeTraces.map(() => 1)]
+              });
+            });
+          });
+        }
+        
+        if (currentData.total) {
+          const totalTraces = generateTraces(currentData.total, selectedSeries, samplingRate, '');
+          const totalLayout = createChartLayout(`Total Particles - Cohort ${selectedCohorts.total?.split('_')[1] || ''} (${selectedSeries.length} series)`);
+          const totalConfig = createChartConfig('total');
+          
+          Plotly.react('chartTotal', totalTraces, totalLayout, totalConfig).then(() => {
+            const chartTotal = document.getElementById('chartTotal');
+            
+            chartTotal.on('plotly_hover', function(eventData) {
+              const curveNumber = eventData.points[0].curveNumber;
+              const widths = totalTraces.map((_, i) => i === curveNumber ? 8 : 1);
+              const opacities = totalTraces.map((_, i) => i === curveNumber ? 1 : 0.05);
+              
+              Plotly.restyle('chartTotal', {
+                'line.width': [widths],
+                'opacity': [opacities]
+              });
+            });
+            
+            chartTotal.on('plotly_unhover', function() {
+              Plotly.restyle('chartTotal', {
+                'line.width': [totalTraces.map(() => 2.5)],
+                'opacity': [totalTraces.map(() => 1)]
+              });
+            });
+          });
+        }
+      }
+    }
+
+    function createChartLayout(title) {
+      return {
+        title: {
+          text: title,
+          font: { size: 26, family: "Times New Roman, Times, serif", color: "#1a365d" },
+          x: 0.5,
+          xanchor: 'center'
+        },
+        xaxis: { 
+          title: {
+            text: 'Date and Time',
+            font: { size: 18, color: "#2d3748", family: "Times New Roman, Times, serif" }
+          },
+          showgrid: true,
+          gridcolor: '#cccccc',
+          gridwidth: 2,
+          dtick: 86400000,
+          tick0: '2020-01-01',
+          linecolor: '#2c5aa0',
+          linewidth: 2,
+          tickfont: { size: 15, color: "#4a5568", family: "Times New Roman, Times, serif" },
+          showspikes: true,
+          spikemode: 'across',
+          spikesnap: 'cursor',
+          spikecolor: '#1a365d',
+          spikethickness: 2,
+          spikedash: 'solid'
+        },
+       
+        yaxis: { 
+          title: {
+            text: 'Particle Count (per 0.01 ft³)',
+            font: { size: 18, color: "#2d3748", family: "Times New Roman, Times, serif" }
+          },
+          type: currentScale,
+          showgrid: true,
+          gridcolor: '#f0f8ff',
+          gridwidth: 1,
+          linecolor: '#2c5aa0',
+          linewidth: 2,
+          tickfont: { size: 15, color: "#4a5568", family: "Times New Roman, Times, serif" }
+        },
+        margin: { l: 90, r: 50, t: 80, b: 70 },
+        legend: {
+          orientation: 'h',
+          x: 0.5,
+          y: -0.15,
+          xanchor: 'center',
+          yanchor: 'top',
+          bgcolor: 'rgba(240, 248, 255, 0.95)',
+          bordercolor: '#2c5aa0',
+          borderwidth: 1,
+          font: { size: 14, color: "#2d3748", family: "Times New Roman, Times, serif" },
+          itemclick: 'toggle',
+          itemdoubleclick: 'toggleothers'
+        },
+        hovermode: 'closest',
+        hoverdistance: 50,
+        plot_bgcolor: 'white',
+        paper_bgcolor: 'white',
+        font: { family: "Times New Roman, Times, serif", color: "#2d3748" }
+      };
+    }
+
+    function createChartConfig(chartType) {
+      return {
+        responsive: true,
+        displaylogo: false,
+        scrollZoom: true,
+        doubleClick: 'reset',
+        modeBarButtonsToAdd: ['select2d', 'lasso2d'],
+        toImageButtonOptions: {
+          format: 'png',
+          filename: `rocis_${chartType}_${Date.now()}`,
+          height: 600,
+          width: 700,
+          scale: 2
+        }
+      };
+    }
+
+    function generateTraces(data, selectedSeries, samplingRate, prefix) {
+      const columns = Object.keys(data[0]);
+      const timeColumn = columns[0];
+      const colors = getCurrentColors();
+      
+      const sampledData = samplingRate > 1 ? 
+        data.filter((_, index) => index % samplingRate === 0) : 
+        data;
+
+      return selectedSeries
+        .filter(series => columns.includes(series))
+        .map((series, index) => {
+          const seriesIndex = allSeries.indexOf(series);
+          return {
+            type: 'scatter',
+            mode: 'lines',
+            name: prefix + series,
+            x: sampledData.map(row => row[timeColumn]),
+            y: sampledData.map(row => {
+              const val = parseFloat(row[series]);
+              return isNaN(val) ? null : val;
+            }),
+            line: { 
+              width: 2.5,
+              color: colors[seriesIndex % colors.length]
+            },
+            hovertemplate: `<b>${prefix}${series}</b><br>%{x}<br>%{y:.2f} particles<extra></extra>`,
+            connectgaps: false
+          };
+        });
+    }
+
+    function getChartTitle(seriesCount) {
+      if (currentView === 'single') {
+        return `${selectedCohorts.single?.replace('_', ' ').toUpperCase() || 'Single View'} - Outdoor Data Explorer (${seriesCount} series)`;
+      } else {
+        let title = 'Compare View - ';
+        if (selectedCohorts.large && selectedCohorts.total) {
+          title += `${selectedCohorts.large.toUpperCase()} vs ${selectedCohorts.total.toUpperCase()}`;
+        } else if (selectedCohorts.large) {
+          title += `${selectedCohorts.large.toUpperCase()} (Large)`;
+        } else if (selectedCohorts.total) {
+          title += `${selectedCohorts.total.toUpperCase()} (Total)`;
+        }
+        return `${title} (${seriesCount} series)`;
+      }
+    }
+
+    function downloadData() {
+      if (currentView === 'single' && selectedCohorts.single) {
+        downloadCsv(selectedCohorts.single);
+      } else if (currentView === 'compare') {
+        if (selectedCohorts.large) downloadCsv(selectedCohorts.large);
+        if (selectedCohorts.total) downloadCsv(selectedCohorts.total);
+      } else {
+        alert('Please select a cohort first!');
+      }
+    }
+
+    function downloadCsv(cohortId) {
+      const link = document.createElement('a');
+      link.href = `Data/${cohortId}.csv`;
+      link.download = `${cohortId}.csv`;
+      link.click();
+    }
+
+    // Initialize grids and event listeners when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      // Generate both cohort grids on page load
+      generateSingleCohortGrid();
+      generateCompareCohortGrid();
+      
+      // Pennsylvania filter listeners
+      ['singlePaFilter', 'comparePaFilter'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.addEventListener('change', () => {
+            if (Object.values(currentData).some(data => data)) {
+              loadData();
+            }
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
