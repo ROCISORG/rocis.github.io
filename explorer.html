@@ -705,7 +705,6 @@
   <div class="container">
     <div class="hero">
       <h1>Outdoor Data Explorer</h1>
-      <p>Professional visualization tools with advanced comparison features</p>
     </div>
 
     <!-- Data Disclaimer -->
@@ -1351,21 +1350,28 @@
       loadBtn.textContent = 'Loading...';
 
       try {
+        console.log('🚀 Starting loadData() for view:', currentView);
+        
         if (currentView === 'single') {
           if (!selectedCohorts.single) throw new Error('No cohort selected');
+          console.log('📊 Loading single cohort:', selectedCohorts.single);
           await loadCohortData('single', selectedCohorts.single);
         } else if (currentView === 'compare') {
           if (!selectedCohorts.large || !selectedCohorts.total) throw new Error('No cohort selected for comparison');
+          console.log('📊 Loading compare cohorts:', selectedCohorts.large, selectedCohorts.total);
           await Promise.all([
             loadCohortData('large', selectedCohorts.large),
             loadCohortData('total', selectedCohorts.total)
           ]);
         }
         
+        console.log('✅ Data loaded successfully, setting up series...');
         setupSeriesSelection();
+        console.log('✅ Series setup complete, resetting button...');
         resetLoadButton();
         
       } catch (error) {
+        console.error('❌ Error in loadData():', error);
         alert(`Error: ${error.message}`);
         resetLoadButton();
       }
@@ -1449,9 +1455,11 @@
     }
 
     function setupSeriesSelection() {
+      console.log('🔧 Setting up series selection...');
       const seriesCount = document.getElementById('seriesCount');
       const seriesList = document.getElementById('seriesList');
       
+      console.log('📝 Total series available:', allSeries.length);
       seriesCount.textContent = `(${allSeries.length} available)`;
       seriesList.innerHTML = '';
       
@@ -1501,6 +1509,9 @@
         item.appendChild(visibilityBtn);
         seriesList.appendChild(item);
       });
+      
+      console.log('✅ Series selection setup complete. Selected series:', selectedSeries.size);
+      console.log('📊 Calling updateVisualization()...');
       
       // Now that series are selected, update the visualization
       updateVisualization();
@@ -1559,8 +1570,15 @@
     }
 
     function updateVisualization() {
+      console.log('📈 updateVisualization() called');
+      console.log('   Current view:', currentView);
+      console.log('   Current data:', Object.keys(currentData).filter(k => currentData[k] !== null));
+      
       const selectedSeries = getSelectedSeries();
+      console.log('   Selected series count:', selectedSeries.length);
+      
       if (selectedSeries.length === 0) {
+        console.warn('⚠️ No series selected, showing message');
         if (currentView === 'single') {
           document.getElementById('chart').innerHTML = '<div style="padding: 3rem; text-align: center; color: #718096; font-size: 1.1rem; font-weight: 500;">Select at least one data series to display the chart</div>';
         }
@@ -1568,6 +1586,7 @@
       }
 
       if (currentView === 'single') {
+        console.log('📊 Rendering single view chart');
         document.getElementById('chart').style.display = 'block';
         document.getElementById('compareCharts').style.display = 'none';
         
@@ -1576,9 +1595,13 @@
 
         if (currentData.single) {
           traces = generateTraces(currentData.single, selectedSeries, samplingRate, '');
+          console.log('   Generated traces:', traces.length);
         }
 
-        if (traces.length === 0) return;
+        if (traces.length === 0) {
+          console.warn('⚠️ No traces generated');
+          return;
+        }
 
         const layout = createChartLayout(getChartTitle(selectedSeries.length));
         layout.margin = { l: 80, r: 160, t: 70, b: 60 };
@@ -1597,7 +1620,9 @@
         };
         const config = createChartConfig('single');
 
+        console.log('🎨 Calling Plotly.react for single chart...');
         Plotly.react('chart', traces, layout, config).then(() => {
+          console.log('✅ Single chart rendered successfully');
           const chartDiv = document.getElementById('chart');
           
           chartDiv.on('plotly_hover', function(eventData) {
@@ -1621,20 +1646,26 @@
               'opacity': [opacities]
             });
           });
+        }).catch(error => {
+          console.error('❌ Error rendering single chart:', error);
         });
         
       } else if (currentView === 'compare') {
+        console.log('📊 Rendering compare view charts');
         document.getElementById('chart').style.display = 'none';
         document.getElementById('compareCharts').style.display = 'block';
         
         const samplingRate = getSamplingRate();
         
         if (currentData.large) {
+          console.log('   Rendering Large chart...');
           const largeTraces = generateTraces(currentData.large, selectedSeries, samplingRate, '');
+          console.log('   Large traces:', largeTraces.length);
           const largeLayout = createChartLayout(`Large Particles - Cohort ${selectedCohorts.large?.split('_')[1] || ''} (${selectedSeries.length} series)`);
           const largeConfig = createChartConfig('large');
           
           Plotly.react('chartLarge', largeTraces, largeLayout, largeConfig).then(() => {
+            console.log('✅ Large chart rendered successfully');
             const chartLarge = document.getElementById('chartLarge');
             
             chartLarge.on('plotly_hover', function(eventData) {
@@ -1654,15 +1685,20 @@
                 'opacity': [largeTraces.map(() => 1)]
               });
             });
+          }).catch(error => {
+            console.error('❌ Error rendering Large chart:', error);
           });
         }
         
         if (currentData.total) {
+          console.log('   Rendering Total chart...');
           const totalTraces = generateTraces(currentData.total, selectedSeries, samplingRate, '');
+          console.log('   Total traces:', totalTraces.length);
           const totalLayout = createChartLayout(`Total Particles - Cohort ${selectedCohorts.total?.split('_')[1] || ''} (${selectedSeries.length} series)`);
           const totalConfig = createChartConfig('total');
           
           Plotly.react('chartTotal', totalTraces, totalLayout, totalConfig).then(() => {
+            console.log('✅ Total chart rendered successfully');
             const chartTotal = document.getElementById('chartTotal');
             
             chartTotal.on('plotly_hover', function(eventData) {
@@ -1682,9 +1718,13 @@
                 'opacity': [totalTraces.map(() => 1)]
               });
             });
+          }).catch(error => {
+            console.error('❌ Error rendering Total chart:', error);
           });
         }
       }
+      
+      console.log('✅ updateVisualization() complete');
     }
 
     function createChartLayout(title) {
