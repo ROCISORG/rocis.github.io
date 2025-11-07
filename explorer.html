@@ -1074,11 +1074,12 @@
           document.getElementById('selectedCohortTitle').textContent = `Single View: ${typeLabel} ${previousCohort}`;
           document.getElementById('selectedCohortDesc').textContent = 'Loading data...';
           
-          // Use setTimeout to ensure DOM is fully updated before loading
-          setTimeout(async () => {
-            console.log('⏰ Triggering loadData() after type switch...');
-            await loadData();
-          }, 100);
+          // Immediately load the new type for the same cohort
+          console.log('🚀 Type switch: Calling loadData() immediately...');
+          loadData().catch(err => {
+            console.error('❌ Error loading data:', err);
+            document.getElementById('selectedCohortDesc').textContent = 'Error loading data. Please try again.';
+          });
         }
       } else {
         // Clear previous cohort selection visually
@@ -1144,11 +1145,12 @@
       document.getElementById('selectedCohortTitle').textContent = `Single View: ${typeLabel} ${cohortNum}`;
       document.getElementById('selectedCohortDesc').textContent = 'Loading data...';
       
-      // Use setTimeout to ensure DOM is fully updated before loading
-      setTimeout(async () => {
-        console.log('⏰ Single view: Triggering loadData() after DOM update...');
-        await loadData();
-      }, 100);
+      // Immediately load the data (no setTimeout delay)
+      console.log('🚀 Single view: Calling loadData() immediately...');
+      loadData().catch(err => {
+        console.error('❌ Error loading data:', err);
+        document.getElementById('selectedCohortDesc').textContent = 'Error loading data. Please try again.';
+      });
     }
 
     // Handle cohort selection for Compare view
@@ -1176,11 +1178,12 @@
       document.getElementById('selectedCohortTitle').textContent = `Compare View: Cohort ${cohortNum} - Large vs Total`;
       document.getElementById('selectedCohortDesc').textContent = 'Loading data...';
       
-      // Use setTimeout to ensure DOM is fully updated before loading
-      setTimeout(async () => {
-        console.log('⏰ Compare view: Triggering loadData() after DOM update...');
-        await loadData();
-      }, 100);
+      // Immediately load the data (no setTimeout delay)
+      console.log('🚀 Compare view: Calling loadData() immediately...');
+      loadData().catch(err => {
+        console.error('❌ Error loading data:', err);
+        document.getElementById('selectedCohortDesc').textContent = 'Error loading data. Please try again.';
+      });
     }
 
     // ============================================
