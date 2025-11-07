@@ -824,7 +824,6 @@
           <h4>Controls</h4>
           <button class="button" id="loadBtn" onclick="loadData()">Load Dataset</button>
           <button class="button secondary" onclick="downloadData()">Download CSV</button>
-          <a href="./index.html#how-to-use" class="button" style="background: #6366f1; color: white; text-decoration: none; display: block; text-align: center; margin: 0.3rem 0;">❓ How to Use</a>
           
           <h4>Accessibility</h4>
           <div class="accessibility-toggle">
@@ -1475,6 +1474,11 @@
           updateVisualization();
         };
         
+        // IMPORTANT: If checkbox is auto-checked, add to selectedSeries immediately
+        if (checkbox.checked) {
+          selectedSeries.add(series);
+        }
+        
         const colorDiv = document.createElement('div');
         colorDiv.className = 'color-indicator';
         colorDiv.style.backgroundColor = colors[index % colors.length];
@@ -1496,12 +1500,9 @@
         item.appendChild(label);
         item.appendChild(visibilityBtn);
         seriesList.appendChild(item);
-        
-        if (checkbox.checked) {
-          selectedSeries.add(series);
-        }
       });
       
+      // Now that series are selected, update the visualization
       updateVisualization();
     }
 
