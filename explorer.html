@@ -1040,6 +1040,9 @@
 
     // Handle dataset type selection for Single view
     function selectSingleType(type) {
+      const previousType = selectedSingleType;
+      const previousCohort = selectedCohorts.single ? selectedCohorts.single.split('_')[1] : null;
+      
       // Clear previous visualization if changing type
       if (selectedSingleType && selectedSingleType !== type) {
         clearVisualization();
@@ -1060,13 +1063,32 @@
       // Show cohort grid
       document.getElementById('singleCohortGridContainer').style.display = 'block';
       
-      // Clear previous cohort selection
-      document.querySelectorAll('[data-view="single"]').forEach(btn => {
-        btn.classList.remove('selected');
-      });
-      
-      // Hide controls until cohort is selected
-      document.getElementById('mainControls').classList.remove('show');
+      // If we had a cohort selected before, reselect it and auto-load
+      if (previousCohort && previousType !== type) {
+        // Reselect the same cohort number with new type
+        const button = document.querySelector(`[data-view="single"][data-cohort="${previousCohort}"]`);
+        if (button) {
+          button.classList.add('selected');
+          selectedCohorts.single = `${type}_${previousCohort}`;
+          
+          // Show controls and auto-load
+          document.getElementById('mainControls').classList.add('show');
+          const typeLabel = type === 'large' ? 'LARGE' : 'TOTAL';
+          document.getElementById('selectedCohortTitle').textContent = `Single View: ${typeLabel} ${previousCohort}`;
+          document.getElementById('selectedCohortDesc').textContent = 'Loading data...';
+          
+          // Automatically load the new type for the same cohort
+          loadData();
+        }
+      } else {
+        // Clear previous cohort selection visually
+        document.querySelectorAll('[data-view="single"]').forEach(btn => {
+          btn.classList.remove('selected');
+        });
+        
+        // Hide controls until cohort is selected
+        document.getElementById('mainControls').classList.remove('show');
+      }
     }
 
     // Clear current visualization and reset state
@@ -1118,7 +1140,10 @@
       document.getElementById('mainControls').classList.add('show');
       const typeLabel = selectedSingleType === 'large' ? 'LARGE' : 'TOTAL';
       document.getElementById('selectedCohortTitle').textContent = `Single View: ${typeLabel} ${cohortNum}`;
-      document.getElementById('selectedCohortDesc').textContent = 'Click "Load Dataset" to visualize this cohort\'s data';
+      document.getElementById('selectedCohortDesc').textContent = 'Loading data...';
+      
+      // Automatically load the data
+      loadData();
     }
 
     // Handle cohort selection for Compare view
@@ -1142,7 +1167,10 @@
       // Show controls
       document.getElementById('mainControls').classList.add('show');
       document.getElementById('selectedCohortTitle').textContent = `Compare View: Cohort ${cohortNum} - Large vs Total`;
-      document.getElementById('selectedCohortDesc').textContent = 'Click "Load Dataset" to visualize both Large and Total particles for this cohort';
+      document.getElementById('selectedCohortDesc').textContent = 'Loading data...';
+      
+      // Automatically load the data
+      loadData();
     }
 
     // ============================================
