@@ -319,6 +319,29 @@
       border-color: #059669;
     }
     
+    .help-btn {
+      background: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 0.5rem;
+      transition: all 0.2s ease;
+      vertical-align: middle;
+    }
+    
+    .help-btn:hover {
+      background: #4f46e5;
+      transform: scale(1.1);
+    }
+    
     .button {
       background: #2b6cb0;
       color: white;
@@ -694,8 +717,7 @@
       <p style="margin: 0; color: #856404; font-size: 1.1rem; line-height: 1.6; font-weight: 500;">
         This visualization displays <strong>raw, unprocessed data</strong> that has not been quality-checked or validated. 
         The data has not been corrected for environmental factors such as <strong>humidity or relative humidity</strong>, 
-        and may contain inaccuracies due to <strong>equipment malfunctions, sensor errors, or human error</strong>. 
-        Please verify any critical findings against validated datasets before use.
+        and may contain inaccuracies due to <strong>equipment malfunctions, sensor errors, or human error</strong>.
       </p>
     </div>
 
@@ -809,14 +831,20 @@
             <button class="accessibility-btn" onclick="toggleColorblind()">Enable Colorblind Mode</button>
           </div>
           
-          <h4>Scale Type</h4>
+          <h4>
+            Scale Type
+            <button class="help-btn" onclick="showScaleHelp()" title="Learn more">?</button>
+          </h4>
           <div class="scale-toggle">
             <button class="scale-btn" onclick="setScale('log')">Log</button>
             <button class="scale-btn active" onclick="setScale('linear')">Linear</button>
           </div>
       
           <div style="margin-top: 1rem; padding: 1rem; background: white; border-radius: 6px; border: 1px solid #e2e8f0;">
-            <strong style="color: #2d3748; font-size: 0.9rem;">Data Sampling:</strong><br>
+            <strong style="color: #2d3748; font-size: 0.9rem;">
+              Data Sampling:
+              <button class="help-btn" onclick="showSamplingHelp()" title="Learn more">?</button>
+            </strong><br>
             <label style="margin: 0.4rem 0; display: block; font-weight: 500; color: #4a5568; font-size: 0.85rem;">
               <input type="radio" name="sampling" value="1" checked style="margin-right: 0.5rem;"> All points
             </label>
@@ -1012,6 +1040,11 @@
 
     // Handle dataset type selection for Single view
     function selectSingleType(type) {
+      // Clear previous visualization if changing type
+      if (selectedSingleType && selectedSingleType !== type) {
+        clearVisualization();
+      }
+      
       selectedSingleType = type;
       
       // Update button states
@@ -1036,12 +1069,38 @@
       document.getElementById('mainControls').classList.remove('show');
     }
 
+    // Clear current visualization and reset state
+    function clearVisualization() {
+      // Clear chart displays
+      document.getElementById('chart').innerHTML = '';
+      document.getElementById('chartLarge').innerHTML = '';
+      document.getElementById('chartTotal').innerHTML = '';
+      
+      // Clear data
+      currentData = { single: null, large: null, total: null };
+      
+      // Clear series
+      allSeries = [];
+      selectedSeries.clear();
+      hiddenSeries.clear();
+      
+      // Clear series list
+      document.getElementById('seriesList').innerHTML = '<p style="color: #718096; text-align: center; margin: 2rem 0; font-weight: 500;">Load a dataset to see available data series</p>';
+      document.getElementById('seriesCount').textContent = '(0 available)';
+      
+      // Reset load button
+      resetLoadButton();
+    }
+
     // Handle cohort selection for Single view
     function selectSingleCohortFromGrid(cohortNum) {
       if (!selectedSingleType) {
         alert('Please select a dataset type first (Large or Total Particles)');
         return;
       }
+      
+      // Clear previous visualization
+      clearVisualization();
       
       // Remove previous selection in single view
       document.querySelectorAll('[data-view="single"]').forEach(btn => {
@@ -1064,6 +1123,9 @@
 
     // Handle cohort selection for Compare view
     function selectCompareCohortFromGrid(cohortNum) {
+      // Clear previous visualization
+      clearVisualization();
+      
       // Remove previous selection in compare view
       document.querySelectorAll('[data-view="compare"]').forEach(btn => {
         btn.classList.remove('selected');
@@ -1741,6 +1803,33 @@
       link.href = `Data/${cohortId}.csv`;
       link.download = `${cohortId}.csv`;
       link.click();
+    }
+
+    // Help functions for UI tooltips
+    function showScaleHelp() {
+      const message = `Scale Type Options:
+
+• Linear Scale: Standard scale where equal distances represent equal value differences. Best for seeing absolute changes in particle counts.
+
+• Log Scale: Logarithmic scale where each step represents a multiplication. Useful when data spans multiple orders of magnitude, making it easier to see patterns in both low and high values simultaneously.
+
+Tip: Use Linear for general viewing, switch to Log if you have very large value ranges.`;
+      
+      alert(message);
+    }
+
+    function showSamplingHelp() {
+      const message = `Data Sampling Options:
+
+• All points: Display every data point from the CSV file. Provides complete detail but may slow down rendering for large datasets.
+
+• Every 5th: Display every 5th data point. Reduces data by 80%, improving performance while maintaining overall patterns.
+
+• Every 10th: Display every 10th data point. Reduces data by 90%, maximizing performance for very large datasets.
+
+Tip: Start with "All points" for detailed analysis. Switch to sampling if the chart feels slow or cluttered.`;
+      
+      alert(message);
     }
 
     // Initialize grids and event listeners when page loads
