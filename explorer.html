@@ -1068,18 +1068,13 @@
           button.classList.add('selected');
           selectedCohorts.single = `${type}_${previousCohort}`;
           
-          // Show controls and auto-load
+          // Show controls
           document.getElementById('mainControls').classList.add('show');
           const typeLabel = type === 'large' ? 'LARGE' : 'TOTAL';
           document.getElementById('selectedCohortTitle').textContent = `Single View: ${typeLabel} ${previousCohort}`;
-          document.getElementById('selectedCohortDesc').textContent = 'Loading data...';
+          document.getElementById('selectedCohortDesc').textContent = 'Click "Load Dataset" button to visualize this cohort';
           
-          // Immediately load the new type for the same cohort
-          console.log('🚀 Type switch: Calling loadData() immediately...');
-          loadData().catch(err => {
-            console.error('❌ Error loading data:', err);
-            document.getElementById('selectedCohortDesc').textContent = 'Error loading data. Please try again.';
-          });
+          console.log('✅ Type switched. Ready to load.');
         }
       } else {
         // Clear previous cohort selection visually
@@ -1143,14 +1138,9 @@
       document.getElementById('mainControls').classList.add('show');
       const typeLabel = selectedSingleType === 'large' ? 'LARGE' : 'TOTAL';
       document.getElementById('selectedCohortTitle').textContent = `Single View: ${typeLabel} ${cohortNum}`;
-      document.getElementById('selectedCohortDesc').textContent = 'Loading data...';
+      document.getElementById('selectedCohortDesc').textContent = 'Click "Load Dataset" button to visualize this cohort';
       
-      // Immediately load the data (no setTimeout delay)
-      console.log('🚀 Single view: Calling loadData() immediately...');
-      loadData().catch(err => {
-        console.error('❌ Error loading data:', err);
-        document.getElementById('selectedCohortDesc').textContent = 'Error loading data. Please try again.';
-      });
+      console.log('✅ Single cohort selected. Ready to load.');
     }
 
     // Handle cohort selection for Compare view
@@ -1176,14 +1166,9 @@
       // Show controls
       document.getElementById('mainControls').classList.add('show');
       document.getElementById('selectedCohortTitle').textContent = `Compare View: Cohort ${cohortNum} - Large vs Total`;
-      document.getElementById('selectedCohortDesc').textContent = 'Loading data...';
+      document.getElementById('selectedCohortDesc').textContent = 'Click "Load Dataset" button to visualize both datasets';
       
-      // Immediately load the data (no setTimeout delay)
-      console.log('🚀 Compare view: Calling loadData() immediately...');
-      loadData().catch(err => {
-        console.error('❌ Error loading data:', err);
-        document.getElementById('selectedCohortDesc').textContent = 'Error loading data. Please try again.';
-      });
+      console.log('✅ Compare cohort selected. Ready to load.');
     }
 
     // ============================================
