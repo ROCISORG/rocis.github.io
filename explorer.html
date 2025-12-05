@@ -1060,7 +1060,46 @@
       } else {
         document.getElementById('singleSmallBtn').classList.add('active');
       }
-      
+       function resetAndRefresh() {
+  console.log('🔄 Full reset initiated...');
+  selectedCohorts = { single: null, large: null, total: null };
+  currentData = { single: null, large: null, total: null };
+  allSeries = [];
+  selectedSeries.clear();
+  hiddenSeries.clear();
+  pennsylvaniaData = {};
+  selectedSingleType = null;
+  currentScale = 'linear';
+  document.getElementById('singleLargeBtn').classList.remove('active');
+  document.getElementById('singleSmallBtn').classList.remove('active');
+  document.getElementById('singleCohortGridContainer').style.display = 'none';
+  document.querySelectorAll('.cohort-button').forEach(btn => btn.classList.remove('selected'));
+  const singlePaFilter = document.getElementById('singlePaFilter');
+  const comparePaFilter = document.getElementById('comparePaFilter');
+  if (singlePaFilter) singlePaFilter.checked = false;
+  if (comparePaFilter) comparePaFilter.checked = false;
+  document.getElementById('mainControls').classList.remove('show');
+  document.getElementById('selectedCohortTitle').textContent = 'No cohort selected';
+  document.getElementById('selectedCohortDesc').textContent = 'Select datasets above to begin visualization';
+  document.getElementById('seriesList').innerHTML = '<p style="color: #718096; text-align: center; margin: 2rem 0; font-weight: 500;">Load a dataset to see available data series</p>';
+  document.getElementById('seriesCount').textContent = '(0 available)';
+  document.getElementById('seriesSearch').value = '';
+  try { Plotly.purge('chart'); Plotly.purge('chartLarge'); Plotly.purge('chartTotal'); } catch (e) {}
+  document.getElementById('chart').innerHTML = '';
+  document.getElementById('chartLarge').innerHTML = '';
+  document.getElementById('chartTotal').innerHTML = '';
+  document.querySelectorAll('.scale-btn').forEach(btn => { btn.classList.remove('active'); if (btn.textContent === 'Linear') btn.classList.add('active'); });
+  const samplingRadio = document.querySelector('input[name="sampling"][value="1"]');
+  if (samplingRadio) samplingRadio.checked = true;
+  if (isColorblindMode) {
+    isColorblindMode = false;
+    const accessibilityBtn = document.querySelector('.accessibility-btn');
+    if (accessibilityBtn) { accessibilityBtn.textContent = 'Enable Colorblind Mode'; accessibilityBtn.classList.remove('active'); }
+  }
+  resetLoadButton();
+  console.log('✅ Full reset complete');
+}
+ 
       // Show cohort grid
       document.getElementById('singleCohortGridContainer').style.display = 'block';
       
