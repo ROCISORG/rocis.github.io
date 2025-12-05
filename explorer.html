@@ -1794,21 +1794,32 @@
     }
 
     function createChartConfig(chartType) {
-      return {
-        responsive: true,
-        displaylogo: false,
-        scrollZoom: true,
-        doubleClick: 'reset',
-        modeBarButtonsToAdd: ['select2d', 'lasso2d'],
-        toImageButtonOptions: {
-          format: 'png',
-          filename: `rocis_${chartType}_${Date.now()}`,
-          height: 600,
-          width: 700,
-          scale: 2
-        }
-      };
+  return {
+    responsive: true,
+    displaylogo: false,
+    scrollZoom: true,
+    doubleClick: 'reset',
+    displayModeBar: true,
+    modeBarButtonsToRemove: [
+      'select2d',
+      'lasso2d',
+      'autoScale2d',
+      'hoverClosestCartesian',
+      'hoverCompareCartesian',
+      'toggleSpikelines'
+    ],
+    modeBarButtonsToAdd: [],
+    toImageButtonOptions: {
+      format: 'png',
+      filename: `rocis_${chartType}_${Date.now()}`,
+      height: 600,
+      width: 700,
+      scale: 2
     }
+  };
+}
+
+
 
     function generateTraces(data, selectedSeries, samplingRate, prefix) {
       const columns = Object.keys(data[0]);
