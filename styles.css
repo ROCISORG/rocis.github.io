@@ -230,7 +230,13 @@ html, body {
   margin: 0;
   color: var(--text-light);
 }
+.button.reset {
+  background: #e53e3e;
+}
 
+.button.reset:hover {
+  background: #c53030;
+}
 /* Buttons */
 .button {
   display: inline-block;
