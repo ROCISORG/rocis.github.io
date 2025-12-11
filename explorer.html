@@ -715,12 +715,6 @@
           and may contain inaccuracies due to <strong>equipment malfunctions, sensor errors, or human error</strong>.
         </p>
       </div>
-    </div>
-
-   <div class="view-toggle">
-      <button class="view-btn" onclick="switchView('compare')">Compare Large vs Total (Same Cohort)</button>
-      <button class="view-btn active" onclick="switchView('single')">Single Dataset</button>
-    </div>
 
       <!-- Troubleshooting Notice -->
       <div style="background: linear-gradient(135deg, #dbeafe, #eff6ff); border: 1px solid #3b82f6; border-radius: 8px; padding: 1rem 1.5rem; margin-top: 1rem; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);">
@@ -733,6 +727,11 @@
           or <strong>Cmd+R</strong> (Mac).
         </p>
       </div>
+    </div>
+
+   <div class="view-toggle">
+      <button class="view-btn" onclick="switchView('compare')">Compare Large vs Total (Same Cohort)</button>
+      <button class="view-btn active" onclick="switchView('single')">Single Dataset</button>
     </div>
 
     <!-- Single View -->
@@ -773,7 +772,7 @@
             <!-- Row 6: Cohorts 52-61 -->
             <div class="cohort-grid-row" id="singleCohortRow6"></div>
             
-            <!-- Row 7: Cohorts 62-65 -->
+            <!-- Row 7: Cohorts 62-66 -->
             <div class="cohort-grid-row" id="singleCohortRow7"></div>
           </div>
         </div>
@@ -810,7 +809,7 @@
           <!-- Row 6: Cohorts 52-61 -->
           <div class="cohort-grid-row" id="compareCohortRow6"></div>
           
-          <!-- Row 7: Cohorts 62-65 -->
+          <!-- Row 7: Cohorts 62-66 -->
           <div class="cohort-grid-row" id="compareCohortRow7"></div>
         </div>
         
@@ -904,83 +903,62 @@
 
   <script>
     // ============================================
-    // COHORT GRID SYSTEM - START
+    // GLOBAL STATE VARIABLES
     // ============================================
+    let currentView = 'single';
+    let selectedCohorts = { single: null, large: null, total: null };
+    let currentData = { single: null, large: null, total: null };
+    let allSeries = [];
+    let currentScale = 'linear';
+    let isColorblindMode = false;
+    let hiddenSeries = new Set();
+    let selectedSeries = new Set();
+    let selectedSingleType = null;
+    let pennsylvaniaData = {};
+    
+    const defaultColors = [
+      "#2563EB", "#DC2626", "#059669", "#EA580C", "#7C3AED",
+      "#0891B2", "#DB2777", "#2563EB", "#65A30D", "#C026D3",
+      "#0D9488", "#E11D48", "#4F46E5", "#CA8A04", "#16A34A"
+    ];
+    
+    const colorblindColors = [
+      "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+      "#8c564b", "#e377c2", "#17becf", "#bcbd22", "#aec7e8",
+      "#ffbb78", "#98df8a", "#ff9896", "#c5b0d5", "#c49c94"
+    ];
+    
+    const NON_PA_PATTERNS = [
+      '_ME', '_CA', '_OR', '_MN', '_FL', '_TX', '_NY', '_WA', '_IL',
+      'CASJ', 'ORCB', 'MEBA', 'MNMP'
+    ];
 
-    // Cohort start dates (cohorts 1-65, skipping 31)
+    // ============================================
+    // COHORT DATES
+    // ============================================
     const cohortDates = {
-      1: "Sep 24, 2015",
-      2: "Oct 24, 2015",
-      3: "Nov 24, 2015",
-      4: "Jan 8, 2016",
-      5: "Feb 6, 2016",
-      6: "Mar 3, 2016",
-      7: "May 2, 2016",
-      8: "May 26, 2016",
-      9: "Jul 30, 2016",
-      10: "Aug 6, 2016",
-      11: "Sep 9, 2016",
-      12: "Oct 6, 2016",
-      13: "Nov 11, 2016",
-      14: "Dec 10, 2016",
-      15: "Jan 12, 2017",
-      16: "Feb 16, 2017",
-      17: "Mar 20, 2017",
-      18: "Apr 27, 2017",
-      19: "Jun 1, 2017",
-      20: "Jul 11, 2017",
-      21: "Aug 5, 2017",
-      22: "Sep 2, 2017",
-      23: "Oct 2, 2017",
-      24: "Nov 12, 2017",
-      25: "Dec 11, 2017",
-      26: "Jan 13, 2018",
-      27: "Feb 10, 2018",
-      28: "Mar 23, 2018",
-      29: "Apr 23, 2018",
-      30: "Jun 2, 2018",
-      // 31 is skipped
-      32: "Aug 17, 2018",
-      33: "Sep 16, 2018",
-      34: "Nov 1, 2018",
-      35: "Dec 15, 2018",
-      36: "Jan 12, 2019",
-      37: "Feb 20, 2019",
-      38: "Mar 22, 2019",
-      39: "Jun 15, 2019",
-      40: "Jul 25, 2019",
-      41: "Sep 13, 2019",
-      42: "Jan 22, 2020",
-      43: "Apr 16, 2020",
-      44: "Sep 6, 2020",
-      45: "Nov 5, 2020",
-      46: "Jan 20, 2021",
-      47: "Apr 13, 2021",
-      48: "Jul 10, 2021",
-      49: "Oct 8, 2021",
-      50: "Dec 7, 2021",
-      51: "Mar 2, 2022",
-      52: "Sep 16, 2022",
-      53: "Dec 1, 2022",
-      54: "Feb 22, 2023",
-      55: "Apr 30, 2023",
-      56: "Aug 28, 2023",
-      57: "Nov 10, 2023",
-      58: "Jan 31, 2024",
-      59: "Apr 19, 2024",
-      60: "Aug 18, 2024",
-      61: "Nov 8, 2024",
-      62: "Feb 2, 2025",
-      63: "Apr 12, 2025",
-      64: "Jun 19, 2025",
-      65: "Sep 10, 2025",
+      1: "Sep 24, 2015", 2: "Oct 24, 2015", 3: "Nov 24, 2015", 4: "Jan 8, 2016",
+      5: "Feb 6, 2016", 6: "Mar 3, 2016", 7: "May 2, 2016", 8: "May 26, 2016",
+      9: "Jul 30, 2016", 10: "Aug 6, 2016", 11: "Sep 9, 2016", 12: "Oct 6, 2016",
+      13: "Nov 11, 2016", 14: "Dec 10, 2016", 15: "Jan 12, 2017", 16: "Feb 16, 2017",
+      17: "Mar 20, 2017", 18: "Apr 27, 2017", 19: "Jun 1, 2017", 20: "Jul 11, 2017",
+      21: "Aug 5, 2017", 22: "Sep 2, 2017", 23: "Oct 2, 2017", 24: "Nov 12, 2017",
+      25: "Dec 11, 2017", 26: "Jan 13, 2018", 27: "Feb 10, 2018", 28: "Mar 23, 2018",
+      29: "Apr 23, 2018", 30: "Jun 2, 2018", 32: "Aug 17, 2018", 33: "Sep 16, 2018",
+      34: "Nov 1, 2018", 35: "Dec 15, 2018", 36: "Jan 12, 2019", 37: "Feb 20, 2019",
+      38: "Mar 22, 2019", 39: "Jun 15, 2019", 40: "Jul 25, 2019", 41: "Sep 13, 2019",
+      42: "Jan 22, 2020", 43: "Apr 16, 2020", 44: "Sep 6, 2020", 45: "Nov 5, 2020",
+      46: "Jan 20, 2021", 47: "Apr 13, 2021", 48: "Jul 10, 2021", 49: "Oct 8, 2021",
+      50: "Dec 7, 2021", 51: "Mar 2, 2022", 52: "Sep 16, 2022", 53: "Dec 1, 2022",
+      54: "Feb 22, 2023", 55: "Apr 30, 2023", 56: "Aug 28, 2023", 57: "Nov 10, 2023",
+      58: "Jan 31, 2024", 59: "Apr 19, 2024", 60: "Aug 18, 2024", 61: "Nov 8, 2024",
+      62: "Feb 2, 2025", 63: "Apr 12, 2025", 64: "Jun 19, 2025", 65: "Sep 10, 2025",
       66: "Nov 16, 2025"
-      
     };
 
-    let selectedSingleType = null; // Track which dataset type is selected for Single view
-
-    // Generate cohort grid for Single view (cohorts 1-65, skipping 31)
+    // ============================================
+    // COHORT GRID GENERATION
+    // ============================================
     function generateSingleCohortGrid() {
       const rows = [
         { id: 'singleCohortRow1', cohorts: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
@@ -996,7 +974,7 @@
         const container = document.getElementById(row.id);
         if (!container) return;
         
-        container.innerHTML = ''; // Clear existing
+        container.innerHTML = '';
         
         row.cohorts.forEach(i => {
           const button = document.createElement('div');
@@ -1015,7 +993,6 @@
       });
     }
 
-    // Generate cohort grid for Compare view (cohorts 1-65, skipping 31)
     function generateCompareCohortGrid() {
       const rows = [
         { id: 'compareCohortRow1', cohorts: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
@@ -1031,7 +1008,7 @@
         const container = document.getElementById(row.id);
         if (!container) return;
         
-        container.innerHTML = ''; // Clear existing
+        container.innerHTML = '';
         
         row.cohorts.forEach(i => {
           const button = document.createElement('div');
@@ -1050,7 +1027,48 @@
       });
     }
 
-    // Handle dataset type selection for Single view
+    // ============================================
+    // COMPLETE COHORT CLEANUP FUNCTION
+    // ============================================
+    function completeCohortCleanup() {
+      console.log('🧹 Performing complete cohort cleanup...');
+      
+      // Clear all data
+      currentData = { single: null, large: null, total: null };
+      
+      // Clear series completely
+      allSeries = [];
+      selectedSeries.clear();
+      hiddenSeries.clear();
+      
+      // Clear and purge all charts
+      try {
+        Plotly.purge('chart');
+        Plotly.purge('chartLarge');
+        Plotly.purge('chartTotal');
+      } catch (e) {
+        console.log('Charts already cleared');
+      }
+      
+      // Clear chart DOM
+      document.getElementById('chart').innerHTML = '';
+      document.getElementById('chartLarge').innerHTML = '';
+      document.getElementById('chartTotal').innerHTML = '';
+      
+      // Reset series list UI
+      document.getElementById('seriesList').innerHTML = '<p style="color: #718096; text-align: center; margin: 2rem 0; font-weight: 500;">Load a dataset to see available data series</p>';
+      document.getElementById('seriesCount').textContent = '(0 available)';
+      document.getElementById('seriesSearch').value = '';
+      
+      // Reset load button state
+      resetLoadButton();
+      
+      console.log('✅ Cohort cleanup complete');
+    }
+
+    // ============================================
+    // COHORT SELECTION FUNCTIONS
+    // ============================================
     function selectSingleType(type) {
       const previousType = selectedSingleType;
       const previousCohort = selectedCohorts.single ? selectedCohorts.single.split('_')[1] : null;
@@ -1059,7 +1077,7 @@
       
       // Clear previous visualization if changing type
       if (selectedSingleType && selectedSingleType !== type) {
-        clearVisualization();
+        completeCohortCleanup();
       }
       
       selectedSingleType = type;
@@ -1073,58 +1091,17 @@
       } else {
         document.getElementById('singleSmallBtn').classList.add('active');
       }
-       function resetAndRefresh() {
-  console.log('🔄 Full reset initiated...');
-  selectedCohorts = { single: null, large: null, total: null };
-  currentData = { single: null, large: null, total: null };
-  allSeries = [];
-  selectedSeries.clear();
-  hiddenSeries.clear();
-  pennsylvaniaData = {};
-  selectedSingleType = null;
-  currentScale = 'linear';
-  document.getElementById('singleLargeBtn').classList.remove('active');
-  document.getElementById('singleSmallBtn').classList.remove('active');
-  document.getElementById('singleCohortGridContainer').style.display = 'none';
-  document.querySelectorAll('.cohort-button').forEach(btn => btn.classList.remove('selected'));
-  const singlePaFilter = document.getElementById('singlePaFilter');
-  const comparePaFilter = document.getElementById('comparePaFilter');
-  if (singlePaFilter) singlePaFilter.checked = false;
-  if (comparePaFilter) comparePaFilter.checked = false;
-  document.getElementById('mainControls').classList.remove('show');
-  document.getElementById('selectedCohortTitle').textContent = 'No cohort selected';
-  document.getElementById('selectedCohortDesc').textContent = 'Select datasets above to begin visualization';
-  document.getElementById('seriesList').innerHTML = '<p style="color: #718096; text-align: center; margin: 2rem 0; font-weight: 500;">Load a dataset to see available data series</p>';
-  document.getElementById('seriesCount').textContent = '(0 available)';
-  document.getElementById('seriesSearch').value = '';
-  try { Plotly.purge('chart'); Plotly.purge('chartLarge'); Plotly.purge('chartTotal'); } catch (e) {}
-  document.getElementById('chart').innerHTML = '';
-  document.getElementById('chartLarge').innerHTML = '';
-  document.getElementById('chartTotal').innerHTML = '';
-  document.querySelectorAll('.scale-btn').forEach(btn => { btn.classList.remove('active'); if (btn.textContent === 'Linear') btn.classList.add('active'); });
-  const samplingRadio = document.querySelector('input[name="sampling"][value="1"]');
-  if (samplingRadio) samplingRadio.checked = true;
-  if (isColorblindMode) {
-    isColorblindMode = false;
-    const accessibilityBtn = document.querySelector('.accessibility-btn');
-    if (accessibilityBtn) { accessibilityBtn.textContent = 'Enable Colorblind Mode'; accessibilityBtn.classList.remove('active'); }
-  }
-  resetLoadButton();
-  console.log('✅ Full reset complete');
-}
- 
+      
       // Show cohort grid
       document.getElementById('singleCohortGridContainer').style.display = 'block';
       
-      // If we had a cohort selected before, reselect it and auto-load
+      // If we had a cohort selected before, reselect it
       if (previousCohort && previousType !== type) {
-        // Reselect the same cohort number with new type
         const button = document.querySelector(`[data-view="single"][data-cohort="${previousCohort}"]`);
         if (button) {
           button.classList.add('selected');
           selectedCohorts.single = `${type}_${previousCohort}`;
           
-          // Show controls
           document.getElementById('mainControls').classList.add('show');
           const typeLabel = type === 'large' ? 'LARGE' : 'TOTAL';
           document.getElementById('selectedCohortTitle').textContent = `Single View: ${typeLabel} ${previousCohort}`;
@@ -1133,40 +1110,14 @@
           console.log('✅ Type switched. Ready to load.');
         }
       } else {
-        // Clear previous cohort selection visually
         document.querySelectorAll('[data-view="single"]').forEach(btn => {
           btn.classList.remove('selected');
         });
         
-        // Hide controls until cohort is selected
         document.getElementById('mainControls').classList.remove('show');
       }
     }
 
-    // Clear current visualization and reset state
-    function clearVisualization() {
-      // Clear chart displays
-      document.getElementById('chart').innerHTML = '';
-      document.getElementById('chartLarge').innerHTML = '';
-      document.getElementById('chartTotal').innerHTML = '';
-      
-      // Clear data
-      currentData = { single: null, large: null, total: null };
-      
-      // Clear series
-      allSeries = [];
-      selectedSeries.clear();
-      hiddenSeries.clear();
-      
-      // Clear series list
-      document.getElementById('seriesList').innerHTML = '<p style="color: #718096; text-align: center; margin: 2rem 0; font-weight: 500;">Load a dataset to see available data series</p>';
-      document.getElementById('seriesCount').textContent = '(0 available)';
-      
-      // Reset load button
-      resetLoadButton();
-    }
-
-    // Handle cohort selection for Single view
     function selectSingleCohortFromGrid(cohortNum) {
       if (!selectedSingleType) {
         alert('Please select a dataset type first (Large or Total Particles)');
@@ -1175,8 +1126,15 @@
       
       console.log('🎯 Single cohort selected:', cohortNum);
       
-      // Clear previous visualization
-      clearVisualization();
+      // CRITICAL: Check if we're switching cohorts
+      const previousCohort = selectedCohorts.single;
+      const newCohort = `${selectedSingleType}_${cohortNum}`;
+      const isSwitchingCohort = previousCohort && previousCohort !== newCohort;
+      
+      if (isSwitchingCohort) {
+        console.log('🔄 Switching from', previousCohort, 'to', newCohort);
+        completeCohortCleanup();
+      }
       
       // Remove previous selection in single view
       document.querySelectorAll('[data-view="single"]').forEach(btn => {
@@ -1188,7 +1146,7 @@
       if (button) button.classList.add('selected');
       
       // Set the cohort value
-      selectedCohorts.single = `${selectedSingleType}_${cohortNum}`;
+      selectedCohorts.single = newCohort;
       
       // Show controls
       document.getElementById('mainControls').classList.add('show');
@@ -1199,12 +1157,19 @@
       console.log('✅ Single cohort selected. Ready to load.');
     }
 
-    // Handle cohort selection for Compare view
     function selectCompareCohortFromGrid(cohortNum) {
       console.log('🎯 Compare cohort selected:', cohortNum);
       
-      // Clear previous visualization
-      clearVisualization();
+      // CRITICAL: Check if we're switching cohorts
+      const previousLarge = selectedCohorts.large;
+      const newLarge = `large_${cohortNum}`;
+      const newTotal = `small_${cohortNum}`;
+      const isSwitchingCohort = previousLarge && previousLarge !== newLarge;
+      
+      if (isSwitchingCohort) {
+        console.log('🔄 Switching cohorts in compare view');
+        completeCohortCleanup();
+      }
       
       // Remove previous selection in compare view
       document.querySelectorAll('[data-view="compare"]').forEach(btn => {
@@ -1216,8 +1181,8 @@
       if (button) button.classList.add('selected');
       
       // Set the cohort values
-      selectedCohorts.large = `large_${cohortNum}`;
-      selectedCohorts.total = `small_${cohortNum}`;
+      selectedCohorts.large = newLarge;
+      selectedCohorts.total = newTotal;
       
       // Show controls
       document.getElementById('mainControls').classList.add('show');
@@ -1228,84 +1193,8 @@
     }
 
     // ============================================
-    // COHORT GRID SYSTEM - END
+    // VIEW SWITCHING
     // ============================================
-
-    let currentView = 'single';
-    let selectedCohorts = { single: null, large: null, total: null };
-    let currentData = { single: null, large: null, total: null };
-    let allSeries = [];
-    let currentScale = 'linear';
-    let isColorblindMode = false;
-    let hiddenSeries = new Set();
-    let selectedSeries = new Set();
-    
-    const defaultColors = [
-      "#2563EB", "#DC2626", "#059669", "#EA580C", "#7C3AED",
-      "#0891B2", "#DB2777", "#2563EB", "#65A30D", "#C026D3",
-      "#0D9488", "#E11D48", "#4F46E5", "#CA8A04", "#16A34A"
-    ];
-    
-    const colorblindColors = [
-      "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
-      "#8c564b", "#e377c2", "#17becf", "#bcbd22", "#aec7e8",
-      "#ffbb78", "#98df8a", "#ff9896", "#c5b0d5", "#c49c94"
-    ];
-    
-    function getCurrentColors() {
-      return isColorblindMode ? colorblindColors : defaultColors;
-    }
-
-    let pennsylvaniaData = {};
-    
-    const NON_PA_PATTERNS = [
-      '_ME', '_CA', '_OR', '_MN', '_FL', '_TX', '_NY', '_WA', '_IL',
-      'CASJ', 'ORCB', 'MEBA', 'MNMP'
-    ];
-    
-    function detectPAParticipants(csvData, cohortId) {
-      if (!csvData || csvData.length === 0) return [];
-      
-      const columns = Object.keys(csvData[0]);
-      const dataColumns = columns.slice(1);
-      
-      console.log(`🔍 Detecting PA participants for ${cohortId} from columns:`, dataColumns);
-      
-      const allParticipants = dataColumns
-        .map(col => {
-          const match = col.match(/_O_([^_]+)/);
-          return match ? match[1] : null;
-        })
-        .filter(code => code !== null);
-      
-      const paParticipants = allParticipants.filter(participant => {
-        const isNonPA = NON_PA_PATTERNS.some(pattern => 
-          participant.includes(pattern.replace('_', ''))
-        );
-        return !isNonPA;
-      });
-      
-      const uniquePAParticipants = [...new Set(paParticipants)];
-      
-      console.log(`✅ Detected PA participants for ${cohortId}:`, uniquePAParticipants);
-      console.log(`❌ Excluded non-PA participants:`, allParticipants.filter(p => !uniquePAParticipants.includes(p)));
-      
-      return uniquePAParticipants;
-    }
-    
-    function updatePAData(cohortId, participants) {
-      const parts = cohortId.split('_');
-      const cohortNum = parts[1];
-      const cohortKey = `cohort_${cohortNum}`;
-      
-      if (!pennsylvaniaData[cohortKey]) {
-        pennsylvaniaData[cohortKey] = {};
-      }
-      
-      pennsylvaniaData[cohortKey][cohortId] = participants;
-      console.log(`📝 Updated PA data for ${cohortKey}:`, pennsylvaniaData[cohortKey]);
-    }
-
     function switchView(view) {
       currentView = view;
       
@@ -1345,61 +1234,65 @@
       });
     }
 
-    function setScale(scale) {
-      currentScale = scale;
+    // ============================================
+    // RESET AND REFRESH FUNCTION
+    // ============================================
+    function resetAndRefresh() {
+      console.log('🔄 Full reset initiated...');
       
-      document.querySelectorAll('.scale-btn').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
+      selectedCohorts = { single: null, large: null, total: null };
+      selectedSingleType = null;
+      currentScale = 'linear';
+      pennsylvaniaData = {};
       
-      if (Object.values(currentData).some(data => data)) {
-        updateVisualization();
-      }
-    }
-
-    function toggleColorblind() {
-      const button = document.querySelector('.accessibility-btn');
+      // Complete cleanup
+      completeCohortCleanup();
       
-      isColorblindMode = !isColorblindMode;
+      // Reset UI elements
+      document.getElementById('singleLargeBtn').classList.remove('active');
+      document.getElementById('singleSmallBtn').classList.remove('active');
+      document.getElementById('singleCohortGridContainer').style.display = 'none';
       
-      if (isColorblindMode) {
-        button.textContent = 'Disable Colorblind Mode';
-        button.classList.add('active');
-      } else {
-        button.textContent = 'Enable Colorblind Mode';
-        button.classList.remove('active');
-      }
+      // Clear all cohort selections
+      document.querySelectorAll('.cohort-button').forEach(btn => btn.classList.remove('selected'));
       
-      const colorIndicators = document.querySelectorAll('.color-indicator');
-      const colors = getCurrentColors();
-      colorIndicators.forEach((indicator, index) => {
-        indicator.style.backgroundColor = colors[index % colors.length];
+      // Reset filters
+      const singlePaFilter = document.getElementById('singlePaFilter');
+      const comparePaFilter = document.getElementById('comparePaFilter');
+      if (singlePaFilter) singlePaFilter.checked = false;
+      if (comparePaFilter) comparePaFilter.checked = false;
+      
+      // Hide controls
+      document.getElementById('mainControls').classList.remove('show');
+      document.getElementById('selectedCohortTitle').textContent = 'No cohort selected';
+      document.getElementById('selectedCohortDesc').textContent = 'Select datasets above to begin visualization';
+      
+      // Reset scale buttons
+      document.querySelectorAll('.scale-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.textContent === 'Linear') btn.classList.add('active');
       });
       
-      if (Object.values(currentData).some(data => data)) {
-        updateVisualization();
-      }
-    }
-
-    function setZoom(zoomType) {
-      document.querySelectorAll('.zoom-btn').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
+      // Reset sampling
+      const samplingRadio = document.querySelector('input[name="sampling"][value="1"]');
+      if (samplingRadio) samplingRadio.checked = true;
       
-      if (zoomType === 'recent') {
-        const layout_update = {
-          'xaxis.range': [
-            new Date(Date.now() - 7*24*60*60*1000),
-            new Date()
-          ]
-        };
-        Plotly.relayout('chart', layout_update);
-      } else {
-        Plotly.relayout('chart', {
-          'xaxis.autorange': true,
-          'yaxis.autorange': true
-        });
+      // Reset colorblind mode
+      if (isColorblindMode) {
+        isColorblindMode = false;
+        const accessibilityBtn = document.querySelector('.accessibility-btn');
+        if (accessibilityBtn) {
+          accessibilityBtn.textContent = 'Enable Colorblind Mode';
+          accessibilityBtn.classList.remove('active');
+        }
       }
+      
+      console.log('✅ Full reset complete');
     }
 
+    // ============================================
+    // DATA LOADING FUNCTIONS
+    // ============================================
     async function loadData() {
       const loadBtn = document.getElementById('loadBtn');
       loadBtn.disabled = true;
@@ -1408,13 +1301,34 @@
       try {
         console.log('🚀 Starting loadData() for view:', currentView);
         
+        // CRITICAL: Clear everything before loading new data
+        console.log('🧹 Clearing previous data before load...');
+        currentData = { single: null, large: null, total: null };
+        allSeries = [];
+        selectedSeries.clear();
+        hiddenSeries.clear();
+        
         if (currentView === 'single') {
           if (!selectedCohorts.single) throw new Error('No cohort selected');
           console.log('📊 Loading single cohort:', selectedCohorts.single);
+          
+          // Purge chart before loading
+          try {
+            Plotly.purge('chart');
+          } catch (e) {}
+          
           await loadCohortData('single', selectedCohorts.single);
+          
         } else if (currentView === 'compare') {
           if (!selectedCohorts.large || !selectedCohorts.total) throw new Error('No cohort selected for comparison');
           console.log('📊 Loading compare cohorts:', selectedCohorts.large, selectedCohorts.total);
+          
+          // Purge charts before loading
+          try {
+            Plotly.purge('chartLarge');
+            Plotly.purge('chartTotal');
+          } catch (e) {}
+          
           await Promise.all([
             loadCohortData('large', selectedCohorts.large),
             loadCohortData('total', selectedCohorts.total)
@@ -1472,6 +1386,58 @@
       });
     }
 
+    function resetLoadButton() {
+      const loadBtn = document.getElementById('loadBtn');
+      loadBtn.disabled = false;
+      loadBtn.textContent = 'Load Dataset';
+    }
+
+    // ============================================
+    // PENNSYLVANIA FILTERING
+    // ============================================
+    function detectPAParticipants(csvData, cohortId) {
+      if (!csvData || csvData.length === 0) return [];
+      
+      const columns = Object.keys(csvData[0]);
+      const dataColumns = columns.slice(1);
+      
+      console.log(`🔍 Detecting PA participants for ${cohortId} from columns:`, dataColumns);
+      
+      const allParticipants = dataColumns
+        .map(col => {
+          const match = col.match(/_O_([^_]+)/);
+          return match ? match[1] : null;
+        })
+        .filter(code => code !== null);
+      
+      const paParticipants = allParticipants.filter(participant => {
+        const isNonPA = NON_PA_PATTERNS.some(pattern => 
+          participant.includes(pattern.replace('_', ''))
+        );
+        return !isNonPA;
+      });
+      
+      const uniquePAParticipants = [...new Set(paParticipants)];
+      
+      console.log(`✅ Detected PA participants for ${cohortId}:`, uniquePAParticipants);
+      console.log(`❌ Excluded non-PA participants:`, allParticipants.filter(p => !uniquePAParticipants.includes(p)));
+      
+      return uniquePAParticipants;
+    }
+    
+    function updatePAData(cohortId, participants) {
+      const parts = cohortId.split('_');
+      const cohortNum = parts[1];
+      const cohortKey = `cohort_${cohortNum}`;
+      
+      if (!pennsylvaniaData[cohortKey]) {
+        pennsylvaniaData[cohortKey] = {};
+      }
+      
+      pennsylvaniaData[cohortKey][cohortId] = participants;
+      console.log(`📝 Updated PA data for ${cohortKey}:`, pennsylvaniaData[cohortKey]);
+    }
+
     function filterPennsylvania(data, cohortId) {
       const parts = cohortId.split('_');
       const cohortNum = parts[1];
@@ -1504,12 +1470,9 @@
       });
     }
 
-    function resetLoadButton() {
-      const loadBtn = document.getElementById('loadBtn');
-      loadBtn.disabled = false;
-      loadBtn.textContent = 'Load Dataset';
-    }
-
+    // ============================================
+    // SERIES SELECTION
+    // ============================================
     function setupSeriesSelection() {
       console.log('🔧 Setting up series selection...');
       const seriesCount = document.getElementById('seriesCount');
@@ -1569,7 +1532,6 @@
       console.log('✅ Series selection setup complete. Selected series:', selectedSeries.size);
       console.log('📊 Calling updateVisualization()...');
       
-      // Now that series are selected, update the visualization
       updateVisualization();
     }
 
@@ -1620,20 +1582,18 @@
         .filter(series => !hiddenSeries.has(series));
     }
 
-    function getSamplingRate() {
-      const selected = document.querySelector('input[name="sampling"]:checked');
-      return selected ? parseInt(selected.value) : 1;
-    }
-
+    // ============================================
+    // VISUALIZATION
+    // ============================================
     function updateVisualization() {
       console.log('📈 updateVisualization() called');
       console.log('   Current view:', currentView);
       console.log('   Current data:', Object.keys(currentData).filter(k => currentData[k] !== null));
       
-      const selectedSeries = getSelectedSeries();
-      console.log('   Selected series count:', selectedSeries.length);
+      const selectedSeriesArray = getSelectedSeries();
+      console.log('   Selected series count:', selectedSeriesArray.length);
       
-      if (selectedSeries.length === 0) {
+      if (selectedSeriesArray.length === 0) {
         console.warn('⚠️ No series selected, showing message');
         if (currentView === 'single') {
           document.getElementById('chart').innerHTML = '<div style="padding: 3rem; text-align: center; color: #718096; font-size: 1.1rem; font-weight: 500;">Select at least one data series to display the chart</div>';
@@ -1650,7 +1610,7 @@
         let traces = [];
 
         if (currentData.single) {
-          traces = generateTraces(currentData.single, selectedSeries, samplingRate, '');
+          traces = generateTraces(currentData.single, selectedSeriesArray, samplingRate, '');
           console.log('   Generated traces:', traces.length);
         }
 
@@ -1659,7 +1619,7 @@
           return;
         }
 
-        const layout = createChartLayout(getChartTitle(selectedSeries.length));
+        const layout = createChartLayout(getChartTitle(selectedSeriesArray.length));
         layout.margin = { l: 80, r: 160, t: 70, b: 60 };
         layout.legend = {
           orientation: 'v',
@@ -1676,14 +1636,14 @@
         };
         const config = createChartConfig('single');
 
-        console.log('🎨 Calling Plotly.react for single chart...');
-        Plotly.react('chart', traces, layout, config).then(() => {
+        console.log('🎨 Calling Plotly.newPlot for single chart (complete redraw)...');
+        
+        Plotly.newPlot('chart', traces, layout, config).then(() => {
           console.log('✅ Single chart rendered successfully');
           const chartDiv = document.getElementById('chart');
           
           chartDiv.on('plotly_hover', function(eventData) {
             const curveNumber = eventData.points[0].curveNumber;
-            
             const widths = traces.map((_, i) => i === curveNumber ? 8 : 1);
             const opacities = traces.map((_, i) => i === curveNumber ? 1 : 0.05);
             
@@ -1715,12 +1675,12 @@
         
         if (currentData.large) {
           console.log('   Rendering Large chart...');
-          const largeTraces = generateTraces(currentData.large, selectedSeries, samplingRate, '');
+          const largeTraces = generateTraces(currentData.large, selectedSeriesArray, samplingRate, '');
           console.log('   Large traces:', largeTraces.length);
-          const largeLayout = createChartLayout(`Large Particles - Cohort ${selectedCohorts.large?.split('_')[1] || ''} (${selectedSeries.length} series)`);
+          const largeLayout = createChartLayout(`Large Particles - Cohort ${selectedCohorts.large?.split('_')[1] || ''} (${selectedSeriesArray.length} series)`);
           const largeConfig = createChartConfig('large');
           
-          Plotly.react('chartLarge', largeTraces, largeLayout, largeConfig).then(() => {
+          Plotly.newPlot('chartLarge', largeTraces, largeLayout, largeConfig).then(() => {
             console.log('✅ Large chart rendered successfully');
             const chartLarge = document.getElementById('chartLarge');
             
@@ -1748,12 +1708,12 @@
         
         if (currentData.total) {
           console.log('   Rendering Total chart...');
-          const totalTraces = generateTraces(currentData.total, selectedSeries, samplingRate, '');
+          const totalTraces = generateTraces(currentData.total, selectedSeriesArray, samplingRate, '');
           console.log('   Total traces:', totalTraces.length);
-          const totalLayout = createChartLayout(`Total Particles - Cohort ${selectedCohorts.total?.split('_')[1] || ''} (${selectedSeries.length} series)`);
+          const totalLayout = createChartLayout(`Total Particles - Cohort ${selectedCohorts.total?.split('_')[1] || ''} (${selectedSeriesArray.length} series)`);
           const totalConfig = createChartConfig('total');
           
-          Plotly.react('chartTotal', totalTraces, totalLayout, totalConfig).then(() => {
+          Plotly.newPlot('chartTotal', totalTraces, totalLayout, totalConfig).then(() => {
             console.log('✅ Total chart rendered successfully');
             const chartTotal = document.getElementById('chartTotal');
             
@@ -1811,7 +1771,6 @@
           spikethickness: 2,
           spikedash: 'solid'
         },
-       
         yaxis: { 
           title: {
             text: 'Particle Count (per 0.01 ft³)',
@@ -1848,32 +1807,30 @@
     }
 
     function createChartConfig(chartType) {
-  return {
-    responsive: true,
-    displaylogo: false,
-    scrollZoom: true,
-    doubleClick: 'reset',
-    displayModeBar: true,
-    modeBarButtonsToRemove: [
-      'select2d',
-      'lasso2d',
-      'autoScale2d',
-      'hoverClosestCartesian',
-      'hoverCompareCartesian',
-      'toggleSpikelines'
-    ],
-    modeBarButtonsToAdd: [],
-    toImageButtonOptions: {
-      format: 'png',
-      filename: `rocis_${chartType}_${Date.now()}`,
-      height: 600,
-      width: 700,
-      scale: 2
+      return {
+        responsive: true,
+        displaylogo: false,
+        scrollZoom: true,
+        doubleClick: 'reset',
+        displayModeBar: true,
+        modeBarButtonsToRemove: [
+          'select2d',
+          'lasso2d',
+          'autoScale2d',
+          'hoverClosestCartesian',
+          'hoverCompareCartesian',
+          'toggleSpikelines'
+        ],
+        modeBarButtonsToAdd: [],
+        toImageButtonOptions: {
+          format: 'png',
+          filename: `rocis_${chartType}_${Date.now()}`,
+          height: 600,
+          width: 700,
+          scale: 2
+        }
+      };
     }
-  };
-}
-
-
 
     function generateTraces(data, selectedSeries, samplingRate, prefix) {
       const columns = Object.keys(data[0]);
@@ -1923,6 +1880,53 @@
       }
     }
 
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
+    function getCurrentColors() {
+      return isColorblindMode ? colorblindColors : defaultColors;
+    }
+
+    function getSamplingRate() {
+      const selected = document.querySelector('input[name="sampling"]:checked');
+      return selected ? parseInt(selected.value) : 1;
+    }
+
+    function setScale(scale) {
+      currentScale = scale;
+      
+      document.querySelectorAll('.scale-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      if (Object.values(currentData).some(data => data)) {
+        updateVisualization();
+      }
+    }
+
+    function toggleColorblind() {
+      const button = document.querySelector('.accessibility-btn');
+      
+      isColorblindMode = !isColorblindMode;
+      
+      if (isColorblindMode) {
+        button.textContent = 'Disable Colorblind Mode';
+        button.classList.add('active');
+      } else {
+        button.textContent = 'Enable Colorblind Mode';
+        button.classList.remove('active');
+      }
+      
+      const colorIndicators = document.querySelectorAll('.color-indicator');
+      const colors = getCurrentColors();
+      colorIndicators.forEach((indicator, index) => {
+        indicator.style.backgroundColor = colors[index % colors.length];
+      });
+      
+      if (Object.values(currentData).some(data => data)) {
+        updateVisualization();
+      }
+    }
+
     function downloadData() {
       if (currentView === 'single' && selectedCohorts.single) {
         downloadCsv(selectedCohorts.single);
@@ -1941,13 +1945,12 @@
       link.click();
     }
 
-    // Help functions for UI tooltips
     function showScaleHelp() {
       const message = `Scale Type Options:
 
-• Linear Scale: Standard scale where equal distances represent equal value differences. Best for seeing absolute changes in particle counts.
+- Linear Scale: Standard scale where equal distances represent equal value differences. Best for seeing absolute changes in particle counts.
 
-• Log Scale: Logarithmic scale where each step represents a multiplication. Useful when data spans multiple orders of magnitude, making it easier to see patterns in both low and high values simultaneously.
+- Log Scale: Logarithmic scale where each step represents a multiplication. Useful when data spans multiple orders of magnitude, making it easier to see patterns in both low and high values simultaneously.
 
 Tip: Use Linear for general viewing, switch to Log if you have very large value ranges.`;
       
@@ -1957,18 +1960,20 @@ Tip: Use Linear for general viewing, switch to Log if you have very large value 
     function showSamplingHelp() {
       const message = `Data Sampling Options:
 
-• All points: Display every data point from the CSV file. Provides complete detail but may slow down rendering for large datasets.
+- All points: Display every data point from the CSV file. Provides complete detail but may slow down rendering for large datasets.
 
-• Every 5th: Display every 5th data point. Reduces data by 80%, improving performance while maintaining overall patterns.
+- Every 5th: Display every 5th data point. Reduces data by 80%, improving performance while maintaining overall patterns.
 
-• Every 10th: Display every 10th data point. Reduces data by 90%, maximizing performance for very large datasets.
+- Every 10th: Display every 10th data point. Reduces data by 90%, maximizing performance for very large datasets.
 
 Tip: Start with "All points" for detailed analysis. Switch to sampling if the chart feels slow or cluttered.`;
       
       alert(message);
     }
 
-    // Initialize grids and event listeners when page loads
+    // ============================================
+    // INITIALIZATION
+    // ============================================
     document.addEventListener('DOMContentLoaded', function() {
       // Generate both cohort grids on page load
       generateSingleCohortGrid();
