@@ -1028,6 +1028,57 @@
     }
 
     // ============================================
+    // AGGRESSIVE CHART CLEANUP
+    // ============================================
+    function aggressiveChartCleanup() {
+      console.log('🧹 AGGRESSIVE chart cleanup...');
+      
+      // Method 1: Plotly purge
+      try {
+        Plotly.purge('chart');
+      } catch (e) {}
+      try {
+        Plotly.purge('chartLarge');
+      } catch (e) {}
+      try {
+        Plotly.purge('chartTotal');
+      } catch (e) {}
+      
+      // Method 2: Direct DOM manipulation
+      const chart = document.getElementById('chart');
+      const chartLarge = document.getElementById('chartLarge');
+      const chartTotal = document.getElementById('chartTotal');
+      
+      if (chart) {
+        // Remove all child elements
+        while (chart.firstChild) {
+          chart.removeChild(chart.firstChild);
+        }
+        // Remove Plotly data attribute
+        delete chart.data;
+        delete chart.layout;
+      }
+      
+      if (chartLarge) {
+        while (chartLarge.firstChild) {
+          chartLarge.removeChild(chartLarge.firstChild);
+        }
+        delete chartLarge.data;
+        delete chartLarge.layout;
+      }
+      
+      if (chartTotal) {
+        while (chartTotal.firstChild) {
+          chartTotal.removeChild(chartTotal.firstChild);
+        }
+        delete chartTotal.data;
+        delete chartTotal.layout;
+      }
+      
+      console.log('✅ Aggressive cleanup complete');
+    }
+
+    // ============================================
     // COMPLETE COHORT CLEANUP FUNCTION
     // ============================================
     function completeCohortCleanup() {
@@ -1041,19 +1092,8 @@
       selectedSeries.clear();
       hiddenSeries.clear();
       
-      // Clear and purge all charts
-      try {
-        Plotly.purge('chart');
-        Plotly.purge('chartLarge');
-        Plotly.purge('chartTotal');
-      } catch (e) {
-        console.log('Charts already cleared');
-      }
-      
-      // Clear chart DOM
-      document.getElementById('chart').innerHTML = '';
-      document.getElementById('chartLarge').innerHTML = '';
-      document.getElementById('chartTotal').innerHTML = '';
+      // AGGRESSIVE chart cleanup
+      aggressiveChartCleanup();
       
       // Reset series list UI
       document.getElementById('seriesList').innerHTML = '<p style="color: #718096; text-align: center; margin: 2rem 0; font-weight: 500;">Load a dataset to see available data series</p>';
@@ -1063,7 +1103,7 @@
       // Reset load button state
       resetLoadButton();
       
-      console.log('✅ Cohort cleanup complete');
+      console.log('✅ Complete cohort cleanup done');
     }
 
     // ============================================
@@ -1077,6 +1117,7 @@
       
       // Clear previous visualization if changing type
       if (selectedSingleType && selectedSingleType !== type) {
+        console.log('⚠️ Type changed - performing cleanup');
         completeCohortCleanup();
       }
       
@@ -1095,27 +1136,15 @@
       // Show cohort grid
       document.getElementById('singleCohortGridContainer').style.display = 'block';
       
-      // If we had a cohort selected before, reselect it
-      if (previousCohort && previousType !== type) {
-        const button = document.querySelector(`[data-view="single"][data-cohort="${previousCohort}"]`);
-        if (button) {
-          button.classList.add('selected');
-          selectedCohorts.single = `${type}_${previousCohort}`;
-          
-          document.getElementById('mainControls').classList.add('show');
-          const typeLabel = type === 'large' ? 'LARGE' : 'TOTAL';
-          document.getElementById('selectedCohortTitle').textContent = `Single View: ${typeLabel} ${previousCohort}`;
-          document.getElementById('selectedCohortDesc').textContent = 'Click "Load Dataset" button to visualize this cohort';
-          
-          console.log('✅ Type switched. Ready to load.');
-        }
-      } else {
-        document.querySelectorAll('[data-view="single"]').forEach(btn => {
-          btn.classList.remove('selected');
-        });
-        
-        document.getElementById('mainControls').classList.remove('show');
-      }
+      // Clear previous cohort selection visually
+      document.querySelectorAll('[data-view="single"]').forEach(btn => {
+        btn.classList.remove('selected');
+      });
+      
+      // Hide controls until cohort is selected
+      document.getElementById('mainControls').classList.remove('show');
+      
+      console.log('✅ Type selection complete');
     }
 
     function selectSingleCohortFromGrid(cohortNum) {
@@ -1132,8 +1161,10 @@
       const isSwitchingCohort = previousCohort && previousCohort !== newCohort;
       
       if (isSwitchingCohort) {
-        console.log('🔄 Switching from', previousCohort, 'to', newCohort);
+        console.log('🔄 SWITCHING from', previousCohort, 'to', newCohort);
         completeCohortCleanup();
+      } else {
+        console.log('✨ New cohort selection (not switching)');
       }
       
       // Remove previous selection in single view
@@ -1143,10 +1174,14 @@
       
       // Add selection to clicked button
       const button = document.querySelector(`[data-view="single"][data-cohort="${cohortNum}"]`);
-      if (button) button.classList.add('selected');
+      if (button) {
+        button.classList.add('selected');
+        console.log('✅ Button marked as selected');
+      }
       
       // Set the cohort value
       selectedCohorts.single = newCohort;
+      console.log('✅ selectedCohorts.single set to:', newCohort);
       
       // Show controls
       document.getElementById('mainControls').classList.add('show');
@@ -1154,7 +1189,7 @@
       document.getElementById('selectedCohortTitle').textContent = `Single View: ${typeLabel} ${cohortNum}`;
       document.getElementById('selectedCohortDesc').textContent = 'Click "Load Dataset" button to visualize this cohort';
       
-      console.log('✅ Single cohort selected. Ready to load.');
+      console.log('✅ Single cohort selection complete. Ready to load.');
     }
 
     function selectCompareCohortFromGrid(cohortNum) {
@@ -1167,8 +1202,10 @@
       const isSwitchingCohort = previousLarge && previousLarge !== newLarge;
       
       if (isSwitchingCohort) {
-        console.log('🔄 Switching cohorts in compare view');
+        console.log('🔄 SWITCHING cohorts in compare view');
         completeCohortCleanup();
+      } else {
+        console.log('✨ New cohort selection (not switching)');
       }
       
       // Remove previous selection in compare view
@@ -1178,18 +1215,22 @@
       
       // Add selection to clicked button
       const button = document.querySelector(`[data-view="compare"][data-cohort="${cohortNum}"]`);
-      if (button) button.classList.add('selected');
+      if (button) {
+        button.classList.add('selected');
+        console.log('✅ Button marked as selected');
+      }
       
       // Set the cohort values
       selectedCohorts.large = newLarge;
       selectedCohorts.total = newTotal;
+      console.log('✅ selectedCohorts set to:', selectedCohorts);
       
       // Show controls
       document.getElementById('mainControls').classList.add('show');
       document.getElementById('selectedCohortTitle').textContent = `Compare View: Cohort ${cohortNum} - Large vs Total`;
       document.getElementById('selectedCohortDesc').textContent = 'Click "Load Dataset" button to visualize both datasets';
       
-      console.log('✅ Compare cohort selected. Ready to load.');
+      console.log('✅ Compare cohort selection complete. Ready to load.');
     }
 
     // ============================================
@@ -1218,9 +1259,7 @@
 
     function resetSelections() {
       selectedCohorts = { single: null, large: null, total: null };
-      currentData = { single: null, large: null, total: null };
-      allSeries = [];
-      selectedSeries.clear();
+      completeCohortCleanup();
       
       // Reset Single view
       selectedSingleType = null;
@@ -1299,55 +1338,57 @@
       loadBtn.textContent = 'Loading...';
 
       try {
-        console.log('🚀 Starting loadData() for view:', currentView);
+        console.log('🚀 ========== LOAD DATA START ==========');
+        console.log('   Current view:', currentView);
+        console.log('   Selected cohorts:', selectedCohorts);
         
-        // CRITICAL: Clear everything before loading new data
-        console.log('🧹 Clearing previous data before load...');
+        // CRITICAL: Complete cleanup before loading
+        console.log('🧹 Pre-load cleanup...');
+        aggressiveChartCleanup();
         currentData = { single: null, large: null, total: null };
         allSeries = [];
         selectedSeries.clear();
         hiddenSeries.clear();
         
         if (currentView === 'single') {
-          if (!selectedCohorts.single) throw new Error('No cohort selected');
-          console.log('📊 Loading single cohort:', selectedCohorts.single);
-          
-          // Purge chart before loading
-          try {
-            Plotly.purge('chart');
-          } catch (e) {}
-          
+          if (!selectedCohorts.single) {
+            throw new Error('No cohort selected');
+          }
+          console.log('📊 Loading SINGLE cohort:', selectedCohorts.single);
           await loadCohortData('single', selectedCohorts.single);
+          console.log('✅ Single cohort data loaded');
           
         } else if (currentView === 'compare') {
-          if (!selectedCohorts.large || !selectedCohorts.total) throw new Error('No cohort selected for comparison');
-          console.log('📊 Loading compare cohorts:', selectedCohorts.large, selectedCohorts.total);
-          
-          // Purge charts before loading
-          try {
-            Plotly.purge('chartLarge');
-            Plotly.purge('chartTotal');
-          } catch (e) {}
-          
+          if (!selectedCohorts.large || !selectedCohorts.total) {
+            throw new Error('No cohort selected for comparison');
+          }
+          console.log('📊 Loading COMPARE cohorts:', selectedCohorts.large, selectedCohorts.total);
           await Promise.all([
             loadCohortData('large', selectedCohorts.large),
             loadCohortData('total', selectedCohorts.total)
           ]);
+          console.log('✅ Compare cohort data loaded');
         }
         
-        console.log('✅ Data loaded successfully, setting up series...');
+        console.log('✅ Data loaded, setting up series...');
+        console.log('   Data keys:', Object.keys(currentData).filter(k => currentData[k] !== null));
+        console.log('   All series count:', allSeries.length);
+        
         setupSeriesSelection();
-        console.log('✅ Series setup complete, resetting button...');
+        
+        console.log('✅ ========== LOAD DATA COMPLETE ==========');
         resetLoadButton();
         
       } catch (error) {
-        console.error('❌ Error in loadData():', error);
+        console.error('❌ ========== LOAD DATA ERROR ==========');
+        console.error('   Error:', error);
         alert(`Error: ${error.message}`);
         resetLoadButton();
       }
     }
 
     async function loadCohortData(key, cohortId) {
+      console.log(`   📂 Loading cohort data for key="${key}", cohortId="${cohortId}"`);
       const csvPath = `Data/${cohortId}.csv`;
       const response = await fetch(csvPath);
       if (!response.ok) throw new Error(`File not found: ${csvPath}`);
@@ -1363,12 +1404,15 @@
               Object.values(row).some(val => val !== null && val !== '')
             );
             
+            console.log(`   ✅ Parsed ${data.length} rows`);
+            
             const detectedParticipants = detectPAParticipants(data, cohortId);
             updatePAData(cohortId, detectedParticipants);
             
             const paFilterId = currentView === 'single' ? 'singlePaFilter' : 'comparePaFilter';
             if (document.getElementById(paFilterId)?.checked) {
               data = filterPennsylvania(data, cohortId);
+              console.log(`   🔍 Filtered to ${data.length} PA rows`);
             }
             
             if (data.length === 0) throw new Error('No valid data found');
@@ -1379,6 +1423,7 @@
             
             allSeries = [...new Set([...allSeries, ...newSeries])];
             
+            console.log(`   ✅ Cohort data loaded for "${key}"`);
             resolve();
           },
           error: reject
@@ -1401,8 +1446,6 @@
       const columns = Object.keys(csvData[0]);
       const dataColumns = columns.slice(1);
       
-      console.log(`🔍 Detecting PA participants for ${cohortId} from columns:`, dataColumns);
-      
       const allParticipants = dataColumns
         .map(col => {
           const match = col.match(/_O_([^_]+)/);
@@ -1417,12 +1460,7 @@
         return !isNonPA;
       });
       
-      const uniquePAParticipants = [...new Set(paParticipants)];
-      
-      console.log(`✅ Detected PA participants for ${cohortId}:`, uniquePAParticipants);
-      console.log(`❌ Excluded non-PA participants:`, allParticipants.filter(p => !uniquePAParticipants.includes(p)));
-      
-      return uniquePAParticipants;
+      return [...new Set(paParticipants)];
     }
     
     function updatePAData(cohortId, participants) {
@@ -1435,15 +1473,12 @@
       }
       
       pennsylvaniaData[cohortKey][cohortId] = participants;
-      console.log(`📝 Updated PA data for ${cohortKey}:`, pennsylvaniaData[cohortKey]);
     }
 
     function filterPennsylvania(data, cohortId) {
       const parts = cohortId.split('_');
       const cohortNum = parts[1];
       const cohortKey = `cohort_${cohortNum}`;
-      
-      console.log(`Filtering PA for ${cohortId}, looking up: ${cohortKey}`);
       
       const paLocations = pennsylvaniaData[cohortKey] && pennsylvaniaData[cohortKey][cohortId];
       
@@ -1452,21 +1487,13 @@
         return data;
       }
       
-      console.log(`PA locations for ${cohortId}:`, paLocations);
-      
       return data.filter(row => {
         const columns = Object.keys(row);
-        const hasPaLocation = columns.some(col => 
+        return columns.some(col => 
           paLocations.some(location => 
             col.toUpperCase().includes(location.toUpperCase())
           )
         );
-        
-        if (hasPaLocation) {
-          console.log(`Row included: found PA location in columns for ${cohortId}`);
-        }
-        
-        return hasPaLocation;
       });
     }
 
@@ -1474,11 +1501,11 @@
     // SERIES SELECTION
     // ============================================
     function setupSeriesSelection() {
-      console.log('🔧 Setting up series selection...');
+      console.log('🔧 ========== SETUP SERIES START ==========');
       const seriesCount = document.getElementById('seriesCount');
       const seriesList = document.getElementById('seriesList');
       
-      console.log('📝 Total series available:', allSeries.length);
+      console.log('   Total series available:', allSeries.length);
       seriesCount.textContent = `(${allSeries.length} available)`;
       seriesList.innerHTML = '';
       
@@ -1501,7 +1528,6 @@
           updateVisualization();
         };
         
-        // IMPORTANT: If checkbox is auto-checked, add to selectedSeries immediately
         if (checkbox.checked) {
           selectedSeries.add(series);
         }
@@ -1529,10 +1555,14 @@
         seriesList.appendChild(item);
       });
       
-      console.log('✅ Series selection setup complete. Selected series:', selectedSeries.size);
-      console.log('📊 Calling updateVisualization()...');
+      console.log('   Selected series:', selectedSeries.size);
+      console.log('📊 Calling updateVisualization...');
+      console.log('========== SETUP SERIES COMPLETE ==========');
       
-      updateVisualization();
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        updateVisualization();
+      }, 100);
     }
 
     function toggleSeriesVisibility(series, button) {
@@ -1586,15 +1616,15 @@
     // VISUALIZATION
     // ============================================
     function updateVisualization() {
-      console.log('📈 updateVisualization() called');
+      console.log('📈 ========== UPDATE VISUALIZATION START ==========');
       console.log('   Current view:', currentView);
-      console.log('   Current data:', Object.keys(currentData).filter(k => currentData[k] !== null));
+      console.log('   Current data keys:', Object.keys(currentData).filter(k => currentData[k] !== null));
       
       const selectedSeriesArray = getSelectedSeries();
       console.log('   Selected series count:', selectedSeriesArray.length);
       
       if (selectedSeriesArray.length === 0) {
-        console.warn('⚠️ No series selected, showing message');
+        console.warn('⚠️ No series selected');
         if (currentView === 'single') {
           document.getElementById('chart').innerHTML = '<div style="padding: 3rem; text-align: center; color: #718096; font-size: 1.1rem; font-weight: 500;">Select at least one data series to display the chart</div>';
         }
@@ -1602,7 +1632,7 @@
       }
 
       if (currentView === 'single') {
-        console.log('📊 Rendering single view chart');
+        console.log('📊 Rendering SINGLE view chart');
         document.getElementById('chart').style.display = 'block';
         document.getElementById('compareCharts').style.display = 'none';
         
@@ -1611,11 +1641,14 @@
 
         if (currentData.single) {
           traces = generateTraces(currentData.single, selectedSeriesArray, samplingRate, '');
-          console.log('   Generated traces:', traces.length);
+          console.log('   Generated', traces.length, 'traces');
+        } else {
+          console.error('❌ currentData.single is NULL!');
+          return;
         }
 
         if (traces.length === 0) {
-          console.warn('⚠️ No traces generated');
+          console.error('❌ No traces generated!');
           return;
         }
 
@@ -1636,7 +1669,7 @@
         };
         const config = createChartConfig('single');
 
-        console.log('🎨 Calling Plotly.newPlot for single chart (complete redraw)...');
+        console.log('🎨 Calling Plotly.newPlot for SINGLE chart...');
         
         Plotly.newPlot('chart', traces, layout, config).then(() => {
           console.log('✅ Single chart rendered successfully');
@@ -1667,21 +1700,21 @@
         });
         
       } else if (currentView === 'compare') {
-        console.log('📊 Rendering compare view charts');
+        console.log('📊 Rendering COMPARE view charts');
         document.getElementById('chart').style.display = 'none';
         document.getElementById('compareCharts').style.display = 'block';
         
         const samplingRate = getSamplingRate();
         
         if (currentData.large) {
-          console.log('   Rendering Large chart...');
+          console.log('   📊 Rendering LARGE chart...');
           const largeTraces = generateTraces(currentData.large, selectedSeriesArray, samplingRate, '');
-          console.log('   Large traces:', largeTraces.length);
+          console.log('   Generated', largeTraces.length, 'traces');
           const largeLayout = createChartLayout(`Large Particles - Cohort ${selectedCohorts.large?.split('_')[1] || ''} (${selectedSeriesArray.length} series)`);
           const largeConfig = createChartConfig('large');
           
           Plotly.newPlot('chartLarge', largeTraces, largeLayout, largeConfig).then(() => {
-            console.log('✅ Large chart rendered successfully');
+            console.log('   ✅ Large chart rendered');
             const chartLarge = document.getElementById('chartLarge');
             
             chartLarge.on('plotly_hover', function(eventData) {
@@ -1707,14 +1740,14 @@
         }
         
         if (currentData.total) {
-          console.log('   Rendering Total chart...');
+          console.log('   📊 Rendering TOTAL chart...');
           const totalTraces = generateTraces(currentData.total, selectedSeriesArray, samplingRate, '');
-          console.log('   Total traces:', totalTraces.length);
+          console.log('   Generated', totalTraces.length, 'traces');
           const totalLayout = createChartLayout(`Total Particles - Cohort ${selectedCohorts.total?.split('_')[1] || ''} (${selectedSeriesArray.length} series)`);
           const totalConfig = createChartConfig('total');
           
           Plotly.newPlot('chartTotal', totalTraces, totalLayout, totalConfig).then(() => {
-            console.log('✅ Total chart rendered successfully');
+            console.log('   ✅ Total chart rendered');
             const chartTotal = document.getElementById('chartTotal');
             
             chartTotal.on('plotly_hover', function(eventData) {
@@ -1740,7 +1773,7 @@
         }
       }
       
-      console.log('✅ updateVisualization() complete');
+      console.log('✅ ========== UPDATE VISUALIZATION COMPLETE ==========');
     }
 
     function createChartLayout(title) {
@@ -1975,6 +2008,8 @@ Tip: Start with "All points" for detailed analysis. Switch to sampling if the ch
     // INITIALIZATION
     // ============================================
     document.addEventListener('DOMContentLoaded', function() {
+      console.log('🚀 Page loaded - initializing...');
+      
       // Generate both cohort grids on page load
       generateSingleCohortGrid();
       generateCompareCohortGrid();
@@ -1990,6 +2025,8 @@ Tip: Start with "All points" for detailed analysis. Switch to sampling if the ch
           });
         }
       });
+      
+      console.log('✅ Initialization complete');
     });
   </script>
 </body>
