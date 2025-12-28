@@ -866,6 +866,15 @@
               <input type="radio" name="sampling" value="10" style="margin-right: 0.5rem;"> Every 10th
             </label>
           </div>
+          <h4>
+            Chart Controls
+            <button class="help-btn" onclick="showChartControlsHelp()" title="Learn more">?</button>
+          </h4>
+          <div style="padding: 1rem; background: white; border-radius: 6px; border: 1px solid #e2e8f0;">
+            <p style="font-size: 0.9rem; color: #4a5568; margin: 0;">
+              Click the ? to learn about chart toolbar icons (camera, zoom, pan, reset, etc.)
+            </p>
+          </div>
         </div>
         
         <div class="series-selection">
@@ -2005,7 +2014,27 @@ Tip: Start with "All points" for detailed analysis. Switch to sampling if the ch
       
       alert(message);
     }
+function showChartControlsHelp() {
+      const message = `Chart Toolbar Controls:
 
+📷 Camera: Download the chart as a PNG image. Click to save the current view.
+
+🔍 Zoom: Toggle zoom mode. When active, click and drag to zoom into a specific area.
+
+➕ Zoom In: Zoom closer to see more detail.
+
+➖ Zoom Out: Zoom out to see more data at once.
+
+↔️ Pan: Click and drag to move around the chart without zooming.
+
+⊞ Box Select: Draw a box to select and zoom into a specific area.
+
+🏠 Home/Reset: Reset the chart to its original view.
+
+Tip: Hover over each icon to see what it does!`;
+      
+      alert(message);
+    }
     // ============================================
     // INITIALIZATION
     // ============================================
