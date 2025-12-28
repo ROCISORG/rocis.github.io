@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LCMP Neighborhood Directory</title>
+    <style>
+        :root {
+            --primary: #2c5282;
+            --secondary: #3d6b99;
+            --accent: #2c5282;
+            --bg-light: #e8f4f8;
+            --bg-white: #ffffff;
+            --text-dark: #2d3748;
+            --text-muted: #666666;
+            --border: #d1e3eb;
+            --shadow: rgba(0, 0, 0, 0.08);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="2" height="2" fill="rgba(255,255,255,0.1)"/></svg>');
+            background-size: 40px 40px;
+            opacity: 0.3;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: normal;
+            letter-spacing: normal;
+            margin-bottom: 0;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            font-weight: 300;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .search-section {
+            background: var(--bg-white);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+        
+        .search-box {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem 1rem 3.5rem;
+            font-size: 1rem;
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            border: 2px solid var(--border);
+            border-radius: 50px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(44, 82, 130, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1.2rem;
+        }
+        
+        .regions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+        
+        .region-card {
+            background: var(--bg-white);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .region-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .region-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .region-title {
+            font-size: 1.2rem;
+            font-weight: normal;
+            letter-spacing: normal;
+        }
+        
+        .region-count {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        
+        .neighborhood-list {
+            padding: 1.5rem;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .neighborhood-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            transition: background 0.2s ease;
+        }
+        
+        .neighborhood-item:last-child {
+            border-bottom: none;
+        }
+        
+        .neighborhood-item:hover {
+            background: rgba(247, 127, 0, 0.05);
+            margin: 0 -0.5rem;
+            padding: 0.75rem 0.5rem;
+            border-radius: 8px;
+        }
+        
+        .neighborhood-code {
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: 600;
+            color: var(--accent);
+            font-size: 0.95rem;
+            min-width: 80px;
+        }
+        
+        .neighborhood-name {
+            flex: 1;
+            margin: 0 1rem;
+            font-weight: 400;
+        }
+        
+        .neighborhood-location {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: right;
+            font-weight: 300;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Scrollbar styling */
+        .neighborhood-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .neighborhood-list::-webkit-scrollbar-track {
+            background: var(--bg-light);
+            border-radius: 10px;
+        }
+        
+        .neighborhood-list::-webkit-scrollbar-thumb {
+            background: var(--secondary);
+            border-radius: 10px;
+        }
+        
+        .neighborhood-list::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .regions-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats {
+                gap: 1rem;
+            }
+            
+            .neighborhood-item {
+                flex-direction: column;
+                gap: 0.3rem;
+            }
+            
+            .neighborhood-code {
+                min-width: auto;
+            }
+            
+            .neighborhood-name {
+                margin: 0;
+            }
+            
+            .neighborhood-location {
+                text-align: left;
+            }
+        }
+        
+        /* Scrollbar styling */
+        .neighborhood-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .neighborhood-list::-webkit-scrollbar-track {
+            background: var(--bg-light);
+            border-radius: 10px;
+        }
+        
+        .neighborhood-list::-webkit-scrollbar-thumb {
+            background: var(--secondary);
+            border-radius: 10px;
+        }
+        
+        .neighborhood-list::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Neighborhood Code Reference</h1>
+    </div>
+    
+    <div class="container">
+        <div class="search-section">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" id="searchInput" placeholder="Search by code, neighborhood name, or location...">
+            </div>
+        </div>
+        
+        <div class="regions-grid" id="regionsGrid">
+            <!-- Allegheny County -->
+            <div class="region-card" data-region="allegheny">
+                <div class="region-header">
+                    <h2 class="region-title">Allegheny County, PA</h2>
+                </div>
+                <div class="neighborhood-list">
+                    <div class="neighborhood-item" data-search="algw allegheny west">
+                        <span class="neighborhood-code">ALGW</span>
+                        <span class="neighborhood-name">Allegheny West</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="alpk allison park shaler">
+                        <span class="neighborhood-code">ALPK</span>
+                        <span class="neighborhood-name">Allison Park / Shaler Township</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="altn allentown">
+                        <span class="neighborhood-code">ALTN</span>
+                        <span class="neighborhood-name">Allentown</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="aphl apple hill">
+                        <span class="neighborhood-code">APHL</span>
+                        <span class="neighborhood-name">Apple Hill</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="aspw aspinwall">
+                        <span class="neighborhood-code">ASPW</span>
+                        <span class="neighborhood-name">Aspinwall</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="avln avalon">
+                        <span class="neighborhood-code">AVLN</span>
+                        <span class="neighborhood-name">Avalon</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="avnw avonworth">
+                        <span class="neighborhood-code">AVNW</span>
+                        <span class="neighborhood-name">Avonworth</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="badn baden">
+                        <span class="neighborhood-code">BADN</span>
+                        <span class="neighborhood-name">Baden</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="baht ben avon heights">
+                        <span class="neighborhood-code">BAHT</span>
+                        <span class="neighborhood-name">Ben Avon Heights</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="batp baldwin township new">
+                        <span class="neighborhood-code">BATP</span>
+                        <span class="neighborhood-name">Baldwin Township</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="bavn ben avon">
+                        <span class="neighborhood-code">BAVN</span>
+                        <span class="neighborhood-name">Ben Avon</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="bcvw beechview">
+                        <span class="neighborhood-code">BCVW</span>
+                        <span class="neighborhood-name">Beechview</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="behl beacon hill wilkinsburg">
+                        <span class="neighborhood-code">BEHL</span>
+                        <span class="neighborhood-name">Beacon Hill, Wilkinsburg</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="bell bellevue">
+                        <span class="neighborhood-code">BELL</span>
+                        <span class="neighborhood-name">Bellevue</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="bgtn broughton">
+                        <span class="neighborhood-code">BGTN</span>
+                        <span class="neighborhood-name">Broughton</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="bkrg brackenridge">
+                        <span class="neighborhood-code">BKRG</span>
+                        <span class="neighborhood-name">Brackenridge</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="bktn bakerstown">
+                        <span class="neighborhood-code">BKTN</span>
+                        <span class="neighborhood-name">Bakerstown</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="blkr blackridge">
+                        <span class="neighborhood-code">BLKR</span>
+                        <span class="neighborhood-name">Blackridge</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="bloo bloomfield">
+                        <span class="neighborhood-code">BLOO</span>
+                        <span class="neighborhood-name">Bloomfield</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="blpk bethel park">
+                        <span class="neighborhood-code">BLPK</span>
+                        <span class="neighborhood-name">Bethel Park</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="bnar bon air">
+                        <span class="neighborhood-code">BNAR</span>
+                        <span class="neighborhood-name">Bon Air</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="brad braddock new">
+                        <span class="neighborhood-code">BRAD</span>
+                        <span class="neighborhood-name">Braddock</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="bren brentwood">
+                        <span class="neighborhood-code">BREN</span>
+                        <span class="neighborhood-name">Brentwood</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="brfd bradford">
+                        <span class="neighborhood-code">BRFD</span>
+                        <span class="neighborhood-name">Bradford</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="brhl braddock hills">
+                        <span class="neighborhood-code">BRHL</span>
+                        <span class="neighborhood-name">Braddock Hills</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="brht brighton heights">
+                        <span class="neighborhood-code">BRHT</span>
+                        <span class="neighborhood-name">Brighton Heights</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="brkn brookline new">
+                        <span class="neighborhood-code">BRKN</span>
+                        <span class="neighborhood-name">Brookline</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="carn carnegie">
+                        <span class="neighborhood-code">CARN</span>
+                        <span class="neighborhood-name">Carnegie</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="cft crafton">
+                        <span class="neighborhood-code">CFT</span>
+                        <span class="neighborhood-name">Crafton</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="chal chalfont">
+                        <span class="neighborhood-code">CHAL</span>
+                        <span class="neighborhood-name">Chalfont</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="char chartiers windgap">
+                        <span class="neighborhood-code">CHAR</span>
+                        <span class="neighborhood-name">Chartiers / Windgap</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="chwk cheswick">
+                        <span class="neighborhood-code">CHWK</span>
+                        <span class="neighborhood-name">Cheswick</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="clrn clairton">
+                        <span class="neighborhood-code">CLRN</span>
+                        <span class="neighborhood-name">Clairton</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="cpls coraopolis">
+                        <span class="neighborhood-code">CPLS</span>
+                        <span class="neighborhood-name">Coraopolis</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="cran cranberry township">
+                        <span class="neighborhood-code">CRAN</span>
+                        <span class="neighborhood-name">Cranberry Township</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="crck carrick">
+                        <span class="neighborhood-code">CRCK</span>
+                        <span class="neighborhood-name">Carrick</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="crft crafton">
+                        <span class="neighborhood-code">CRFT</span>
+                        <span class="neighborhood-name">Crafton</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="crht crafton heights">
+                        <span class="neighborhood-code">CRHT</span>
+                        <span class="neighborhood-name">Crafton Heights</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="dorm dormont new">
+                        <span class="neighborhood-code">DORM</span>
+                        <span class="neighborhood-name">Dormont</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="down downtown">
+                        <span class="neighborhood-code">DOWN</span>
+                        <span class="neighborhood-name">Downtown</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="dqtn downtown">
+                        <span class="neighborhood-code">DQTN</span>
+                        <span class="neighborhood-name">Downtown</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="drry derry">
+                        <span class="neighborhood-code">DRRY</span>
+                        <span class="neighborhood-name">Derry</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="dsvl dorseyville">
+                        <span class="neighborhood-code">DSVL</span>
+                        <span class="neighborhood-name">Dorseyville</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="duqh duquesne heights">
+                        <span class="neighborhood-code">DUQH</span>
+                        <span class="neighborhood-name">Duquesne Heights</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="duqs duquesne">
+                        <span class="neighborhood-code">DUQS</span>
+                        <span class="neighborhood-name">Duquesne</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="edtw east deuschtown spring garden">
+                        <span class="neighborhood-code">EDTW</span>
+                        <span class="neighborhood-name">East Deuschtown Spring Garden</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="edwd edgewood">
+                        <span class="neighborhood-code">EDWD</span>
+                        <span class="neighborhood-name">Edgewood</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="elib east liberty larimer west end">
+                        <span class="neighborhood-code">ELIB</span>
+                        <span class="neighborhood-name">East Liberty / East Liberty-Larimer</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="eliz elizabeth">
+                        <span class="neighborhood-code">ELIZ</span>
+                        <span class="neighborhood-name">Elizabeth</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="elot elliott">
+                        <span class="neighborhood-code">ELOT</span>
+                        <span class="neighborhood-name">Elliott</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="emfd emerald fields">
+                        <span class="neighborhood-code">EMFD</span>
+                        <span class="neighborhood-name">Emerald Fields</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="emsw emsworth">
+                        <span class="neighborhood-code">EMSW</span>
+                        <span class="neighborhood-name">Emsworth</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="etna borough">
+                        <span class="neighborhood-code">ETNA</span>
+                        <span class="neighborhood-name">Etna / Borough of Etna</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="fdcy ford city">
+                        <span class="neighborhood-code">FDCY</span>
+                        <span class="neighborhood-name">Ford City</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="fkpk franklin park">
+                        <span class="neighborhood-code">FKPK</span>
+                        <span class="neighborhood-name">Franklin Park</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="frhl forest hills">
+                        <span class="neighborhood-code">FRHL</span>
+                        <span class="neighborhood-name">Forest Hills</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="frpt freeport">
+                        <span class="neighborhood-code">FRPT</span>
+                        <span class="neighborhood-name">Freeport</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="frsp friendship">
+                        <span class="neighborhood-code">FRSP</span>
+                        <span class="neighborhood-name">Friendship</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="fxcp fox chapel indiana township">
+                        <span class="neighborhood-code">FXCP</span>
+                        <span class="neighborhood-name">Fox Chapel / Indiana Township</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="fywd fairywood">
+                        <span class="neighborhood-code">FYWD</span>
+                        <span class="neighborhood-name">Fairywood</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="garf garfield">
+                        <span class="neighborhood-code">GARF</span>
+                        <span class="neighborhood-name">Garfield</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="gibs gibsonia hampton township">
+                        <span class="neighborhood-code">GIBS</span>
+                        <span class="neighborhood-name">Gibsonia / Hampton Township</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="glen glenview">
+                        <span class="neighborhood-code">GLEN</span>
+                        <span class="neighborhood-name">Glenview</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="glsw glenshaw">
+                        <span class="neighborhood-code">GLSW</span>
+                        <span class="neighborhood-name">Glenshaw</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="gnfd greenfield">
+                        <span class="neighborhood-code">GNFD</span>
+                        <span class="neighborhood-name">Greenfield</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="grfd greenfield">
+                        <span class="neighborhood-code">GRFD</span>
+                        <span class="neighborhood-name">Greenfield</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="grtr green tree">
+                        <span class="neighborhood-code">GRTR</span>
+                        <span class="neighborhood-name">Green Tree</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="hill district crawford square">
+                        <span class="neighborhood-code">HILL</span>
+                        <span class="neighborhood-name">Hill District / Crawford Square</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="hipk highland park">
+                        <span class="neighborhood-code">HIPK</span>
+                        <span class="neighborhood-name">Highland Park</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="hmsd homestead new">
+                        <span class="neighborhood-code">HMSD</span>
+                        <span class="neighborhood-name">Homestead</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="hmwd homewood brushton">
+                        <span class="neighborhood-code">HMWD</span>
+                        <span class="neighborhood-name">Homewood / Homewood-Brushton</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="hzwd hazelwood">
+                        <span class="neighborhood-code">HZWD</span>
+                        <span class="neighborhood-name">Hazelwood</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="ingm ingram">
+                        <span class="neighborhood-code">INGM</span>
+                        <span class="neighborhood-name">Ingram</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="larm larimer">
+                        <span class="neighborhood-code">LARM</span>
+                        <span class="neighborhood-name">Larimer</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="leet leetsdale sewickley">
+                        <span class="neighborhood-code">LEET</span>
+                        <span class="neighborhood-name">Leetsdale (Sewickley)</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="lwcv lawrenceville lower">
+                        <span class="neighborhood-code">LWCV</span>
+                        <span class="neighborhood-name">Lawrenceville / Lower Lawrenceville</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mcca mccandless township">
+                        <span class="neighborhood-code">MCCA</span>
+                        <span class="neighborhood-name">McCandless / McCandless Township</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mckp mckeesport">
+                        <span class="neighborhood-code">MCKP</span>
+                        <span class="neighborhood-name">McKeesport</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mcrk mckees rocks">
+                        <span class="neighborhood-code">MCRK</span>
+                        <span class="neighborhood-name">McKees Rocks</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mill millvale">
+                        <span class="neighborhood-code">MILL</span>
+                        <span class="neighborhood-name">Millvale</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mnch manchester">
+                        <span class="neighborhood-code">MNCH</span>
+                        <span class="neighborhood-name">Manchester</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="moon township">
+                        <span class="neighborhood-code">MOON</span>
+                        <span class="neighborhood-name">Moon Township</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mrsd morningside">
+                        <span class="neighborhood-code">MRSD</span>
+                        <span class="neighborhood-name">Morningside</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mrtp marshall township">
+                        <span class="neighborhood-code">MRTP</span>
+                        <span class="neighborhood-name">Marshall Township</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mtle mount lebanon mt">
+                        <span class="neighborhood-code">MTLE</span>
+                        <span class="neighborhood-name">Mount Lebanon / Mt Lebanon</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mtov mt oliver">
+                        <span class="neighborhood-code">MTOV</span>
+                        <span class="neighborhood-name">Mt. Oliver</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="munh munhall new">
+                        <span class="neighborhood-code">MUNH</span>
+                        <span class="neighborhood-name">Munhall</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mwsh mt washington mount">
+                        <span class="neighborhood-code">MWSH</span>
+                        <span class="neighborhood-name">Mt. Washington</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="n0sd northside allegheny west">
+                        <span class="neighborhood-code">N0SD</span>
+                        <span class="neighborhood-name">Northside / Allegheny West</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="nbrd north braddock">
+                        <span class="neighborhood-code">NBRD</span>
+                        <span class="neighborhood-name">North Braddock</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="nhll north hills marshall township">
+                        <span class="neighborhood-code">NHLL</span>
+                        <span class="neighborhood-name">North Hills / Marshall Township</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="nosd north side mexican war streets">
+                        <span class="neighborhood-code">NOSD</span>
+                        <span class="neighborhood-name">North Side / Mexican War Streets</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="nsew north sewickley township">
+                        <span class="neighborhood-code">NSEW</span>
+                        <span class="neighborhood-name">North Sewickley Township</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="nshr north shore">
+                        <span class="neighborhood-code">NSHR</span>
+                        <span class="neighborhood-name">North Shore</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="nvll neville island">
+                        <span class="neighborhood-code">NVLL</span>
+                        <span class="neighborhood-name">Neville Island</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="oak oakland cmu">
+                        <span class="neighborhood-code">OAK</span>
+                        <span class="neighborhood-name">Oakland CMU</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="oakd oakwood">
+                        <span class="neighborhood-code">OAKD</span>
+                        <span class="neighborhood-name">Oakwood</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="oakl oakland pitt">
+                        <span class="neighborhood-code">OAKL</span>
+                        <span class="neighborhood-name">Oakland Pitt</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="oamt oakmont">
+                        <span class="neighborhood-code">OAMT</span>
+                        <span class="neighborhood-name">Oakmont</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="oh observatory hill">
+                        <span class="neighborhood-code">OH</span>
+                        <span class="neighborhood-name">Observatory Hill</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="ohra o'hara township new">
+                        <span class="neighborhood-code">OHRA</span>
+                        <span class="neighborhood-name">O'Hara / O'Hara Township</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="oitp ohio township">
+                        <span class="neighborhood-code">OITP</span>
+                        <span class="neighborhood-name">Ohio Township</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="okdl oakdale">
+                        <span class="neighborhood-code">OKDL</span>
+                        <span class="neighborhood-name">Oakdale</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="phll polish hill">
+                        <span class="neighborhood-code">PHLL</span>
+                        <span class="neighborhood-name">Polish Hill</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="plhl pleasant hills">
+                        <span class="neighborhood-code">PLHL</span>
+                        <span class="neighborhood-name">Pleasant Hills</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="plum borough">
+                        <span class="neighborhood-code">PLUM</span>
+                        <span class="neighborhood-name">Plum Borough</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="pnhl penn hills">
+                        <span class="neighborhood-code">PNHL</span>
+                        <span class="neighborhood-name">Penn Hills</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="ptbr point breeze">
+                        <span class="neighborhood-code">PTBR</span>
+                        <span class="neighborhood-name">Point Breeze</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="ptbz point breeze">
+                        <span class="neighborhood-code">PTBZ</span>
+                        <span class="neighborhood-name">Point Breeze</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="rbn robinson township">
+                        <span class="neighborhood-code">RBN</span>
+                        <span class="neighborhood-name">Robinson / Robinson Township</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="rgsq regent square">
+                        <span class="neighborhood-code">RGSQ</span>
+                        <span class="neighborhood-name">Regent Square</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="ross township">
+                        <span class="neighborhood-code">ROSS</span>
+                        <span class="neighborhood-name">Ross / Ross Township</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="sctp scott township">
+                        <span class="neighborhood-code">SCTP</span>
+                        <span class="neighborhood-name">Scott Township</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="sewy sewickley ohio township">
+                        <span class="neighborhood-code">SEWY</span>
+                        <span class="neighborhood-name">Sewickley / Sewickley-Ohio Twp</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="shad shadyside">
+                        <span class="neighborhood-code">SHAD</span>
+                        <span class="neighborhood-name">Shadyside</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="shady shadyside">
+                        <span class="neighborhood-code">SHADY</span>
+                        <span class="neighborhood-name">Shadyside</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="shdn sheraden">
+                        <span class="neighborhood-code">SHDN</span>
+                        <span class="neighborhood-name">Sheraden</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="shgt south heights">
+                        <span class="neighborhood-code">SHGT</span>
+                        <span class="neighborhood-name">South Heights</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="shlr shaler">
+                        <span class="neighborhood-code">SHLR</span>
+                        <span class="neighborhood-name">Shaler</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="shrp sharpsburg">
+                        <span class="neighborhood-code">SHRP</span>
+                        <span class="neighborhood-name">Sharpsburg</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="soak south oakland">
+                        <span class="neighborhood-code">SOAK</span>
+                        <span class="neighborhood-name">South Oakland</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="sohl south hills">
+                        <span class="neighborhood-code">SOHL</span>
+                        <span class="neighborhood-name">South Hills</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="sosd south side">
+                        <span class="neighborhood-code">SOSD</span>
+                        <span class="neighborhood-name">South Side</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="sosf south side flats">
+                        <span class="neighborhood-code">SOSF</span>
+                        <span class="neighborhood-name">South Side Flats</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="sphl spring hill">
+                        <span class="neighborhood-code">SPHL</span>
+                        <span class="neighborhood-name">Spring Hill</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="spkt south park township">
+                        <span class="neighborhood-code">SPKT</span>
+                        <span class="neighborhood-name">South Park Township</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="sqhl squirrel hill">
+                        <span class="neighborhood-code">SQHL</span>
+                        <span class="neighborhood-name">Squirrel Hill</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="sqhn squirrel hill north">
+                        <span class="neighborhood-code">SQHN</span>
+                        <span class="neighborhood-name">Squirrel Hill North</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="sqhs squirrel hill south">
+                        <span class="neighborhood-code">SQHS</span>
+                        <span class="neighborhood-name">Squirrel Hill South</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="srry surrey place indiana township">
+                        <span class="neighborhood-code">SRRY</span>
+                        <span class="neighborhood-name">Surrey Place - Indiana Township</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="stdt strip district">
+                        <span class="neighborhood-code">STDT</span>
+                        <span class="neighborhood-name">Strip District</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="stht stanton heights">
+                        <span class="neighborhood-code">STHT</span>
+                        <span class="neighborhood-name">Stanton Heights</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="strip district">
+                        <span class="neighborhood-code">STRIP</span>
+                        <span class="neighborhood-name">Strip District</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="swpk swisshelm park">
+                        <span class="neighborhood-code">SWPK</span>
+                        <span class="neighborhood-name">Swisshelm Park</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="swvl swissvale">
+                        <span class="neighborhood-code">SWVL</span>
+                        <span class="neighborhood-name">Swissvale</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="traf trafford">
+                        <span class="neighborhood-code">TRAF</span>
+                        <span class="neighborhood-name">Trafford</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="troy hill">
+                        <span class="neighborhood-code">TROY</span>
+                        <span class="neighborhood-name">Troy Hill</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="trtm tarentum borough">
+                        <span class="neighborhood-code">TRTM</span>
+                        <span class="neighborhood-name">Tarentum Borough</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="uptn uptown">
+                        <span class="neighborhood-code">UPTN</span>
+                        <span class="neighborhood-name">Uptown</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="uscl upper st clair">
+                        <span class="neighborhood-code">USCL</span>
+                        <span class="neighborhood-name">Upper St Clair</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="vlvw valleyview">
+                        <span class="neighborhood-code">VLVW</span>
+                        <span class="neighborhood-name">Valleyview</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="wder west deer township">
+                        <span class="neighborhood-code">WDER</span>
+                        <span class="neighborhood-name">West Deer Township</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="wend west end">
+                        <span class="neighborhood-code">WEND</span>
+                        <span class="neighborhood-name">West End</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="wex wexford">
+                        <span class="neighborhood-code">WEX</span>
+                        <span class="neighborhood-name">Wexford</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="wfdh wallingford heights">
+                        <span class="neighborhood-code">WFDH</span>
+                        <span class="neighborhood-name">Wallingford Heights</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="whll borough whitehall">
+                        <span class="neighborhood-code">WHLL</span>
+                        <span class="neighborhood-name">Borough of Whitehall</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="wkt wilkins township">
+                        <span class="neighborhood-code">WKT</span>
+                        <span class="neighborhood-name">Wilkins Township</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="wlib west elizabeth">
+                        <span class="neighborhood-code">WLIB</span>
+                        <span class="neighborhood-name">West Elizabeth</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="wlkg wilkinsburg">
+                        <span class="neighborhood-code">WLKG</span>
+                        <span class="neighborhood-name">Wilkinsburg</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="wmif west mifflin">
+                        <span class="neighborhood-code">WMIF</span>
+                        <span class="neighborhood-name">West Mifflin</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pennsylvania Other Counties -->
+            <div class="region-card" data-region="pennsylvania-other">
+                <div class="region-header">
+                    <h2 class="region-title">Pennsylvania (Other Counties)</h2>
+                </div>
+                <div class="neighborhood-list">
+                    <div class="neighborhood-item" data-search="bevr beaver county pa pennsylvania">
+                        <span class="neighborhood-code">BEVR</span>
+                        <span class="neighborhood-name">Beaver</span>
+                        <span class="neighborhood-location">Beaver County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="bvfl beaver falls county pa pennsylvania">
+                        <span class="neighborhood-code">BVFL</span>
+                        <span class="neighborhood-name">Beaver Falls</span>
+                        <span class="neighborhood-location">Beaver County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="bvtp beaver township county pa pennsylvania new">
+                        <span class="neighborhood-code">BVTP</span>
+                        <span class="neighborhood-name">Beaver Township</span>
+                        <span class="neighborhood-location">Beaver County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="cltn clinton beaver county pa pennsylvania">
+                        <span class="neighborhood-code">CLTN</span>
+                        <span class="neighborhood-name">Clinton</span>
+                        <span class="neighborhood-location">Beaver County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="econ economy beaver county pa pennsylvania">
+                        <span class="neighborhood-code">ECON</span>
+                        <span class="neighborhood-name">Economy</span>
+                        <span class="neighborhood-location">Beaver County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="hmtp harmony township beaver county pa pennsylvania">
+                        <span class="neighborhood-code">HMTP</span>
+                        <span class="neighborhood-name">Harmony Township</span>
+                        <span class="neighborhood-location">Beaver County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="indy industry beaver county pa pennsylvania">
+                        <span class="neighborhood-code">INDY</span>
+                        <span class="neighborhood-name">Industry</span>
+                        <span class="neighborhood-location">Beaver County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mars butler county pa pennsylvania">
+                        <span class="neighborhood-code">MARS</span>
+                        <span class="neighborhood-name">Mars</span>
+                        <span class="neighborhood-location">Butler County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="slrk brady township slippery rock butler county pa pennsylvania">
+                        <span class="neighborhood-code">SLRK</span>
+                        <span class="neighborhood-name">Brady Twp, Slippery Rock</span>
+                        <span class="neighborhood-location">Butler County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="zeli zelienople butler county pa pennsylvania">
+                        <span class="neighborhood-code">ZELI</span>
+                        <span class="neighborhood-name">Zelienople</span>
+                        <span class="neighborhood-location">Butler County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="stcg state college centre county pa pennsylvania">
+                        <span class="neighborhood-code">STCG</span>
+                        <span class="neighborhood-name">State College</span>
+                        <span class="neighborhood-location">Centre County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="dunc duncansville blair county pa pennsylvania">
+                        <span class="neighborhood-code">DUNC</span>
+                        <span class="neighborhood-name">Duncansville</span>
+                        <span class="neighborhood-location">Blair County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="noea north east erie county pa pennsylvania new">
+                        <span class="neighborhood-code">NOEA</span>
+                        <span class="neighborhood-name">North East</span>
+                        <span class="neighborhood-location">Erie County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="grbg greensburg fayette county pa pennsylvania">
+                        <span class="neighborhood-code">GRBG</span>
+                        <span class="neighborhood-name">Greensburg</span>
+                        <span class="neighborhood-location">Fayette County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="clvl clarksville greene county pa pennsylvania">
+                        <span class="neighborhood-code">CLVL</span>
+                        <span class="neighborhood-name">Clarksville</span>
+                        <span class="neighborhood-location">Greene County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="crtp center township greene county pa pennsylvania">
+                        <span class="neighborhood-code">CRTP</span>
+                        <span class="neighborhood-name">Center Township</span>
+                        <span class="neighborhood-location">Greene County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="jeff jefferson greene county pa pennsylvania">
+                        <span class="neighborhood-code">JEFF</span>
+                        <span class="neighborhood-name">Jefferson</span>
+                        <span class="neighborhood-location">Greene County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mgtp morgan township greene county pa pennsylvania">
+                        <span class="neighborhood-code">MGTP</span>
+                        <span class="neighborhood-name">Morgan Township</span>
+                        <span class="neighborhood-location">Greene County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="wbg waynesburg greene county pa pennsylvania">
+                        <span class="neighborhood-code">WBG</span>
+                        <span class="neighborhood-name">Waynesburg</span>
+                        <span class="neighborhood-location">Greene County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="wybg waynesburg greene county pa pennsylvania">
+                        <span class="neighborhood-code">WYBG</span>
+                        <span class="neighborhood-name">Waynesburg</span>
+                        <span class="neighborhood-location">Greene County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="jntn jennerstown somerset county pa pennsylvania">
+                        <span class="neighborhood-code">JNTN</span>
+                        <span class="neighborhood-name">Jennerstown</span>
+                        <span class="neighborhood-location">Somerset County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="wlck wilson creek somerset county pa pennsylvania">
+                        <span class="neighborhood-code">WLCK</span>
+                        <span class="neighborhood-name">Wilson Creek</span>
+                        <span class="neighborhood-location">Somerset County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="gtbg gettysburg adams county pa pennsylvania">
+                        <span class="neighborhood-code">GTBG</span>
+                        <span class="neighborhood-name">Gettysburg</span>
+                        <span class="neighborhood-location">Adams County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="brgt burgettstown washington county pa pennsylvania">
+                        <span class="neighborhood-code">BRGT</span>
+                        <span class="neighborhood-name">Burgettstown</span>
+                        <span class="neighborhood-location">Washington County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="buff buffalo township washington county pa pennsylvania">
+                        <span class="neighborhood-code">BUFF</span>
+                        <span class="neighborhood-name">Buffalo Township</span>
+                        <span class="neighborhood-location">Washington County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="bulg bulger washington county pa pennsylvania">
+                        <span class="neighborhood-code">BULG</span>
+                        <span class="neighborhood-name">Bulger</span>
+                        <span class="neighborhood-location">Washington County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="dmbr deemston boro washington county pa pennsylvania">
+                        <span class="neighborhood-code">DMBR</span>
+                        <span class="neighborhood-name">Deemston Boro</span>
+                        <span class="neighborhood-location">Washington County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="hick hickory washington county pa pennsylvania">
+                        <span class="neighborhood-code">HICK</span>
+                        <span class="neighborhood-name">Hickory</span>
+                        <span class="neighborhood-location">Washington County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mcmr mcmurray washington county pa pennsylvania">
+                        <span class="neighborhood-code">MCMR</span>
+                        <span class="neighborhood-name">McMurray</span>
+                        <span class="neighborhood-location">Washington County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mong monongahela washington county pa pennsylvania">
+                        <span class="neighborhood-code">MONG</span>
+                        <span class="neighborhood-name">Monongahela</span>
+                        <span class="neighborhood-location">Washington County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="nthm nottingham washington county pa pennsylvania">
+                        <span class="neighborhood-code">NTHM</span>
+                        <span class="neighborhood-name">Nottingham</span>
+                        <span class="neighborhood-location">Washington County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="pete peters township venetia washington county pa pennsylvania">
+                        <span class="neighborhood-code">PETE</span>
+                        <span class="neighborhood-name">Peters Twp / Venetia</span>
+                        <span class="neighborhood-location">Washington County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="scll scenery hill washington county pa pennsylvania">
+                        <span class="neighborhood-code">SCLL</span>
+                        <span class="neighborhood-name">Scenery Hill</span>
+                        <span class="neighborhood-location">Washington County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="wash washington county pa pennsylvania">
+                        <span class="neighborhood-code">WASH</span>
+                        <span class="neighborhood-name">Washington</span>
+                        <span class="neighborhood-location">Washington County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="lgnr ligonier borough westmoreland county pa pennsylvania">
+                        <span class="neighborhood-code">LGNR</span>
+                        <span class="neighborhood-name">Ligonier Borough</span>
+                        <span class="neighborhood-location">Westmoreland County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mrvl murrysville westmoreland county pa pennsylvania">
+                        <span class="neighborhood-code">MRVL</span>
+                        <span class="neighborhood-name">Murrysville</span>
+                        <span class="neighborhood-location">Westmoreland County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="nken new kensington westmoreland county pa pennsylvania">
+                        <span class="neighborhood-code">NKEN</span>
+                        <span class="neighborhood-name">New Kensington</span>
+                        <span class="neighborhood-location">Westmoreland County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="nohu north huntingdon westmoreland county pa pennsylvania">
+                        <span class="neighborhood-code">NOHU</span>
+                        <span class="neighborhood-name">North Huntingdon</span>
+                        <span class="neighborhood-location">Westmoreland County</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="fnvl finleyville pa pennsylvania">
+                        <span class="neighborhood-code">FNVL</span>
+                        <span class="neighborhood-name">Finleyville</span>
+                        <span class="neighborhood-location">PA</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="york pa pennsylvania">
+                        <span class="neighborhood-code">YORK</span>
+                        <span class="neighborhood-name">York</span>
+                        <span class="neighborhood-location">PA</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Other States -->
+            <div class="region-card" data-region="other-states">
+                <div class="region-header">
+                    <h2 class="region-title">Other States</h2>
+                </div>
+                <div class="neighborhood-list">
+                    <div class="neighborhood-item" data-search="caal alameda california ca">
+                        <span class="neighborhood-code">CAAL</span>
+                        <span class="neighborhood-name">Alameda</span>
+                        <span class="neighborhood-location">CA</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="cabk berkeley california ca">
+                        <span class="neighborhood-code">CABK</span>
+                        <span class="neighborhood-name">Berkeley</span>
+                        <span class="neighborhood-location">CA</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="caff fairfax california ca">
+                        <span class="neighborhood-code">CAFF</span>
+                        <span class="neighborhood-name">Fairfax</span>
+                        <span class="neighborhood-location">CA</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="canc nevada city california ca">
+                        <span class="neighborhood-code">CANC</span>
+                        <span class="neighborhood-name">Nevada City</span>
+                        <span class="neighborhood-location">CA</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="casj san jose california ca">
+                        <span class="neighborhood-code">CASJ</span>
+                        <span class="neighborhood-name">San Jose</span>
+                        <span class="neighborhood-location">CA</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="casm san mateo california ca">
+                        <span class="neighborhood-code">CASM</span>
+                        <span class="neighborhood-name">San Mateo</span>
+                        <span class="neighborhood-location">CA</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="dcch capital hill washington dc">
+                        <span class="neighborhood-code">DCCH</span>
+                        <span class="neighborhood-name">Capital Hill</span>
+                        <span class="neighborhood-location">DC</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="iocy iowa city io">
+                        <span class="neighborhood-code">IOCY</span>
+                        <span class="neighborhood-name">Iowa City</span>
+                        <span class="neighborhood-location">IO</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="kslw lawrence kansas ks new">
+                        <span class="neighborhood-code">KSLW</span>
+                        <span class="neighborhood-name">Lawrence</span>
+                        <span class="neighborhood-location">KS</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="ksop overland park kansas ks new">
+                        <span class="neighborhood-code">KSOP</span>
+                        <span class="neighborhood-name">Overland Park</span>
+                        <span class="neighborhood-location">KS</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="meag augusta maine me">
+                        <span class="neighborhood-code">MEAG</span>
+                        <span class="neighborhood-name">Augusta</span>
+                        <span class="neighborhood-location">ME</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="meba bath maine me">
+                        <span class="neighborhood-code">MEBA</span>
+                        <span class="neighborhood-name">Bath</span>
+                        <span class="neighborhood-location">ME</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="meke kennebunk maine me">
+                        <span class="neighborhood-code">MEKE</span>
+                        <span class="neighborhood-name">Kennebunk</span>
+                        <span class="neighborhood-location">ME</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mena naples maine me">
+                        <span class="neighborhood-code">MENA</span>
+                        <span class="neighborhood-name">Naples</span>
+                        <span class="neighborhood-location">ME</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mepl poland maine me">
+                        <span class="neighborhood-code">MEPL</span>
+                        <span class="neighborhood-name">Poland</span>
+                        <span class="neighborhood-location">ME</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="merf readfield maine me new">
+                        <span class="neighborhood-code">MERF</span>
+                        <span class="neighborhood-name">Readfield</span>
+                        <span class="neighborhood-location">ME</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mesd standish maine me">
+                        <span class="neighborhood-code">MESD</span>
+                        <span class="neighborhood-name">Standish</span>
+                        <span class="neighborhood-location">ME</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mewd windham maine me">
+                        <span class="neighborhood-code">MEWD</span>
+                        <span class="neighborhood-name">Windham</span>
+                        <span class="neighborhood-location">ME</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="maar arlington massachusetts ma">
+                        <span class="neighborhood-code">MAAR</span>
+                        <span class="neighborhood-name">Arlington</span>
+                        <span class="neighborhood-location">MA</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="majp jamaica plain massachusetts ma">
+                        <span class="neighborhood-code">MAJP</span>
+                        <span class="neighborhood-name">Jamaica Plain</span>
+                        <span class="neighborhood-location">MA</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mana north andover massachusetts ma new">
+                        <span class="neighborhood-code">MANA</span>
+                        <span class="neighborhood-name">North Andover</span>
+                        <span class="neighborhood-location">MA</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mndu duluth minnesota mn">
+                        <span class="neighborhood-code">MNDU</span>
+                        <span class="neighborhood-name">Duluth</span>
+                        <span class="neighborhood-location">MN</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mnmp minneapolis minnesota mn">
+                        <span class="neighborhood-code">MNMP</span>
+                        <span class="neighborhood-name">Minneapolis</span>
+                        <span class="neighborhood-location">MN</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mnnf northfield minnesota mn">
+                        <span class="neighborhood-code">MNNF</span>
+                        <span class="neighborhood-name">Northfield</span>
+                        <span class="neighborhood-location">MN</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="nfmn northfield minnesota mn">
+                        <span class="neighborhood-code">NFMN</span>
+                        <span class="neighborhood-name">Northfield</span>
+                        <span class="neighborhood-location">MN</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="mnsp saint paul payne phalen minnesota mn">
+                        <span class="neighborhood-code">MNSP</span>
+                        <span class="neighborhood-name">Saint Paul, Payne-Phalen</span>
+                        <span class="neighborhood-location">MN</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="njhd new jersey nj">
+                        <span class="neighborhood-code">NJHD</span>
+                        <span class="neighborhood-name">New Jersey</span>
+                        <span class="neighborhood-location">NJ</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="cle cleveland ohio oh">
+                        <span class="neighborhood-code">CLE</span>
+                        <span class="neighborhood-name">Cleveland</span>
+                        <span class="neighborhood-location">OH</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="ohak akron ohio oh">
+                        <span class="neighborhood-code">OHAK</span>
+                        <span class="neighborhood-name">Akron</span>
+                        <span class="neighborhood-location">OH</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="ohcu cuyahoga falls ohio oh">
+                        <span class="neighborhood-code">OHCU</span>
+                        <span class="neighborhood-name">Cuyahoga Falls</span>
+                        <span class="neighborhood-location">OH</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="ohep east palestine ohio oh">
+                        <span class="neighborhood-code">OHEP</span>
+                        <span class="neighborhood-name">East Palestine</span>
+                        <span class="neighborhood-location">OH</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="orcb canby oregon or">
+                        <span class="neighborhood-code">ORCB</span>
+                        <span class="neighborhood-name">Canby</span>
+                        <span class="neighborhood-location">OR</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="orpo concordia portland oregon or">
+                        <span class="neighborhood-code">ORPO</span>
+                        <span class="neighborhood-name">Concordia, NE Portland</span>
+                        <span class="neighborhood-location">OR</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="txwa waco texas tx">
+                        <span class="neighborhood-code">TXWA</span>
+                        <span class="neighborhood-name">Waco</span>
+                        <span class="neighborhood-location">TX</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="vakt virginia va">
+                        <span class="neighborhood-code">VAKT</span>
+                        <span class="neighborhood-name">Virginia</span>
+                        <span class="neighborhood-location">VA</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="varn roanoke virginia va">
+                        <span class="neighborhood-code">VARN</span>
+                        <span class="neighborhood-name">Roanoke</span>
+                        <span class="neighborhood-location">VA</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="wabh bellingham washington wa">
+                        <span class="neighborhood-code">WABH</span>
+                        <span class="neighborhood-name">Bellingham</span>
+                        <span class="neighborhood-location">WA</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="waws white salmon washington wa">
+                        <span class="neighborhood-code">WAWS</span>
+                        <span class="neighborhood-name">White Salmon</span>
+                        <span class="neighborhood-location">WA</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="wijk cleveland township wisconsin wi">
+                        <span class="neighborhood-code">WIJK</span>
+                        <span class="neighborhood-name">Cleveland Township</span>
+                        <span class="neighborhood-location">WI</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="wimd madison wisconsin wi">
+                        <span class="neighborhood-code">WIMD</span>
+                        <span class="neighborhood-name">Madison</span>
+                        <span class="neighborhood-location">WI</span>
+                    </div>
+                    <div class="neighborhood-item" data-search="john johnstown cambria county pa">
+                        <span class="neighborhood-code">JOHN</span>
+                        <span class="neighborhood-name">Johnstown</span>
+                        <span class="neighborhood-location">Cambria County, PA</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="no-results hidden" id="noResults">
+            <p>No neighborhoods found matching your search.</p>
+        </div>
+    </div>
+    
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const regionCards = document.querySelectorAll('.region-card');
+        const noResults = document.getElementById('noResults');
+        
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            let hasVisibleCards = false;
+            
+            regionCards.forEach(card => {
+                const items = card.querySelectorAll('.neighborhood-item');
+                let visibleItems = 0;
+                
+                items.forEach(item => {
+                    const searchData = item.getAttribute('data-search');
+                    if (searchData.includes(searchTerm)) {
+                        item.classList.remove('hidden');
+                        visibleItems++;
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+                
+                if (visibleItems > 0) {
+                    card.classList.remove('hidden');
+                    hasVisibleCards = true;
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+            
+            if (hasVisibleCards) {
+                noResults.classList.add('hidden');
+            } else {
+                noResults.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
