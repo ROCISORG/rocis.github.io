@@ -68,6 +68,90 @@
       transform: translateY(-2px);
       box-shadow: 0 8px 20px rgba(43, 108, 176, 0.25);
     }
+
+    /* Links to the new Outdoor Data Explorer */
+    .nav-links a.nav-new {
+      background: linear-gradient(135deg, #2b6cb0, #1a365d);
+      color: white;
+      border-color: #1a365d;
+    }
+
+    .nav-links a.nav-new:hover {
+      background: linear-gradient(135deg, #2c5aa0, #1a365d);
+      color: white;
+    }
+
+    .new-ode {
+      margin: 0 auto 2.5rem;
+      max-width: 860px;
+      padding: 2.5rem 2rem;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #ebf4ff, #e6f7f5);
+      border: 2px solid #2b6cb0;
+    }
+
+    .new-badge {
+      display: inline-block;
+      background: #d97706;
+      color: #000;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.25rem 0.9rem;
+      border-radius: 999px;
+      margin-bottom: 1rem;
+    }
+
+    .new-ode h2 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      color: #1a365d;
+      margin: 0 0 0.75rem;
+      line-height: 1.2;
+    }
+
+    .hero .new-ode p {
+      font-size: 1.25rem;
+      margin: 0 auto 2rem;
+
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.25rem;
+    }
+
+    .big-btn {
+      display: inline-block;
+      min-width: 300px;
+      padding: 1.5rem 2.75rem;
+      border-radius: 14px;
+      font-family: "Times New Roman", Times, serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .big-btn.primary {
+      background: linear-gradient(135deg, #2b6cb0, #1a365d);
+      color: white;
+      box-shadow: 0 8px 24px rgba(43, 108, 176, 0.45);
+    }
+
+    .big-btn.secondary {
+      background: white;
+      color: #2b6cb0;
+      border: 2px solid #2b6cb0;
+    }
+
+    .big-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(43, 108, 176, 0.45);
+    }
+
+    .big-btn:focus-visible, .nav-links a:focus-visible {
+      outline: 3px solid #d97706;
+      outline-offset: 3px;
+    }
     
     .container {
       max-width: 1600px;
@@ -284,6 +368,21 @@
       .explorer-info-section ul {
         padding-left: 1.5rem;
       }
+
+      .big-btn {
+        min-width: 0;
+        width: 100%;
+        font-size: 1.3rem;
+        padding: 1.2rem 1.5rem;
+      }
+
+      .new-ode {
+        padding: 1.75rem 1.25rem;
+      }
+
+      .new-ode h2 {
+        font-size: 1.6rem;
+      }
     }
   </style>
 </head>
@@ -292,6 +391,7 @@
     <div class="nav-content">
       <a class="brand" href="./">ROCIS</a>
       <div class="nav-links">
+        <a class="nav-new" href="https://rocisorg.github.io/rocis-new-ode/">New Outdoor Data Explorer</a>
         <a href="./explorer.html">Click Here - Outdoor Data Explorer</a>
       </div>
     </div>
@@ -301,6 +401,15 @@
     <div class="hero">
       <h1>ROCIS</h1>
       <p>ROCIS (Reducing Outdoor Contaminants in Indoor Spaces) is dedicated to monitoring and improving indoor air quality in the homes and workplaces where people spend their time.</p>
+      <div class="new-ode">
+        <span class="new-badge">New</span>
+        <h2>Try the new Outdoor Data Explorer</h2>
+        <p>Every cohort since 2015, easier charts, a neighborhood lookup, and guides on reading the data.</p>
+        <div class="big-buttons">
+          <a class="big-btn primary" href="https://rocisorg.github.io/rocis-new-ode/">Open the new Data Explorer</a>
+          <a class="big-btn secondary" href="./explorer.html">Use the current explorer</a>
+        </div>
+      </div>
       <a href="http://rocis.org/rocis-low-cost-monitoring-project" class="learn-more-btn" target="_blank">Learn More</a>
     </div>
 
@@ -322,9 +431,9 @@
       <ul>
         <li><strong>Hover for Details:</strong> Move your mouse over data points to see specific values and timestamps</li>
         <li><strong>Toggle Scale:</strong> Switch between linear and logarithmic scales using the buttons below the chart</li>
-        <li><strong>Zoom and Pan:</strong> Click and drag to zoom into specific areas of the chart. Use mouse wheel to zoom in/out. Hold shift and drag to pan across different time periods. <strong>Double-click on the white space inside the graph to reset to original view</strong></li>
+        <li><strong>Zoom and Pan:</strong> Click and drag to zoom into specific areas of the chart. Use mouse wheel to zoom in/out. Hold shift and drag to pan across different time periods. <stro[...]
         <li><strong>Legend Control:</strong> Click on legend items to show/hide specific data series. This allows you to focus on particular sensors or data streams</li>
-        <li><strong>Data Sampling:</strong> Choose between "All points", "Every 5th", or "Every 10th" to control how many data points are displayed. Large datasets with all points may load slowly, so using "Every 5th" or "Every 10th" speeds up visualization while maintaining the overall pattern. This only affects display speed - your complete data is always preserved and available for download.</li>
+        <li><strong>Data Sampling:</strong> Choose between "All points", "Every 5th", or "Every 10th" to control how many data points are displayed. Large datasets with all points may load slowly[...]
       </ul>
     </li>
     
